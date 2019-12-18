@@ -6,6 +6,7 @@ from time import sleep
 from engine.Manager.ConnectionManage.ConnectionManageGuacRDP import ConnectionManageGuacRDP
 from engine.Manager.PackageManage.PackageManageVBox import PackageManageVBox
 from engine.Manager.ExperimentManage.ExperimentManageVBox import ExperimentManageVBox
+from engine.Engine import Engine
 import threading
 
 if __name__ == "__main__":
