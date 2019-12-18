@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from subprocess import Popen, PIPE
 from sys import argv, platform
 import logging
@@ -9,9 +7,9 @@ from time import sleep
 
 class PackageManage:
     PACKAGE_MANAGE_COMPLETE = 0
-    PACKAGE_MANAGE_IMPORTING = 7
-    PACKAGE_MANAGE_EXPORTING = 8
-    PACKAGE_MANAGE_IDLE = 9
+    PACKAGE_MANAGE_IMPORTING = 1
+    PACKAGE_MANAGE_EXPORTING = 2
+    PACKAGE_MANAGE_IDLE = 3
     
     PACKAGE_MANAGE_UNKNOWN = 10 
    
@@ -22,7 +20,8 @@ class PackageManage:
         POSIX = True
       
     def __init__(self):
-        pass
+        self.readStatus = PackageManage.PACKAGE_MANAGE_UNKNOWN
+        self.writeStatus = PackageManage.PACKAGE_MANAGE_UNKNOWN
 
     #abstractmethod
     def importPackage(self, resfilename, runVagrantProvisionScript):
@@ -40,6 +39,7 @@ class PackageManage:
     #abstractmethod
     def decompressFileContents(self, compressedfilename, destinationdir):
         raise NotImplementedError()
-
-
     
+    #abstractmethod
+    def compressFileContents(self, dirtocompress, destinationfilename):
+        raise NotImplementedError()

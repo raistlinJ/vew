@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from subprocess import Popen, PIPE
 from sys import argv, platform
 import logging
@@ -12,9 +10,9 @@ class VMManage:
     VM_SETUP_NONE = 1
     VM_SETUP_UNKNOWN = -1
        
-    MANAGER_READING = 7
-    MANAGER_IDLE = 8
-    MANAGER_WRITING = 9
+    MANAGER_READING = 2
+    MANAGER_IDLE = 3
+    MANAGER_WRITING = 4
     
     MANAGER_UNKNOWN = 10 
    
@@ -26,6 +24,8 @@ class VMManage:
       
     def __init__(self):
         self.vms = {} #dict of VM()
+        self.readStatus = VMManage.MANAGER_UNKNOWN
+        self.writeStatus = VMManage.MANAGER_UNKNOWN
 
     #abstractmethod
     def getManagerStatus(self):
@@ -55,27 +55,25 @@ class VMManage:
     def stopVM(self, vmName):
         raise NotImplementedError()
 
-    #abstractmethod
-    def configureVM(self, VMName, srcIPAddress, dstIPAddress, srcPort, dstPort):
+#TODO:
+#    def runVMCommand(self, VMName, commandString):
+#        raise NotImplementedError()
+
+#TODO:
+#    def configureVMintnet(self, VMName, adaptorNum, adaptorName):
+#        raise NotImplementedError()
+
+    def importVM(self, filepath):
         raise NotImplementedError()
 
-
 #TODO:
-#    def configureVMintnet(self, VMName, adaptorNum, adaptorName)
+#    def exportVM(self, filepath):
 #        raise NotImplementedError()
 
 #TODO:
-#    def importVM(self, filepath)
+#    def cloneVM(self, vmName, cloneName):
 #        raise NotImplementedError()
 
 #TODO:
-#    def exportVM(self, filepath)
-#        raise NotImplementedError()
-
-#TODO:
-#    def cloneVM(self, vmName, cloneName)
-#        raise NotImplementedError()
-
-#TODO:
-#    def removeVM(self, vmName)
+#    def removeVM(self, vmName):
 #        raise NotImplementedError()

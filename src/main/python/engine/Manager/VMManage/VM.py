@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-from engine.VMManage.VMManage import VMManage
+from engine.Manager.VMManage.VMManage import VMManage
 
 class VM:
     VM_STATE_RUNNING = 2

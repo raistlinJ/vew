@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from subprocess import Popen, PIPE
 from sys import argv, platform
 import logging
@@ -7,11 +5,12 @@ import shlex
 import threading
 from time import sleep
 
-class ConnectionManager:
+class ConnectionManage:
     CONNECTION_MANAGE_COMPLETE = 0
-    CONNECTION_MANAGE_CREATING = 7
-    CONNECTION_MANAGE_REMOVING = 8
-    CONNECTION_MANAGE_IDLE = 9
+    CONNECTION_MANAGE_CREATING = 1
+    CONNECTION_MANAGE_REMOVING = 2
+    CONNECTION_MANAGE_OPENING = 3
+    CONNECTION_MANAGE_IDLE = 4
     
     CONNECTION_MANAGE_UNKNOWN = 10 
    
@@ -22,7 +21,8 @@ class ConnectionManager:
         POSIX = True
       
     def __init__(self):
-        pass
+        self.readStatus = ConnectionManage.CONNECTION_MANAGE_UNKNOWN
+        self.writeStatus = ConnectionManage.CONNECTION_MANAGE_UNKNOWN
 
     #abstractmethod
     def createConnections(self, configfilename):
@@ -33,11 +33,11 @@ class ConnectionManager:
         raise NotImplementedError()
 
     #abstractmethod
-    def viewConnections(self, configfilename, experimentNum, vmNum):
+    def openConnection(self, configfilename, experimentid, vmid):
         raise NotImplementedError()
 
     #abstractmethod
-    def getConnectionManagerStatus(self):
+    def getConnectionManageStatus(self):
         raise NotImplementedError()
 
     

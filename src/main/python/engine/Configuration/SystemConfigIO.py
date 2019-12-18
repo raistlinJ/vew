@@ -4,7 +4,7 @@ import configparser
 import os
 import logging
 
-class ConfigurationFile():
+class SystemConfigIO():
 
     def __init__(self):
         if os.path.exists("config") and os.path.exists(os.path.join("config","citconfig.ini")):
@@ -68,6 +68,6 @@ class ConfigurationFile():
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
-    logging.debug("Starting ConfigurationFile driver")
+    logging.debug("Starting SystemConfigConfigIO driver")
 
     #self.readConfig(ConfigurationFile.CONFIG_FILE)
