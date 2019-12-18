@@ -52,10 +52,16 @@ A driver program is included that will demonstrate several of the functions prov
 
 Download the Sample VMs from [here](http://bit.ly/2Pzdqnx) and save them into the following directory
 ```
-src/main/python/ExperimentData/sample/VMs
+res/src/main/python/ExperimentData/sample/VMs
+```
+Activate the virtualenv container
+```
+cd res
+venv\Scripts\activate
 ```
 Run the Engine Tests:
 ```
+cd src/main/python/
 python TestEngine.py
 ```
 
