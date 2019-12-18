@@ -1,3 +1,5 @@
 fbs
 PyQt5==5.9.2
 configparser
+xmltodict
+guacapy

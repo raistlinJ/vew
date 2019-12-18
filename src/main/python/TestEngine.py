@@ -253,8 +253,8 @@ class Engine:
             return r.func(r)
         except argparse.ArgumentError as err:
             logging.error(exc.message, '\n', err.argument)	
-        except SystemExit:
-            return
+        # except SystemExit:
+            # return
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
@@ -288,7 +288,7 @@ if __name__ == "__main__":
         res = e.execute("packager status")
     logging.debug("Package import complete.")
     
-    e.execute("packager export myexperiment1.xml myresfile.res")
+    e.execute("packager export ExperimentData/sample/Experiments/sample_configfile.xml myresfile.res")
     res = e.execute("packager status")
     while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
         sleep(1)
@@ -299,19 +299,19 @@ if __name__ == "__main__":
 ###Connection tests
     # sleep(60)#alternative, check status until packager is complete and idle
     e.execute("conns status")
-    e.execute("conns create myexperiment1.xml")
+    e.execute("conns create ExperimentData/sample/Experiments/sample_configfile.xml")
 
     # sleep(10) #alternative, check status until connection manager is complete and idle
     e.execute("conns status")
-    e.execute("conns remove myexperiment1.xml")
+    e.execute("conns remove ExperimentData/sample/Experiments/sample_configfile.xml")
     
     # sleep(10) #alternative, check status until connection manager is complete and idle
     e.execute("conns status")
-    e.execute("conns open myexperiment1.xml 1 1")
+    e.execute("conns open ExperimentData/sample/Experiments/sample_configfile.xml 1 1")
 
     #####---Create Experiment Test#####
     logging.info("Starting Experiment")
-    e.execute("experiment create myexperiment1.xml")
+    e.execute("experiment create ExperimentData/sample/Experiments/sample_configfile.xml")
     res = e.execute("experiment status")
     logging.debug("Waiting for experiment create to complete...")
     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
@@ -322,7 +322,7 @@ if __name__ == "__main__":
 
     #####---Start Experiment Test#####
     logging.info("Starting Experiment")
-    e.execute("experiment start myexperiment1.xml")
+    e.execute("experiment start ExperimentData/sample/Experiments/sample_configfile.xml")
     res = e.execute("experiment status")
     logging.debug("Waiting for experiment start to complete...")
     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
@@ -334,7 +334,7 @@ if __name__ == "__main__":
     #####---Stop Experiment Test#####
     sleep(5)
     logging.info("Stopping Experiment")
-    e.execute("experiment stop myexperiment1.xml")
+    e.execute("experiment stop ExperimentData/sample/Experiments/sample_configfile.xml")
     res = e.execute("experiment status")
     logging.debug("Waiting for experiment stop to complete...")
     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
@@ -346,7 +346,7 @@ if __name__ == "__main__":
     #####---Remove Experiment Test#####
     sleep(5)
     logging.info("Remove Experiment")
-    e.execute("experiment remove myexperiment1.xml")
+    e.execute("experiment remove ExperimentData/sample/Experiments/sample_configfile.xml")
     res = e.execute("experiment status")
     logging.debug("Waiting for experiment remove to complete...")
     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:

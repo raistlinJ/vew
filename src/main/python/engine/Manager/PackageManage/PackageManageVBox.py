@@ -1,5 +1,6 @@
 import logging
 import sys, traceback
+import threading
 from engine.Manager.PackageManage.PackageManage import PackageManage
 from engine.Manager.VMManage.VBoxManage import VBoxManage
 from engine.Manager.VMManage.VBoxManageWin import VBoxManageWin
@@ -18,6 +19,12 @@ class PackageManageVBox(PackageManage):
     #abstractmethod
     def importPackage(self, resfilename, runVagrantProvisionScript=False):
         logging.debug("importPackage(): instantiated")
+        t = threading.Thread(target=self.runImportPackage, args=(resfilename,))
+        t.start()
+        return 0
+    
+    def runImportPackage(self, resfilename, vagrantProvisionScriptfilename=None):
+        logging.debug("runImportPackage(): instantiated")
         self.writeStatus = PackageManage.PACKAGE_MANAGE_IMPORTING
         #Unzip the file contents
 
@@ -30,7 +37,13 @@ class PackageManageVBox(PackageManage):
 
     #abstractmethod
     def exportPackage(self, configfilename, exportfilename):
-        logging.debug("importPackage(): instantiated")
+        logging.debug("exportPackage(): instantiated")
+        t = threading.Thread(target=self.runImportPackage, args=(configfilename, exportfilename,))
+        t.start()
+        return 0
+
+    def runExportPackage(self, configfilename, exportfilename):
+        logging.debug("runExportPackage(): instantiated")
         self.writeStatus = PackageManage.PACKAGE_MANAGE_EXPORTING
 
         #For ova files
