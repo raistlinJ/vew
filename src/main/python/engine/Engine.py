@@ -19,22 +19,21 @@ class Engine:
             with cls.__singleton_lock:
                 if not cls.__singleton_instance:
                     cls.__singleton_instance = cls()
+                            ##These are defaults and will be based on the SystemConfigIO values, for now make assumptions
+                            #Create the ConnectionManage
+                            self.connectionManage = ConnectionManageGuacRDP()
+                            #Create the PackageManage
+                            self.packageManage = PackageManageVBox()
+                            #Create the ExperimentManage
+                            self.experimentManage = ExperimentManageVBox()        
+                            #build the parser
+                            self.buildParser()
         return cls.__singleton_instance
 
     def __init__(self):
         #Virtually private constructor
         if Engine.__singleton_instance != None:
             raise Exception("Use the getInstance method to obtain an instance of this class")
-        ##These are defaults and will be based on the SystemConfigIO values, for now make assumptions
-        #Create the ConnectionManage
-        self.connectionManage = ConnectionManageGuacRDP()
-        #Create the PackageManage
-        self.packageManage = PackageManageVBox()
-        #Create the ExperimentManage
-        self.experimentManage = ExperimentManageVBox()        
-
-        #build the parser
-        self.buildParser()
 
     def engineStatusCmd(self, args):
         logging.debug("engineStatusCmd(): instantiated")
