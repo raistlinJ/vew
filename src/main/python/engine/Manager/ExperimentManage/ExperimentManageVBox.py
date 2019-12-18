@@ -130,7 +130,7 @@ if __name__ == "__main__":
     logging.debug("Experiment start complete.")    
 
     #####---Stop Experiment Test#####
-    time.sleep(20)
+    time.sleep(30)
     logging.info("Stopping Experiment")
     e.stopExperiment("ExperimentData/sample/Experiments/sample_configfile.xml")
     logging.debug("Experiment stop complete.")    
