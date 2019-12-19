@@ -62,3 +62,13 @@ venv/bin/
 \.DS_Store
 
 venv/
+
+*.ova
+
+src/main/icons/base/
+
+src/main/icons/linux/
+
+src/main/icons/mac/
+
+.vscode/
