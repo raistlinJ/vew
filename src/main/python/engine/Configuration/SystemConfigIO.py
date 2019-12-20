@@ -7,7 +7,7 @@ import logging
 class SystemConfigIO():
 
     def __init__(self):
-        if os.path.exists("config") and os.path.exists(os.path.join("config"resconfig.ini")):
+        if os.path.exists("config") and os.path.exists(os.path.join("config","resconfig.ini")):
             self.path = "config"
             self.filename = os.path.join("config","resconfig.ini")
         else:
