@@ -17,6 +17,7 @@ from gui.Widgets.VMWidget import VMWidget
 from gui.Widgets.MaterialWidget import MaterialWidget
 from gui.Widgets.SuperMenu import SuperMenu
 from gui.Widgets.ManagerBox import ManagerBox
+from engine.Configuration.SystemConfigIO import SystemConfigIO
 
 import sys
 import logging
@@ -62,7 +63,9 @@ class MainApp(QMainWindow):
         item_0 = QtWidgets.QTreeWidgetItem(self.workshopTree)
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
         item_2 = QtWidgets.QTreeWidgetItem(item_0)
-        item_3 = QtWidgets.QTreeWidgetItem(self.workshopTree)
+        item_3 = QtWidgets.QTreeWidgetItem(item_0)
+        item_4 = QtWidgets.QTreeWidgetItem(item_0)
+        item_5 = QtWidgets.QTreeWidgetItem(self.workshopTree)
         self.hLayout_windowBox.addWidget(self.workshopTree)
         self.actionEventBox = QtWidgets.QHBoxLayout()
         self.actionEventBox.setObjectName("actionEventBox")
@@ -174,6 +177,11 @@ class MainApp(QMainWindow):
         mainLayout.addWidget(self.tabWidget)
         self.outerBox.setLayout(mainLayout)
      
+    def readConfig(self):
+        self.cf = SystemConfigIO()
+        self.vbox_path = self.cf.getConfig()['VBOX_LINUX']['VBOX_PATH']
+        self.experiment_path = self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH']
+
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         #self.initMenu()
@@ -185,9 +193,11 @@ class MainApp(QMainWindow):
         self.workshopTree.headerItem().setText(0, _translate("MainWindow", "Workshops"))
         __sortingEnabled = self.workshopTree.isSortingEnabled()
         self.workshopTree.setSortingEnabled(False)
-        self.workshopTree.topLevelItem(0).setText(0, _translate("MainWindow", "Workshop 1"))
+        self.workshopTree.topLevelItem(0).setText(0, _translate("MainWindow", "sample_configfile"))
         self.workshopTree.topLevelItem(0).child(0).setText(0, _translate("MainWindow", "M: exercise.doc"))
-        self.workshopTree.topLevelItem(0).child(1).setText(0, _translate("MainWindow", "V: Kali"))
+        self.workshopTree.topLevelItem(0).child(1).setText(0, _translate("MainWindow", "V: defaulta"))
+        self.workshopTree.topLevelItem(0).child(2).setText(0, _translate("MainWindow", "V: defaultb"))
+        self.workshopTree.topLevelItem(0).child(3).setText(0, _translate("MainWindow", "V: defaultc"))
         self.workshopTree.topLevelItem(1).setText(0, "Workshop 2")
         self.workshopTree.setSortingEnabled(__sortingEnabled)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.windowBox), _translate("MainWindow", "Configuration"))
@@ -309,8 +319,9 @@ class MainApp(QMainWindow):
         #                                  QMessageBox.Ok)            
         #             event.ignore()
         #             return
-        logging.debug("closeEvent(): returning ignore")
+        #logging.debug("closeEvent(): returning ignore")
         #event.ignore()
+        logging.debug("closeEvent(): returning accept")
         event.accept()
         qApp.quit()
         return

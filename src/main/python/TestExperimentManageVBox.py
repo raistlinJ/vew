@@ -36,7 +36,7 @@ class ExperimentManageVBox(ExperimentManage):
         self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_CREATING
         #call vmManage to make clones as specified in config file; wait and query the vmManage status, and then set the complete status
         #TODO: 
-        # jsondata = self.eco.getExperimentFileData(configfilename)
+        # jsondata = self.eco.getExperimentXMLFileData(configfilename)
         # vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         # for name in vms["vm"]: 
         #     Create clones as shown in the cit-gen create_workshop python script (preserving internal networks, etc.)   
@@ -59,7 +59,8 @@ class ExperimentManageVBox(ExperimentManage):
         logging.debug("runStartExperiment(): instantiated")
         self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_STARTING
         #call vmManage to start clones as specified in config file; wait and query the vmManage status, and then set the complete status
-        jsondata = self.eco.getExperimentFileData(configfilename)
+        jsondata = self.eco.getExperimentXMLFileData(configfilename)
+        logging.error("JSON DATA: \r\n" + json.dumps(jsondata))
         vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         for name in vms["vm"]:    
             self.vmManage.startVM("\""+name["name"]+"\"")
@@ -80,7 +81,7 @@ class ExperimentManageVBox(ExperimentManage):
         logging.debug("runStopExperiment(): instantiated")
         self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_STOPPING
         #call vmManage to stop clones as specified in config file; wait and query the vmManage status, and then set the complete status
-        jsondata = self.eco.getExperimentFileData(configfilename)
+        jsondata = self.eco.getExperimentXMLFileData(configfilename)
         vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         for name in vms["vm"]:    
             self.vmManage.stopVM("\""+name["name"]+"\"")
@@ -102,7 +103,7 @@ class ExperimentManageVBox(ExperimentManage):
         self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_REMOVING
         #call vmManage to remove clones as specified in config file; wait and query the vmManage status, and then set the complete status
         #TODO: 
-        # jsondata = self.eco.getExperimentFileData(configfilename)
+        # jsondata = self.eco.getExperimentXMLFileData(configfilename)
         # vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         # for name in vms["vm"]:  
         #     #only remove the clones, not the original vms!  
@@ -130,7 +131,7 @@ if __name__ == "__main__":
     logging.debug("Experiment start complete.")    
 
     #####---Stop Experiment Test#####
-    time.sleep(20)
+    time.sleep(30)
     logging.info("Stopping Experiment")
     e.stopExperiment("ExperimentData/sample/Experiments/sample_configfile.xml")
     logging.debug("Experiment stop complete.")    
