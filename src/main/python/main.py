@@ -18,6 +18,7 @@ from gui.Widgets.MaterialWidget import MaterialWidget
 from gui.Widgets.SuperMenu import SuperMenu
 from gui.Widgets.ManagerBox import ManagerBox
 from engine.Configuration.SystemConfigIO import SystemConfigIO
+from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 
 import sys
 import logging
@@ -60,19 +61,13 @@ class MainApp(QMainWindow):
         self.workshopTree.setSizePolicy(sizePolicy)
         self.workshopTree.setMaximumSize(200,521)
         self.workshopTree.setObjectName("workshopTree")
-        item_0 = QtWidgets.QTreeWidgetItem(self.workshopTree)
-        item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        item_2 = QtWidgets.QTreeWidgetItem(item_0)
-        item_3 = QtWidgets.QTreeWidgetItem(item_0)
-        item_4 = QtWidgets.QTreeWidgetItem(item_0)
-        item_5 = QtWidgets.QTreeWidgetItem(self.workshopTree)
         self.hLayout_windowBox.addWidget(self.workshopTree)
         self.actionEventBox = QtWidgets.QHBoxLayout()
         self.actionEventBox.setObjectName("actionEventBox")
         self.actionEventBox.addStretch(1)
         self.hLayout_windowBox.addLayout(self.actionEventBox)
         self.tabWidget.addTab(self.windowBox, "")
-        
+
         
         # VBox Actions Tab
         self.superMenu = SuperMenu()
@@ -109,25 +104,6 @@ class MainApp(QMainWindow):
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(self)
 
-        # Base Config Widget 
-        self.baseWidget = BaseWidget()
-        self.baseWidget_Form = QtWidgets.QWidget()
-        self.baseWidget.setupUi(self.baseWidget_Form)
-        # self.actionEventBox.addWidget(Form)
-
-        # VM Config Widget
-        self.vmWidget = VMWidget()
-        self.vmWidget_Form = QtWidgets.QWidget()
-        self.vmWidget.setupUi(self.vmWidget_Form)
-        self.vmWidget.addAdaptorButton.clicked.connect(self.addAdaptorEventHandler)
-        # self.actionEventBox.addWidget(Form)
-
-        # Material Config Widget
-        self.materialWidget = MaterialWidget()
-        self.materialWidget_Form = QtWidgets.QWidget()
-        self.materialWidget.setupUi(self.materialWidget_Form)
-        # self.actionEventBox.addWidget(Form)
-
         # Context menu for blank space
         self.blankTreeContextMenu = QtWidgets.QMenu()
        	self.addWorkshop = self.blankTreeContextMenu.addAction("New Workshop")
@@ -161,7 +137,6 @@ class MainApp(QMainWindow):
         self.itemContextMenu = QtWidgets.QMenu()
         self.removeItem = self.itemContextMenu.addAction("Remove Workshop Item")
         self.removeItem.triggered.connect(self.removeVMActionEvent)
-###############################
 
         mainLayout = QVBoxLayout()
         
@@ -177,10 +152,14 @@ class MainApp(QMainWindow):
         mainLayout.addWidget(self.tabWidget)
         self.outerBox.setLayout(mainLayout)
      
-    def readConfig(self):
+    def readSystemConfig(self):
         self.cf = SystemConfigIO()
         self.vbox_path = self.cf.getConfig()['VBOX_LINUX']['VBOX_PATH']
         self.experiment_path = self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH']
+    
+    def readExperimentConfig(self, configname):
+        self.ec = ExperimentConfigIO()
+        return self.ec.getExperimentXMLFileData(configname)
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
@@ -190,10 +169,46 @@ class MainApp(QMainWindow):
         quit.triggered.connect(self.closeEvent)
 
         self.setWindowTitle(_translate("MainWindow", "ARL South RES v0.1"))
+
+#####Create the following based on the config file
+        jsondata = self.readExperimentConfig("sample")
+
+        vms = jsondata["xml"]["testbed-setup"]["vm-set"]
+        # for name in vms["vm"]:    
+
+        item_0 = QtWidgets.QTreeWidgetItem(self.workshopTree)
+        item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        item_2 = QtWidgets.QTreeWidgetItem(item_0)
+        item_3 = QtWidgets.QTreeWidgetItem(item_0)
+        item_4 = QtWidgets.QTreeWidgetItem(item_0)
+        item_5 = QtWidgets.QTreeWidgetItem(self.workshopTree)
+
+
+        # Base Config Widget 
+        self.baseWidget = BaseWidget()
+        self.baseWidget_Form = QtWidgets.QWidget()
+        self.baseWidget.setupUi(self.baseWidget_Form)
+        # self.actionEventBox.addWidget(Form)
+
+        # VM Config Widget
+        self.vmWidget = VMWidget()
+        self.vmWidget_Form = QtWidgets.QWidget()
+        self.vmWidget.setupUi(self.vmWidget_Form)
+        self.vmWidget.addAdaptorButton.clicked.connect(self.addAdaptorEventHandler)
+        # self.actionEventBox.addWidget(Form)
+
+        # Material Config Widget
+        self.materialWidget = MaterialWidget()
+        self.materialWidget_Form = QtWidgets.QWidget()
+        self.materialWidget.setupUi(self.materialWidget_Form)
+        # self.actionEventBox.addWidget(Form)
+
+###############################
+
         self.workshopTree.headerItem().setText(0, _translate("MainWindow", "Workshops"))
         __sortingEnabled = self.workshopTree.isSortingEnabled()
         self.workshopTree.setSortingEnabled(False)
-        self.workshopTree.topLevelItem(0).setText(0, _translate("MainWindow", "sample_configfile"))
+        self.workshopTree.topLevelItem(0).setText(0, _translate("MainWindow", "sample"))
         self.workshopTree.topLevelItem(0).child(0).setText(0, _translate("MainWindow", "M: exercise.doc"))
         self.workshopTree.topLevelItem(0).child(1).setText(0, _translate("MainWindow", "V: defaulta"))
         self.workshopTree.topLevelItem(0).child(2).setText(0, _translate("MainWindow", "V: defaultb"))
@@ -235,7 +250,6 @@ class MainApp(QMainWindow):
     def addAdaptorEventHandler(self):
     	networkAdaptor = self.vmWidget.addAdaptor()
     
-
     def addWorkshopActionEvent(self):
     	pass
 

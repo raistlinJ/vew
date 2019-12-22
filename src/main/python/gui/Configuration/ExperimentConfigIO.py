@@ -69,8 +69,8 @@ if __name__ == "__main__":
     logging.debug("Instantiating Experiment Config IO")
     e = ExperimentConfigIO()
     s = SystemConfigIO()
-    xmlconfigfile = os.path.join(s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample_configfile.xml")
-    jsonconfigfile = os.path.join(s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample_configfile.json")
+    xmlconfigfile = os.path.join(s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample.xml")
+    jsonconfigfile = os.path.join(s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample.json")
 ####READ/WRITE Test for XML data
     logging.info("Reading XML data")
     data = e.getExperimentXMLFileData(xmlconfigfile)
