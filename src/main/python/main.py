@@ -188,7 +188,7 @@ class MainApp(QMainWindow):
 
     ##########vm data######
         vmsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["vm"]
-        if len(vmsjsondata) > 1:
+        if isinstance(vmsjsondata, list):
             for vm in vmsjsondata:
                 vm_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
                 vmlabel = "V: " + vm["name"]
@@ -197,7 +197,7 @@ class MainApp(QMainWindow):
                 vmWidget_Form = QtWidgets.QWidget()
                 vmWidget = VMWidget(vmWidget_Form, vm)
                 #vmWidget.setupUi(vmWidget_Form, vm)
-                #vmWidget_Form.addAdaptorButton.clicked.connect(vmWidget.addAdaptor)
+                vmWidget.addAdaptorButton.clicked.connect(lambda: self.addAdaptorClickEvent((confignametmp, vmlabel)))
                 self.vmWidgets[(confignametmp, vmlabel)] = vmWidget_Form
 
         else:
@@ -207,12 +207,12 @@ class MainApp(QMainWindow):
             # VM Config Widget
             vmWidget_Form = QtWidgets.QWidget()
             vmWidget = VMWidget(vmWidget_Form, vm)
-            #vmWidget_Form.addAdaptorButton.clicked.connect(vmWidget.addAdaptor)
+            vmWidget.addAdaptorButton.clicked.connect(self.addAdaptorClickEvent)
             self.vmWidgets[(confignametmp, vmlabel)] = vmWidget_Form
 
     ##########material data######
         materialsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["material"]
-        if len(materialsjsondata) > 1:
+        if isinstance(materialsjsondata, list):
             for material in materialsjsondata["material"]:
                 material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
                 materiallabel = "M: " + material["name"]
@@ -272,6 +272,10 @@ class MainApp(QMainWindow):
     	else:
     		self.itemContextMenu.popup(self.workshopTree.mapToGlobal(position))
     
+    def addAdaptorClickEvent(self, vmWidget):
+        print("add adaptor called: " + str(vmWidget))
+        #self.vmWidgets[vmWidget].addAdaptor()
+
     def addWorkshopActionEvent(self):
     	pass
 

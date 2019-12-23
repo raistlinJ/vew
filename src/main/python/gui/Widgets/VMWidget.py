@@ -77,24 +77,27 @@ class VMWidget(object):
         
         self.retranslateUi(Form, vmjsondata)
 
-    def getAdaptorButton(self):
-        return self.addAdaptorButton
-
     def retranslateUi(self, Form, vmjsondata):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
 
         self.nameLineEdit.setText(_translate("Form", vmjsondata["name"]))
         self.vrdpEnabledComboBox.setCurrentIndex(self.vrdpEnabledComboBox.findText(vmjsondata["vrdp-enabled"]))
-        
-        ###add adaptors
 
-    def addAdaptor(self):
+        ###add adaptors
+        if "internalnet-basename" in vmjsondata:
+            if isinstance(vmjsondata["internalnet-basename"], list):
+                for adaptor in vmjsondata["internalnet-basename"]:
+                    self.addAdaptor(adaptor)
+            else:
+                self.addAdaptor(vmjsondata["internalnet-basename"])
+
+    def addAdaptor(self, adaptorname="intnet", type="intnet"):
         logging.debug("addAdaptor() instantiated")
         networkAdaptor = NetworkAdaptorWidget()
         Form = QtWidgets.QWidget()
         networkAdaptor.setupUi(Form)
-        networkAdaptor.lineEdit.setText("default_net")
+        networkAdaptor.lineEdit.setText(adaptorname)
 
         self.iNetVertBox.addWidget(Form)
         return networkAdaptor
