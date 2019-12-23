@@ -60,7 +60,6 @@ class ExperimentManageVBox(ExperimentManage):
         self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_STARTING
         #call vmManage to start clones as specified in config file; wait and query the vmManage status, and then set the complete status
         jsondata = self.eco.getExperimentXMLFileData(configfilename)
-        logging.error("JSON DATA: \r\n" + json.dumps(jsondata))
         vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         for name in vms["vm"]:    
             self.vmManage.startVM("\""+name["name"]+"\"")

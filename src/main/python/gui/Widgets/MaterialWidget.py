@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class MaterialWidget(object):
-    def setupUi(self, Form):
+    def setupUi(self, Form, materialjsondata):
         Form.setObjectName("Form")
         Form.resize(444, 387)
         self.layoutWidget = QtWidgets.QWidget(Form)
@@ -24,6 +24,7 @@ class MaterialWidget(object):
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.nameLabel = QtWidgets.QLabel(self.layoutWidget)
         self.nameLabel.setObjectName("nameLabel")
+        self.nameLabel.setText("Name:")
         self.horizontalLayout.addWidget(self.nameLabel)
         self.nameLineEdit = QtWidgets.QLineEdit(self.layoutWidget)
         self.nameLineEdit.setAcceptDrops(False)
@@ -39,23 +40,23 @@ class MaterialWidget(object):
         self.verticalLayout.addWidget(self.paddingRow2)
         self.pushButton = QtWidgets.QPushButton(self.layoutWidget)
         self.pushButton.setObjectName("pushButton")
+        self.pushButton.setText("Save Changes")
         self.verticalLayout.addWidget(self.pushButton)
 
-        self.retranslateUi(Form)
+        self.retranslateUi(Form, materialjsondata)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
-    def retranslateUi(self, Form):
+    def retranslateUi(self, Form, materialjsondata):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
-        self.nameLabel.setText(_translate("Form", "Name:"))
-        self.nameLineEdit.setText(_translate("Form", "exercise.doc"))
-        self.pushButton.setText(_translate("Form", "Save Changes"))
+
+        self.nameLineEdit.setText(_translate("Form", materialjsondata["name"]))
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     Form = QtWidgets.QWidget()
     ui = MaterialWidget()
-    ui.setupUi(Form)
+    #ui.setupUi(Form)
     Form.show()
     sys.exit(app.exec_())

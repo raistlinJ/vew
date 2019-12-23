@@ -53,9 +53,3 @@ if __name__ == "__main__":
     ui.setupUi(Form)
     Form.show()
     sys.exit(app.exec_())
-
-# Name: Max Morales
-# Undergrad: Computer Science
-# Internship: DoD
-# Future Job: DoD
-# Graduation Date: This December

@@ -9,9 +9,11 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from gui.Widgets.NetworkAdaptorWidget import NetworkAdaptorWidget
+import logging
 
 class VMWidget(object):
-    def setupUi(self, Form):
+
+    def __init__(self, Form, vmjsondata):
         Form.setObjectName("Form")
         Form.resize(444, 387) #Form.resize(472, 353)
         self.layoutWidget = QtWidgets.QWidget(Form)
@@ -24,6 +26,7 @@ class VMWidget(object):
         self.nameHorBox.setObjectName("nameHorBox")
         self.nameLabel = QtWidgets.QLabel(self.layoutWidget)
         self.nameLabel.setObjectName("nameLabel")
+        self.nameLabel.setText("Name:")
         self.nameHorBox.addWidget(self.nameLabel)
         self.nameLineEdit = QtWidgets.QLineEdit(self.layoutWidget)
         self.nameLineEdit.setAcceptDrops(False)
@@ -34,6 +37,7 @@ class VMWidget(object):
         self.vrdpEnabledHorBox = QtWidgets.QHBoxLayout()
         self.vrdpEnabledHorBox.setObjectName("vrdpEnabledHorBox")
         self.vrdpEnabledLabel = QtWidgets.QLabel(self.layoutWidget)
+        self.vrdpEnabledLabel.setText("VRDP Enabled:")
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -48,8 +52,8 @@ class VMWidget(object):
         sizePolicy.setHeightForWidth(self.vrdpEnabledComboBox.sizePolicy().hasHeightForWidth())
         self.vrdpEnabledComboBox.setSizePolicy(sizePolicy)
         self.vrdpEnabledComboBox.setObjectName("vrdpEnabledComboBox")
-        self.vrdpEnabledComboBox.addItem("")
-        self.vrdpEnabledComboBox.addItem("")
+        self.vrdpEnabledComboBox.addItem("false")
+        self.vrdpEnabledComboBox.addItem("true")
         self.vrdpEnabledHorBox.addWidget(self.vrdpEnabledComboBox)
         self.outerVertBox.addLayout(self.vrdpEnabledHorBox)
         self.iNetVertBox = QtWidgets.QVBoxLayout()
@@ -57,6 +61,8 @@ class VMWidget(object):
         self.outerVertBox.addLayout(self.iNetVertBox)
         self.addAdaptorButton = QtWidgets.QPushButton(self.layoutWidget)
         self.addAdaptorButton.setObjectName("addAdaptorButton")
+        self.addAdaptorButton.setText("Add Network Adaptor")
+        self.addAdaptorButton.clicked.connect(self.addAdaptor)
         self.outerVertBox.addWidget(self.addAdaptorButton)
         self.paddingRow1 = QtWidgets.QWidget(self.layoutWidget)
         self.paddingRow1.setObjectName("paddingRow1")
@@ -66,45 +72,38 @@ class VMWidget(object):
         # self.outerVertBox.addWidget(self.paddingRow2)
         self.saveButton = QtWidgets.QPushButton(self.layoutWidget)
         self.saveButton.setObjectName("saveButton")
+        self.saveButton.setText("Save Changes")
         self.outerVertBox.addWidget(self.saveButton)
+        
+        self.retranslateUi(Form, vmjsondata)
 
-        self.retranslateUi(Form)
-        QtCore.QMetaObject.connectSlotsByName(Form)
+    def getAdaptorButton(self):
+        return self.addAdaptorButton
 
-        self.networkadaptorWidget = NetworkAdaptorWidget()
-        Form = QtWidgets.QWidget()
-        self.networkadaptorWidget.setupUi(Form)
-        self.iNetVertBox.addWidget(Form)
-
-    def retranslateUi(self, Form):
+    def retranslateUi(self, Form, vmjsondata):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
-        self.nameLabel.setText(_translate("Form", "Name:"))
-        self.nameLineEdit.setText(_translate("Form", "Ubuntu"))
-        self.vrdpEnabledLabel.setText(_translate("Form", "VRDP Enabled:"))
-        self.vrdpEnabledComboBox.setItemText(0, _translate("Form", "False"))
-        self.vrdpEnabledComboBox.setItemText(1, _translate("Form", "True"))
-        self.addAdaptorButton.setText(_translate("Form", "Add Network Adaptor"))
-        self.saveButton.setText(_translate("Form", "Save Changes"))
+
+        self.nameLineEdit.setText(_translate("Form", vmjsondata["name"]))
+        self.vrdpEnabledComboBox.setCurrentIndex(self.vrdpEnabledComboBox.findText(vmjsondata["vrdp-enabled"]))
+        
+        ###add adaptors
 
     def addAdaptor(self):
-
+        logging.debug("addAdaptor() instantiated")
         networkAdaptor = NetworkAdaptorWidget()
         Form = QtWidgets.QWidget()
         networkAdaptor.setupUi(Form)
-
-        
-        networkAdaptor.lineEdit.setText("default__net")
+        networkAdaptor.lineEdit.setText("default_net")
 
         self.iNetVertBox.addWidget(Form)
         return networkAdaptor
-
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     Form = QtWidgets.QWidget()
     ui = VMWidget()
-    ui.setupUi(Form)
+    #ui.setupUi(Form)
     Form.show()
     sys.exit(app.exec_())
