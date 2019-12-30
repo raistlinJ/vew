@@ -1,22 +1,14 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'VMWidget.ui'
-#
-# Created by: PyQt5 UI code generator 5.13.0
-#
-# WARNING! All changes made in this file will be lost!
-
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 from gui.Widgets.NetworkAdaptorWidget import NetworkAdaptorWidget
 import logging
 
-class VMWidget(object):
+class VMWidget(QtWidgets.QWidget):
 
-    def __init__(self, Form, vmjsondata):
-        Form.setObjectName("Form")
-        Form.resize(444, 387) #Form.resize(472, 353)
-        self.layoutWidget = QtWidgets.QWidget(Form)
+    def __init__(self, parent=None, vmjsondata=None):
+        QtWidgets.QWidget.__init__(self, parent=None)
+        self.setObjectName("VMWidget")
+        self.resize(444, 387)
+        self.layoutWidget = QtWidgets.QWidget(parent)
         self.layoutWidget.setGeometry(QtCore.QRect(0, 10, 445, 510))#471, 331))
         self.layoutWidget.setObjectName("layoutWidget")
         self.outerVertBox = QtWidgets.QVBoxLayout(self.layoutWidget)
@@ -75,13 +67,12 @@ class VMWidget(object):
         self.saveButton.setText("Save Changes")
         self.outerVertBox.addWidget(self.saveButton)
         
-        self.retranslateUi(Form, vmjsondata)
+        self.setLayout(self.outerVertBox)
+        self.retranslateUi(vmjsondata)
+        #self.show()
 
-    def retranslateUi(self, Form, vmjsondata):
-        _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
-
-        self.nameLineEdit.setText(_translate("Form", vmjsondata["name"]))
+    def retranslateUi(self, vmjsondata):
+        self.nameLineEdit.setText(vmjsondata["name"])
         self.vrdpEnabledComboBox.setCurrentIndex(self.vrdpEnabledComboBox.findText(vmjsondata["vrdp-enabled"]))
 
         ###add adaptors
@@ -97,7 +88,7 @@ class VMWidget(object):
         networkAdaptor = NetworkAdaptorWidget()
         Form = QtWidgets.QWidget()
         networkAdaptor.setupUi(Form)
-        networkAdaptor.lineEdit.setText(adaptorname)
+        networkAdaptor.lineEdit.setText("intnet")
 
         self.iNetVertBox.addWidget(Form)
         return networkAdaptor

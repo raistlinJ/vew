@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (QApplication, qApp, QAction, QCheckBox, QComboBox, 
         QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QMessageBox, QTableWidget, QTabWidget, QTextEdit,
-        QVBoxLayout, QWidget)
+        QVBoxLayout, QWidget, QStackedWidget)
 
 from engine.Engine import Engine
 from time import sleep
@@ -33,23 +33,24 @@ if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
 class MainApp(QMainWindow):
     def __init__(self, parent=None):
         super(MainApp, self).__init__(parent)
-        
-###############################
-        self.centralwidget = QtWidgets.QWidget(self)
-        self.centralwidget.setObjectName("centralwidget")
-        self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
+        self.baseWidgets = {}
+        self.vmWidgets = {}
+        self.materialWidgets = {}
+
+        self.tabWidget = QtWidgets.QTabWidget()
         self.tabWidget.setGeometry(QtCore.QRect(0, 15, 668, 565))
         self.tabWidget.setObjectName("tabWidget")
+
+        # Configuration Window (windowBox) with
+        ## windowBoxHLayout with
+        ###treeWidget (Left)
+        ###basedataBoxHLayout (Right)
         self.windowBox = QtWidgets.QWidget()
         self.windowBox.setObjectName("windowBox")
-        self.horizontalLayoutWidget = QtWidgets.QWidget(self.windowBox)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(0, -1, 658, 521))
-        self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
-        self.hLayout_windowBox = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
-        self.hLayout_windowBox.setContentsMargins(0, 0, 0, 0)
-        self.hLayout_windowBox.setObjectName("hLayout_windowBox")
-
-        self.workshopTree = QtWidgets.QTreeWidget(self.horizontalLayoutWidget)
+        self.windowBoxHLayout = QtWidgets.QHBoxLayout(self.windowBox)
+        self.windowBoxHLayout.setContentsMargins(0, 0, 0, 0)
+        self.windowBoxHLayout.setObjectName("windowBoxHLayout")
+        self.workshopTree = QtWidgets.QTreeWidget(self.windowBox)
         self.workshopTree.itemClicked.connect(self.onItemSelected)
         self.workshopTree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.workshopTree.customContextMenuRequested.connect(self.showContextMenu)
@@ -61,27 +62,25 @@ class MainApp(QMainWindow):
         self.workshopTree.setSizePolicy(sizePolicy)
         self.workshopTree.setMaximumSize(200,521)
         self.workshopTree.setObjectName("workshopTree")
-        self.hLayout_windowBox.addWidget(self.workshopTree)
-        self.actionEventBox = QtWidgets.QHBoxLayout()
-        self.actionEventBox.setObjectName("actionEventBox")
-        self.actionEventBox.addStretch(1)
-        self.hLayout_windowBox.addLayout(self.actionEventBox)
+        self.workshopTree.headerItem().setText(0, "Workshops")
+        self.workshopTree.setSortingEnabled(False)
+        self.windowBoxHLayout.addWidget(self.workshopTree)
+        
+        self.basedataStackedWidget = QStackedWidget(self)
+        self.basedataStackedWidget.setObjectName("basedataStackedWidget")
+        self.windowBoxHLayout.addWidget(self.basedataStackedWidget)
+        #self.basedataBoxHLayout = QtWidgets.QHBoxLayout()
+        #self.basedataBoxHLayout.setObjectName("basedataBoxHLayout")
+        #self.basedataBoxHLayout.addStretch(1)
+        #self.windowBoxHLayout.addLayout(self.basedataBoxHLayout)
         self.tabWidget.addTab(self.windowBox, "Configuration")
-
-        self.baseWidgets = {}
-        self.vmWidgets = {}
-        self.materialWidgets = {}
 
         # VBox Actions Tab
         self.superMenu = SuperMenu()
         self.superMenu_Form = QtWidgets.QWidget()
         self.superMenu.setupUi(self.superMenu_Form)
         self.superMenu_Form.setObjectName("superMenu")
-        self.tabWidget.addTab(self.superMenu_Form, "VBox Actions")
-        # self.superMenu = QtWidgets.QWidget()
-        # self.superMenu.setObjectName("superMenu")
-        # self.tabWidget.addTab(self.superMenu, "")
-        
+        self.tabWidget.addTab(self.superMenu_Form, "VBox Actions")      
 
         # Frontend tab
         self.managerBox = ManagerBox()
@@ -89,10 +88,7 @@ class MainApp(QMainWindow):
         self.managerBox.setupUi(self.managerBox_Form)
         self.superMenu_Form.setObjectName("managerBox")
         #self.tabWidget.addTab(self.managerBox_Form, "Frontend")
-        # self.managerBox = QtWidgets.QWidget()
-        # self.managerBox.setObjectName("managerBox")
 
-        # MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(self)
         self.statusbar.setObjectName("statusbar")
         # MainWindow.setStatusBar(self.statusbar)
@@ -103,9 +99,8 @@ class MainApp(QMainWindow):
 
         self.retranslateUi()
         self.tabWidget.setCurrentIndex(0)
-        QtCore.QMetaObject.connectSlotsByName(self)
 
-        # Context menu for blank space
+    # Context menu for blank space
         self.blankTreeContextMenu = QtWidgets.QMenu()
        	self.addWorkshop = self.blankTreeContextMenu.addAction("New Workshop")
        	self.addWorkshop.triggered.connect(self.addWorkshopActionEvent)
@@ -114,7 +109,7 @@ class MainApp(QMainWindow):
         self.downloadFromRepo = self.blankTreeContextMenu.addAction("Download Workshop From Repo")
         self.downloadFromRepo.triggered.connect(self.download)
 
-        # Workshop context menu
+    # Workshop context menu
         self.workshopContextMenu = QtWidgets.QMenu()
         self.addVM = self.workshopContextMenu.addAction("Add VM")
         self.addVM.triggered.connect(self.addVMActionEvent)
@@ -134,25 +129,18 @@ class MainApp(QMainWindow):
         self.exportWorkshop = self.workshopContextMenu.addAction("Export Workshop")
         self.exportWorkshop.triggered.connect(self.exportWorkshopActionEvent)
 
-       	# VM/Material context menu
+    # VM/Material context menu
         self.itemContextMenu = QtWidgets.QMenu()
         self.removeItem = self.itemContextMenu.addAction("Remove Workshop Item")
         self.removeItem.triggered.connect(self.removeVMActionEvent)
 
         mainLayout = QVBoxLayout()
-        
-        #mainLayout.setVerticalSpacing(0)
-        # self.vmManageBox = VMManageBox(self)
-        # self.connectionBox = ConnectionBox(self, self.vmManageBox)
-        
+        mainLayout.addWidget(self.tabWidget)
+
         self.outerBox = QWidget()
+        self.outerBox.setLayout(mainLayout)
         self.setCentralWidget(self.outerBox)
         
-        # mainLayout.addWidget(self.connectionBox)
-        # mainLayout.addWidget(self.vmManageBox)
-        mainLayout.addWidget(self.tabWidget)
-        self.outerBox.setLayout(mainLayout)
-     
     def readSystemConfig(self):
         self.cf = SystemConfigIO()
         self.vbox_path = self.cf.getConfig()['VBOX_LINUX']['VBOX_PATH']
@@ -163,13 +151,12 @@ class MainApp(QMainWindow):
         return self.ec.getExperimentXMLFileData(configname)
 
     def retranslateUi(self):
-        _translate = QtCore.QCoreApplication.translate
-        #self.initMenu()
+
         self.setFixedSize(670,565)
         quit = QAction("Quit", self)
         quit.triggered.connect(self.closeEvent)
 
-        self.setWindowTitle(_translate("MainWindow", "ARL South RES v0.1"))
+        self.setWindowTitle("ARL South RES v0.1")
 
 #####Create the following based on the config file
         confignametmp = "sample"
@@ -194,21 +181,19 @@ class MainApp(QMainWindow):
                 vmlabel = "V: " + vm["name"]
                 vm_item.setText(0,vmlabel)
                 # VM Config Widget
-                vmWidget_Form = QtWidgets.QWidget()
-                vmWidget = VMWidget(vmWidget_Form, vm)
-                #vmWidget.setupUi(vmWidget_Form, vm)
-                vmWidget.addAdaptorButton.clicked.connect(lambda: self.addAdaptorClickEvent((confignametmp, vmlabel)))
-                self.vmWidgets[(confignametmp, vmlabel)] = vmWidget_Form
-
+                vmWidget = VMWidget(self, vm)
+#                vmWidget.addAdaptorButton.clicked.connect(lambda: self.addAdaptorClickEvent((confignametmp, vmlabel)))
+                self.vmWidgets[(confignametmp, vmlabel)] = vmWidget
+                self.basedataStackedWidget.addWidget(vmWidget)
         else:
             vm_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
             vmlabel = "V: " + vmsjsondata["name"]
             vm_item.setText(0,vmlabel)
             # VM Config Widget
-            vmWidget_Form = QtWidgets.QWidget()
-            vmWidget = VMWidget(vmWidget_Form, vm)
-            vmWidget.addAdaptorButton.clicked.connect(self.addAdaptorClickEvent)
-            self.vmWidgets[(confignametmp, vmlabel)] = vmWidget_Form
+            vmWidget = VMWidget(self, vm)
+ #           vmWidget.addAdaptorButton.clicked.connect(self.addAdaptorClickEvent)
+            self.vmWidgets[(confignametmp, vmlabel)] = vmWidget
+            self.basedataStackedWidget.addWidget(vmWidget)
 
     ##########material data######
         materialsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["material"]
@@ -222,6 +207,7 @@ class MainApp(QMainWindow):
                 materialWidget_Form = QtWidgets.QWidget()
                 materialWidget.setupUi(materialWidget_Form, material)
                 self.materialWidgets[(confignametmp, materiallabel)] = materialWidget_Form
+                self.basedataStackedWidget.addWidget(materialWidget_Form)
         else:
             material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
             materiallabel = "M: " + materialsjsondata["name"]
@@ -231,22 +217,18 @@ class MainApp(QMainWindow):
             materialWidget_Form = QtWidgets.QWidget()
             materialWidget.setupUi(materialWidget_Form, materialsjsondata)
             self.materialWidgets[(confignametmp, materiallabel)] = materialWidget_Form
+            self.basedataStackedWidget.addWidget(materialWidget_Form)
 
 ###############################
 
-        self.workshopTree.headerItem().setText(0, _translate("MainWindow", "Workshops"))
-        __sortingEnabled = self.workshopTree.isSortingEnabled()
-        self.workshopTree.setSortingEnabled(False)
-        self.workshopTree.setSortingEnabled(__sortingEnabled)
-
     def onItemSelected(self):
         # Removes widget on the right side
-        rightPaneItem = self.actionEventBox.itemAt(0)
-        self.actionEventBox.removeItem(rightPaneItem)
+        #rightPaneItem = self.basedataBoxHLayout.itemAt(0)
+        #self.basedataBoxHLayout.removeItem(rightPaneItem)
 
         # Set parent to none, if the removed widget wasn't a spacer item 
-        if(not isinstance(rightPaneItem, QtWidgets.QSpacerItem)):
-            rightPaneItem.widget().setParent(None)
+        #if(not isinstance(rightPaneItem, QtWidgets.QSpacerItem)):
+        #    rightPaneItem.widget().setParent(None)
 
     	# Places the widget on the right 
         selectedItem = self.workshopTree.currentItem()
@@ -254,14 +236,21 @@ class MainApp(QMainWindow):
         parentSelectedItem = selectedItem.parent()
         if(parentSelectedItem == None):
             self.baseWidget.baseGroupNameLineEdit.setText(selectedItem.text(0))
-            self.actionEventBox.addWidget(self.baseWidgets[selectedItem.text(0)])
+            #self.basedataBoxHLayout.addWidget(self.baseWidgets[selectedItem.text(0)])
+            self.basedataStackedWidget.setCurrentWidget(self.baseWidgets[selectedItem.text(0)])
         else:
             #Check if it's the case that a VM Name was selected
             if(selectedItem.text(0)[0] == "V"):
-                self.actionEventBox.addWidget(self.vmWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
+                print("Setting right widget: " + str(self.vmWidgets[(parentSelectedItem.text(0), selectedItem.text(0))]))
+                #self.basedataBoxHLayout.addWidget(self.vmWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
+                #TODO: here change to select the stacked widget
+                #self.basedataBoxHLayout.addWidget(self.vmWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
+                self.basedataStackedWidget.setCurrentWidget(self.vmWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
             #Check if it's the case that a Material Name was selected
             elif(selectedItem.text(0)[0] == "M"):
-                self.actionEventBox.addWidget(self.materialWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
+                #self.basedataBoxHLayout.addWidget(self.materialWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
+                print("Setting right widget: " + str(self.materialWidgets[(parentSelectedItem.text(0), selectedItem.text(0))]))
+                self.basedataStackedWidget.setCurrentWidget(self.materialWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
 
     def showContextMenu(self, position):
     	
