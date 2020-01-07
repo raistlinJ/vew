@@ -37,12 +37,17 @@ class MainApp(QMainWindow):
         self.vmWidgets = {}
         self.materialWidgets = {}
 
+        self.setFixedSize(670,565)
+        quit = QAction("Quit", self)
+        quit.triggered.connect(self.closeEvent)
+        self.setWindowTitle("ARL South RES v0.1")
+
         self.tabWidget = QtWidgets.QTabWidget()
         self.tabWidget.setGeometry(QtCore.QRect(0, 15, 668, 565))
         self.tabWidget.setObjectName("tabWidget")
 
-        # Configuration Window (windowBox) with
-        ## windowBoxHLayout with
+        # Configuration Window (windowBox) contains:
+        ## windowBoxHLayout contains:
         ###treeWidget (Left)
         ###basedataBoxHLayout (Right)
         self.windowBox = QtWidgets.QWidget()
@@ -69,10 +74,6 @@ class MainApp(QMainWindow):
         self.basedataStackedWidget = QStackedWidget(self)
         self.basedataStackedWidget.setObjectName("basedataStackedWidget")
         self.windowBoxHLayout.addWidget(self.basedataStackedWidget)
-        #self.basedataBoxHLayout = QtWidgets.QHBoxLayout()
-        #self.basedataBoxHLayout.setObjectName("basedataBoxHLayout")
-        #self.basedataBoxHLayout.addStretch(1)
-        #self.windowBoxHLayout.addLayout(self.basedataBoxHLayout)
         self.tabWidget.addTab(self.windowBox, "Configuration")
 
         # VBox Actions Tab
@@ -91,11 +92,10 @@ class MainApp(QMainWindow):
 
         self.statusbar = QtWidgets.QStatusBar(self)
         self.statusbar.setObjectName("statusbar")
-        # MainWindow.setStatusBar(self.statusbar)
+
         self.menubar = QtWidgets.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 768, 22))
         self.menubar.setObjectName("menubar")
-        # MainWindow.setMenuBar(self.menubar)
 
         self.retranslateUi()
         self.tabWidget.setCurrentIndex(0)
@@ -106,8 +106,6 @@ class MainApp(QMainWindow):
        	self.addWorkshop.triggered.connect(self.addWorkshopActionEvent)
         self.importWorkshop = self.blankTreeContextMenu.addAction("Import Workshop from EBX archive")
         self.importWorkshop.triggered.connect(self.importActionEvent)
-        self.downloadFromRepo = self.blankTreeContextMenu.addAction("Download Workshop From Repo")
-        self.downloadFromRepo.triggered.connect(self.download)
 
     # Workshop context menu
         self.workshopContextMenu = QtWidgets.QMenu()
@@ -152,12 +150,6 @@ class MainApp(QMainWindow):
 
     def retranslateUi(self):
 
-        self.setFixedSize(670,565)
-        quit = QAction("Quit", self)
-        quit.triggered.connect(self.closeEvent)
-
-        self.setWindowTitle("ARL South RES v0.1")
-
 #####Create the following based on the config file
         confignametmp = "sample"
         configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.workshopTree)
@@ -168,10 +160,9 @@ class MainApp(QMainWindow):
     ##########testbed-setup data######
         basejsondata = jsondata["xml"]
         # Base Config Widget 
-        self.baseWidget = BaseWidget()
-        self.baseWidget_Form = QtWidgets.QWidget()
-        self.baseWidget.setupUi(self.baseWidget_Form, basejsondata)
-        self.baseWidgets[(confignametmp)] = self.baseWidget_Form
+        self.baseWidget = BaseWidget(self, basejsondata)
+        self.baseWidgets[(confignametmp)] = self.baseWidget
+        self.basedataStackedWidget.addWidget(self.baseWidget)
 
     ##########vm data######
         vmsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["vm"]
@@ -182,7 +173,6 @@ class MainApp(QMainWindow):
                 vm_item.setText(0,vmlabel)
                 # VM Config Widget
                 vmWidget = VMWidget(self, vm)
-#                vmWidget.addAdaptorButton.clicked.connect(lambda: self.addAdaptorClickEvent((confignametmp, vmlabel)))
                 self.vmWidgets[(confignametmp, vmlabel)] = vmWidget
                 self.basedataStackedWidget.addWidget(vmWidget)
         else:
@@ -191,7 +181,6 @@ class MainApp(QMainWindow):
             vm_item.setText(0,vmlabel)
             # VM Config Widget
             vmWidget = VMWidget(self, vm)
- #           vmWidget.addAdaptorButton.clicked.connect(self.addAdaptorClickEvent)
             self.vmWidgets[(confignametmp, vmlabel)] = vmWidget
             self.basedataStackedWidget.addWidget(vmWidget)
 
@@ -203,52 +192,36 @@ class MainApp(QMainWindow):
                 materiallabel = "M: " + material["name"]
                 material_item.setText(0,materiallabel)
                 # Material Config Widget
-                materialWidget = MaterialWidget()
-                materialWidget_Form = QtWidgets.QWidget()
-                materialWidget.setupUi(materialWidget_Form, material)
-                self.materialWidgets[(confignametmp, materiallabel)] = materialWidget_Form
-                self.basedataStackedWidget.addWidget(materialWidget_Form)
+                materialWidget = MaterialWidget(self, material)
+                self.materialWidgets[(confignametmp, materiallabel)] = materialWidget
+                self.basedataStackedWidget.addWidget(materialWidget)
         else:
             material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
             materiallabel = "M: " + materialsjsondata["name"]
             material_item.setText(0,materiallabel)
             # Material Config Widget
-            materialWidget = MaterialWidget()
-            materialWidget_Form = QtWidgets.QWidget()
-            materialWidget.setupUi(materialWidget_Form, materialsjsondata)
-            self.materialWidgets[(confignametmp, materiallabel)] = materialWidget_Form
-            self.basedataStackedWidget.addWidget(materialWidget_Form)
+            materialWidget = MaterialWidget(self, materialsjsondata)
+            self.materialWidgets[(confignametmp, materiallabel)] = materialWidget
+            self.basedataStackedWidget.addWidget(materialWidget)
 
 ###############################
 
     def onItemSelected(self):
-        # Removes widget on the right side
-        #rightPaneItem = self.basedataBoxHLayout.itemAt(0)
-        #self.basedataBoxHLayout.removeItem(rightPaneItem)
-
-        # Set parent to none, if the removed widget wasn't a spacer item 
-        #if(not isinstance(rightPaneItem, QtWidgets.QSpacerItem)):
-        #    rightPaneItem.widget().setParent(None)
-
     	# Places the widget on the right 
         selectedItem = self.workshopTree.currentItem()
         #Check if it's the case that an experiment name was selected
         parentSelectedItem = selectedItem.parent()
         if(parentSelectedItem == None):
+            #A base widget was selected
             self.baseWidget.baseGroupNameLineEdit.setText(selectedItem.text(0))
-            #self.basedataBoxHLayout.addWidget(self.baseWidgets[selectedItem.text(0)])
             self.basedataStackedWidget.setCurrentWidget(self.baseWidgets[selectedItem.text(0)])
         else:
             #Check if it's the case that a VM Name was selected
             if(selectedItem.text(0)[0] == "V"):
                 print("Setting right widget: " + str(self.vmWidgets[(parentSelectedItem.text(0), selectedItem.text(0))]))
-                #self.basedataBoxHLayout.addWidget(self.vmWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
-                #TODO: here change to select the stacked widget
-                #self.basedataBoxHLayout.addWidget(self.vmWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
                 self.basedataStackedWidget.setCurrentWidget(self.vmWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
             #Check if it's the case that a Material Name was selected
             elif(selectedItem.text(0)[0] == "M"):
-                #self.basedataBoxHLayout.addWidget(self.materialWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
                 print("Setting right widget: " + str(self.materialWidgets[(parentSelectedItem.text(0), selectedItem.text(0))]))
                 self.basedataStackedWidget.setCurrentWidget(self.materialWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
 
@@ -261,10 +234,6 @@ class MainApp(QMainWindow):
     	else:
     		self.itemContextMenu.popup(self.workshopTree.mapToGlobal(position))
     
-    def addAdaptorClickEvent(self, vmWidget):
-        print("add adaptor called: " + str(vmWidget))
-        #self.vmWidgets[vmWidget].addAdaptor()
-
     def addWorkshopActionEvent(self):
     	pass
 

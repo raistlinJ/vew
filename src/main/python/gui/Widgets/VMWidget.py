@@ -9,7 +9,7 @@ class VMWidget(QtWidgets.QWidget):
         self.setObjectName("VMWidget")
         self.resize(444, 387)
         self.layoutWidget = QtWidgets.QWidget(parent)
-        self.layoutWidget.setGeometry(QtCore.QRect(0, 10, 445, 510))#471, 331))
+        self.layoutWidget.setGeometry(QtCore.QRect(0, 10, 445, 510))
         self.layoutWidget.setObjectName("layoutWidget")
         self.outerVertBox = QtWidgets.QVBoxLayout(self.layoutWidget)
         self.outerVertBox.setContentsMargins(0, 0, 0, 0)
@@ -48,20 +48,17 @@ class VMWidget(QtWidgets.QWidget):
         self.vrdpEnabledComboBox.addItem("true")
         self.vrdpEnabledHorBox.addWidget(self.vrdpEnabledComboBox)
         self.outerVertBox.addLayout(self.vrdpEnabledHorBox)
+
         self.iNetVertBox = QtWidgets.QVBoxLayout()
         self.iNetVertBox.setObjectName("iNetVertBox")
         self.outerVertBox.addLayout(self.iNetVertBox)
+        
         self.addAdaptorButton = QtWidgets.QPushButton(self.layoutWidget)
         self.addAdaptorButton.setObjectName("addAdaptorButton")
         self.addAdaptorButton.setText("Add Network Adaptor")
         self.addAdaptorButton.clicked.connect(self.addAdaptor)
         self.outerVertBox.addWidget(self.addAdaptorButton)
-        self.paddingRow1 = QtWidgets.QWidget(self.layoutWidget)
-        self.paddingRow1.setObjectName("paddingRow1")
-        # self.outerVertBox.addWidget(self.paddingRow1)
-        self.paddingRow2 = QtWidgets.QWidget(self.layoutWidget)
-        self.paddingRow2.setObjectName("paddingRow2")
-        # self.outerVertBox.addWidget(self.paddingRow2)
+
         self.saveButton = QtWidgets.QPushButton(self.layoutWidget)
         self.saveButton.setObjectName("saveButton")
         self.saveButton.setText("Save Changes")
@@ -69,7 +66,6 @@ class VMWidget(QtWidgets.QWidget):
         
         self.setLayout(self.outerVertBox)
         self.retranslateUi(vmjsondata)
-        #self.show()
 
     def retranslateUi(self, vmjsondata):
         self.nameLineEdit.setText(vmjsondata["name"])
@@ -96,8 +92,6 @@ class VMWidget(QtWidgets.QWidget):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    Form = QtWidgets.QWidget()
     ui = VMWidget()
-    #ui.setupUi(Form)
-    Form.show()
+    ui.show()
     sys.exit(app.exec_())

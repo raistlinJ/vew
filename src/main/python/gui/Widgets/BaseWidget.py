@@ -1,20 +1,13 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'BaseWidget.ui'
-#
-# Created by: PyQt5 UI code generator 5.13.0
-#
-# WARNING! All changes made in this file will be lost!
-
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 import logging
 
-class BaseWidget(object):
-    def setupUi(self, Form, basejsondata):
-        Form.setObjectName("Form")
-        Form.resize(444, 387)
-        self.layoutWidget = QtWidgets.QWidget(Form)
+class BaseWidget(QtWidgets.QWidget):
+    def __init__(self, parent=None, basejsondata=None):
+        QtWidgets.QWidget.__init__(self, parent=None)
+
+        self.setObjectName("BaseWidget")
+        self.resize(444, 387)
+        self.layoutWidget = QtWidgets.QWidget(parent)
         self.layoutWidget.setGeometry(QtCore.QRect(0, 10, 445, 372))
         self.layoutWidget.setObjectName("layoutWidget")
         self.outerVertBox = QtWidgets.QVBoxLayout(self.layoutWidget)
@@ -137,12 +130,12 @@ class BaseWidget(object):
         self.saveButton.setText("Save Changes")
         self.outerVertBox.addWidget(self.saveButton)
 
-        self.retranslateUi(Form, basejsondata)
-        QtCore.QMetaObject.connectSlotsByName(Form)
+        self.setLayout(self.outerVertBox)
+        self.retranslateUi(basejsondata)
 
-    def retranslateUi(self, Form, basejsondata):
+    def retranslateUi(self, basejsondata):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        self.setWindowTitle("BaseWidget")
 
         ###Fill in data from json
         self.vBoxMangeLineEdit.setText(basejsondata["vbox-setup"]["path-to-vboxmanage"])
@@ -164,8 +157,6 @@ class BaseWidget(object):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    Form = QtWidgets.QWidget()
     ui = BaseWidget()
-    ui.setupUi(Form)
-    Form.show()
+    ui.show()
     sys.exit(app.exec_())

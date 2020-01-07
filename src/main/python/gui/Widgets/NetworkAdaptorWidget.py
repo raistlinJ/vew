@@ -1,12 +1,3 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'NetworkAdaptorWidget.ui'
-#
-# Created by: PyQt5 UI code generator 5.13.0
-#
-# WARNING! All changes made in this file will be lost!
-
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
@@ -20,12 +11,16 @@ class NetworkAdaptorWidget(object):
         self.NetworkAdaptorWidget = QtWidgets.QHBoxLayout(self.layoutWidget)
         self.NetworkAdaptorWidget.setContentsMargins(0, 0, 0, 0)
         self.NetworkAdaptorWidget.setObjectName("NetworkAdaptorWidget")
-        self.internalnetButton = QtWidgets.QRadioButton(self.layoutWidget)
-        self.internalnetButton.setObjectName("internalnetButton")
-        self.NetworkAdaptorWidget.addWidget(self.internalnetButton)
-        self.udpTunnelButton = QtWidgets.QRadioButton(self.layoutWidget)
-        self.udpTunnelButton.setObjectName("udpTunnelButton")
-        self.NetworkAdaptorWidget.addWidget(self.udpTunnelButton)
+        # self.internalnetButton = QtWidgets.QRadioButton(self.layoutWidget)
+        # self.internalnetButton.setObjectName("internalnetButton")
+
+        self.internalnetLabel = QtWidgets.QLabel(self.layoutWidget)
+        self.internalnetLabel.setObjectName("internalnetButton")
+
+        self.NetworkAdaptorWidget.addWidget(self.internalnetLabel)
+        # self.udpTunnelButton = QtWidgets.QRadioButton(self.layoutWidget)
+        # self.udpTunnelButton.setObjectName("udpTunnelButton")
+        # self.NetworkAdaptorWidget.addWidget(self.udpTunnelButton)
         self.lineEdit = QtWidgets.QLineEdit(self.layoutWidget)
         self.lineEdit.setObjectName("lineEdit")
         self.NetworkAdaptorWidget.addWidget(self.lineEdit)
@@ -40,8 +35,9 @@ class NetworkAdaptorWidget(object):
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
-        self.internalnetButton.setText(_translate("Form", "Internalnet"))
-        self.udpTunnelButton.setText(_translate("Form", "UDPTunnel"))
+        self.internalnetLabel.setText(_translate("Form", "Network Adaptor Basename"))
+        # self.internalnetButton.setText(_translate("Form", "Internalnet"))
+        # self.udpTunnelButton.setText(_translate("Form", "UDPTunnel"))
         self.lineEdit.setText(_translate("Form", "intnet"))
         self.removeInetButton.setText(_translate("Form", "X"))
 
