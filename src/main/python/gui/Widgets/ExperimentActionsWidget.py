@@ -1,27 +1,25 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'SuperMenu.ui'
-#
-# Created by: PyQt5 UI code generator 5.13.0
-#
-# WARNING! All changes made in this file will be lost!
-
-
 from PyQt5 import QtCore, QtGui, QtWidgets
+import logging
 
+class ExperimentActionsWidget(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        logging.debug("ExperimentActionsWidget instantiated")
+        QtWidgets.QWidget.__init__(self, parent=None)
 
-class SuperMenu(object):
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(336, 281)
-        self.treeWidget = QtWidgets.QTreeWidget(Form)
+        self.outerVertBox = QtWidgets.QVBoxLayout()
+        self.outerVertBox.setContentsMargins(0, 0, 0, 0)
+        self.outerVertBox.setObjectName("outerVertBox")
+
+        self.setObjectName("ExperimentActionsWidget")
+        self.resize(336, 281)
+        self.treeWidget = QtWidgets.QTreeWidget(parent)
         self.treeWidget.setGeometry(QtCore.QRect(0, 0, 660, 520))
         self.treeWidget.setObjectName("treeWidget")
         self.treeWidget.header().resizeSection(0, 150)
         self.treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.treeWidget.customContextMenuRequested.connect(self.showContextMenu)
-
         item_0 = QtWidgets.QTreeWidgetItem(self.treeWidget)
+        self.outerVertBox.addWidget(self.treeWidget)
 
         # Context menu for blank space
         self.workshopMenu = QtWidgets.QMenu()
@@ -40,22 +38,20 @@ class SuperMenu(object):
         
         self.deleteClones = self.workshopMenu.addAction("Signal - Delete Clones")
         self.deleteClones.triggered.connect(self.deleteClonesActionEvent)
+        self.setLayout(self.outerVertBox)
 
+        self.retranslateUi()
 
-        self.retranslateUi(Form)
-        QtCore.QMetaObject.connectSlotsByName(Form)
-
-
-    def retranslateUi(self, Form):
-        _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
-        self.treeWidget.headerItem().setText(0, _translate("Form", "Workshop"))
-        self.treeWidget.headerItem().setText(1, _translate("Form", "Status"))
-        __sortingEnabled = self.treeWidget.isSortingEnabled()
+    def retranslateUi(self):
+        logging.debug("ExperimentActionsWidget: retranslateUi(): instantiated")
+        self.setWindowTitle("ExperimentActionsWidget")
+        self.treeWidget.headerItem().setText(0, "Workshop")
+        self.treeWidget.headerItem().setText(1, "Status")
+        sortingEnabled = self.treeWidget.isSortingEnabled()
         self.treeWidget.setSortingEnabled(False)
-        self.treeWidget.topLevelItem(0).setText(0, _translate("Form", "Workshop 1"))
-        self.treeWidget.topLevelItem(0).setText(1, _translate("Form", "Clones Not Created"))
-        self.treeWidget.setSortingEnabled(__sortingEnabled)
+        self.treeWidget.topLevelItem(0).setText(0, "Workshop 1")
+        self.treeWidget.topLevelItem(0).setText(1, "Clones Not Created")
+        self.treeWidget.setSortingEnabled(sortingEnabled)
 
     def showContextMenu(self, position):
         self.workshopMenu.popup(self.treeWidget.mapToGlobal(position))
