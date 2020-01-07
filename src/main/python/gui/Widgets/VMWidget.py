@@ -51,18 +51,15 @@ class VMWidget(QtWidgets.QWidget):
 
         self.iNetVertBox = QtWidgets.QVBoxLayout()
         self.iNetVertBox.setObjectName("iNetVertBox")
+        self.iNetVertBox.setSpacing(0)
+        self.iNetVertBox.setContentsMargins(0,0,0,0)
         self.outerVertBox.addLayout(self.iNetVertBox)
         
         self.addAdaptorButton = QtWidgets.QPushButton(self.layoutWidget)
         self.addAdaptorButton.setObjectName("addAdaptorButton")
         self.addAdaptorButton.setText("Add Network Adaptor")
         self.addAdaptorButton.clicked.connect(self.addAdaptor)
-        self.outerVertBox.addWidget(self.addAdaptorButton)
-
-        self.saveButton = QtWidgets.QPushButton(self.layoutWidget)
-        self.saveButton.setObjectName("saveButton")
-        self.saveButton.setText("Save Changes")
-        self.outerVertBox.addWidget(self.saveButton)
+        self.outerVertBox.addWidget(self.addAdaptorButton, alignment=QtCore.Qt.AlignHCenter)
         
         self.setLayout(self.outerVertBox)
         self.retranslateUi(vmjsondata)

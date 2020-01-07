@@ -26,11 +26,6 @@ class MaterialWidget(QtWidgets.QWidget):
         self.nameHorBox.addWidget(self.nameLineEdit)
         self.outerVertBox.addLayout(self.nameHorBox)
         
-        self.saveButton = QtWidgets.QPushButton(self.layoutWidget)
-        self.saveButton.setObjectName("saveButton")
-        self.saveButton.setText("Save Changes")
-        self.outerVertBox.addWidget(self.saveButton)
-        
         self.setLayout(self.outerVertBox)
         self.retranslateUi(materialjsondata)
         

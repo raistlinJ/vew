@@ -125,10 +125,6 @@ class BaseWidget(QtWidgets.QWidget):
         self.paddingWidget3 = QtWidgets.QWidget(self.layoutWidget)
         self.paddingWidget3.setObjectName("paddingWidget3")
         self.outerVertBox.addWidget(self.paddingWidget3)
-        self.saveButton = QtWidgets.QPushButton(self.layoutWidget)
-        self.saveButton.setObjectName("saveButton")
-        self.saveButton.setText("Save Changes")
-        self.outerVertBox.addWidget(self.saveButton)
 
         self.setLayout(self.outerVertBox)
         self.retranslateUi(basejsondata)

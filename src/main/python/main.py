@@ -97,7 +97,7 @@ class MainApp(QMainWindow):
         self.menubar.setGeometry(QtCore.QRect(0, 0, 768, 22))
         self.menubar.setObjectName("menubar")
 
-        self.retranslateUi()
+        self.populateUi()
         self.tabWidget.setCurrentIndex(0)
 
     # Context menu for blank space
@@ -135,6 +135,9 @@ class MainApp(QMainWindow):
         mainLayout = QVBoxLayout()
         mainLayout.addWidget(self.tabWidget)
 
+        self.saveButton = QtWidgets.QPushButton("Save All")
+        mainLayout.addWidget(self.saveButton, alignment=QtCore.Qt.AlignRight)
+
         self.outerBox = QWidget()
         self.outerBox.setLayout(mainLayout)
         self.setCentralWidget(self.outerBox)
@@ -148,7 +151,7 @@ class MainApp(QMainWindow):
         self.ec = ExperimentConfigIO()
         return self.ec.getExperimentXMLFileData(configname)
 
-    def retranslateUi(self):
+    def populateUi(self):
 
 #####Create the following based on the config file
         confignametmp = "sample"
@@ -266,7 +269,6 @@ class MainApp(QMainWindow):
 
     def removeVMActionEvent(self):
     	pass
-
 
     def closeEvent(self, event):
         logging.debug("closeEvent(): instantiated")
