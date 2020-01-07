@@ -74,6 +74,7 @@ class ConfigureVMDialog(QDialog):
         self.setLayout(self.box_main_layout)
 
     def exec_(self):
+        logging.debug("ConfigureVMDialog: exec(): instantiated")
         result = super(ConfigureVMDialog, self).exec_()
         if str(result) == str(1):        
             logging.debug("dialog_response(): OK was pressed")
@@ -83,6 +84,7 @@ class ConfigureVMDialog(QDialog):
 
         
     def onItemSelected(self, row, column):
+        logging.debug("ConfigureVMDialog: onItemSelected(): instantiated")
         self.vmStatus = self.treeWidget.item(row,2).text()
         if "Running" in str(self.vmStatus) or "No adaptors enabled" in str(self.vmStatus):
             self.ok_button.setEnabled(False)

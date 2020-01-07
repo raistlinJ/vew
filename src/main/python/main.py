@@ -15,7 +15,7 @@ from time import sleep
 from gui.Widgets.BaseWidget import BaseWidget
 from gui.Widgets.VMWidget import VMWidget
 from gui.Widgets.MaterialWidget import MaterialWidget
-from gui.Widgets.SuperMenu import SuperMenu
+from gui.Widgets.ExperimentActionsWidget import ExperimentActionsWidget
 from gui.Widgets.ManagerBox import ManagerBox
 from engine.Configuration.SystemConfigIO import SystemConfigIO
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
@@ -32,6 +32,7 @@ if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
 
 class MainApp(QMainWindow):
     def __init__(self, parent=None):
+        logging.debug("MainApp:init() instantiated")
         super(MainApp, self).__init__(parent)
         self.baseWidgets = {}
         self.vmWidgets = {}
@@ -77,17 +78,15 @@ class MainApp(QMainWindow):
         self.tabWidget.addTab(self.windowBox, "Configuration")
 
         # VBox Actions Tab
-        self.superMenu = SuperMenu()
-        self.superMenu_Form = QtWidgets.QWidget()
-        self.superMenu.setupUi(self.superMenu_Form)
-        self.superMenu_Form.setObjectName("superMenu")
-        self.tabWidget.addTab(self.superMenu_Form, "VBox Actions")      
+        self.experimentActionsWidget = ExperimentActionsWidget()
+        self.experimentActionsWidget.setObjectName("experimentActionsWidget")
+        self.tabWidget.addTab(self.experimentActionsWidget, "Experiment Actions")      
 
         # Frontend tab
         self.managerBox = ManagerBox()
         self.managerBox_Form = QtWidgets.QWidget()
         self.managerBox.setupUi(self.managerBox_Form)
-        self.superMenu_Form.setObjectName("managerBox")
+        # self.managerBox.setObjectName("managerBox")
         #self.tabWidget.addTab(self.managerBox_Form, "Frontend")
 
         self.statusbar = QtWidgets.QStatusBar(self)
@@ -114,9 +113,6 @@ class MainApp(QMainWindow):
         self.addMaterial = self.workshopContextMenu.addAction("Add Material File")
         self.addMaterial.triggered.connect(self.addMaterialActionEvent)
         # Add line separator here
-        self.createRDP = self.workshopContextMenu.addAction("Create RDP Files")
-        self.createRDP.triggered.connect(self.createRDPActionEvent)
-        # Add line separator here
         self.createGuac = self.workshopContextMenu.addAction("Create Guacamole Users")
         self.createGuac.triggered.connect(self.createGuacActionEvent)
         self.removeGuac = self.workshopContextMenu.addAction("Remove Guacamole Users")
@@ -136,6 +132,7 @@ class MainApp(QMainWindow):
         mainLayout.addWidget(self.tabWidget)
 
         self.saveButton = QtWidgets.QPushButton("Save All")
+        self.saveButton.clicked.connect(self.saveAll)
         mainLayout.addWidget(self.saveButton, alignment=QtCore.Qt.AlignRight)
 
         self.outerBox = QWidget()
@@ -229,7 +226,7 @@ class MainApp(QMainWindow):
                 self.basedataStackedWidget.setCurrentWidget(self.materialWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
 
     def showContextMenu(self, position):
-    	
+    	logging.debug("MainApp:showContextMenu() instantiated: " + str(position))
     	if(self.workshopTree.itemAt(position) == None):
     		self.blankTreeContextMenu.popup(self.workshopTree.mapToGlobal(position))
     	elif(self.workshopTree.itemAt(position).parent() == None):
@@ -238,40 +235,37 @@ class MainApp(QMainWindow):
     		self.itemContextMenu.popup(self.workshopTree.mapToGlobal(position))
     
     def addWorkshopActionEvent(self):
-    	pass
+        logging.debug("MainApp:addWorkshopActionEvent() instantiated")
 
     def importActionEvent(self):
-    	pass
+        logging.debug("MainApp:importActionEvent() instantiated")
 
     def download(self):
-    	pass
+        logging.debug("MainApp:download() instantiated")
 
     def addVMActionEvent(self):
-    	pass
+        logging.debug("MainApp:addVMActionEvent() instantiated")
 
     def addMaterialActionEvent(self):
-    	pass
-
-    def createRDPActionEvent(self):
-    	pass
+        logging.debug("MainApp:addMaterialActionEvent() instantiated")
 
     def createGuacActionEvent(self):
-    	pass
+        logging.debug("MainApp:addMaterialActionEvent() instantiated")
 
     def removeGuacActionEvent(self):
-    	pass
+        logging.debug("MainApp:removeGuacActionEvent() instantiated")
 
     def removeWorkshopActionEvent(self):
-    	pass
-
+        logging.debug("MainApp:removeWorkshopActionEvent() instantiated")
+        
     def exportWorkshopActionEvent(self):
-    	pass
+        logging.debug("MainApp:exportWorkshopActionEvent() instantiated")
 
     def removeVMActionEvent(self):
-    	pass
+        logging.debug("MainApp:removeVMActionEvent() instantiated")
 
     def closeEvent(self, event):
-        logging.debug("closeEvent(): instantiated")
+        logging.debug("MainApp:closeEvent(): instantiated")
         e = Engine.getInstance()
         # res = e.execute("pptp status " + ConnectionBox.CONNECTION_NAME)
         # logging.debug("delete_event(): result: " + str(res))
@@ -336,6 +330,9 @@ class MainApp(QMainWindow):
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
         fileMenu.addAction(exitAct)
+
+    def saveAll(self):
+        logging.debug("Saving All")
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

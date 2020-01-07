@@ -11,7 +11,7 @@ class ExperimentConfigIO:
         pass
 
     def getExperimentXMLFileData(self, configfilename):
-        logging.debug("getExperimentXMLFileData(): instantiated")
+        logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
         try:    
             with open(configfilename) as fd:
                 jsondata = xmltodict.parse(fd.read(), process_namespaces=True)
@@ -26,7 +26,7 @@ class ExperimentConfigIO:
             return None
 
     def getExperimentJSONFileData(self, configfilename):
-        logging.debug("getExperimentJSONFileData(): instantiated")
+        logging.debug("ExperimentConfigIO: getExperimentJSONFileData(): instantiated")
         try:
             with open(configfilename) as fd:
                 jsondata = json.load(fd)
@@ -41,7 +41,7 @@ class ExperimentConfigIO:
             return None
 
     def writeExperimentXMLFileData(self, jsondata, configfilename):
-        logging.debug("writeExperimentXMLFileData(): instantiated")
+        logging.debug("ExperimentConfigIO: writeExperimentXMLFileData(): instantiated")
         try:
             with open(configfilename, 'w') as fd:
                 xmltodict.unparse(jsondata, output=fd, pretty=True)
@@ -52,7 +52,7 @@ class ExperimentConfigIO:
             return None
 
     def writeExperimentJSONFileData(self, jsondata, configfilename):
-        logging.debug("writeExperimentJSONFileData(): instantiated")
+        logging.debug("ExperimentConfigIO: writeExperimentJSONFileData(): instantiated")
         try:
             with open(configfilename, 'w') as fd:
                 json.dump(jsondata, fd, indent=4)

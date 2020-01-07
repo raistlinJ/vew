@@ -1,51 +1,49 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+import logging
 
+class NetworkAdaptorWidget(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        logging.debug("NetworkAdaptorWidget instantiated")
+        QtWidgets.QWidget.__init__(self, parent=None)
+        self.setWindowTitle("NetworkAdaptorWidget")
+        self.setObjectName("NetworkAdaptorWidget")
+        self.resize(483, 300)
 
-class NetworkAdaptorWidget(object):
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(483, 300)
-        self.layoutWidget = QtWidgets.QWidget(Form)
-        self.layoutWidget.setGeometry(QtCore.QRect(0, 0, 436, 27))
-        self.layoutWidget.setObjectName("layoutWidget")
-        self.NetworkAdaptorWidget = QtWidgets.QHBoxLayout(self.layoutWidget)
-        self.NetworkAdaptorWidget.setContentsMargins(0, 0, 0, 0)
-        self.NetworkAdaptorWidget.setObjectName("NetworkAdaptorWidget")
+        self.networkAdaptorHLayout = QtWidgets.QHBoxLayout()
+        self.networkAdaptorHLayout.setContentsMargins(0, 0, 0, 0)
+        self.networkAdaptorHLayout.setObjectName("NetworkAdaptorHLayout")
         # self.internalnetButton = QtWidgets.QRadioButton(self.layoutWidget)
         # self.internalnetButton.setObjectName("internalnetButton")
 
-        self.internalnetLabel = QtWidgets.QLabel(self.layoutWidget)
+        self.internalnetLabel = QtWidgets.QLabel()
         self.internalnetLabel.setObjectName("internalnetButton")
 
-        self.NetworkAdaptorWidget.addWidget(self.internalnetLabel)
+        self.networkAdaptorHLayout.addWidget(self.internalnetLabel)
         # self.udpTunnelButton = QtWidgets.QRadioButton(self.layoutWidget)
         # self.udpTunnelButton.setObjectName("udpTunnelButton")
-        # self.NetworkAdaptorWidget.addWidget(self.udpTunnelButton)
-        self.lineEdit = QtWidgets.QLineEdit(self.layoutWidget)
+        # self.networkAdaptorHLayout.addWidget(self.udpTunnelButton)
+        self.lineEdit = QtWidgets.QLineEdit()
         self.lineEdit.setObjectName("lineEdit")
-        self.NetworkAdaptorWidget.addWidget(self.lineEdit)
-        self.removeInetButton = QtWidgets.QPushButton(self.layoutWidget)
+        self.networkAdaptorHLayout.addWidget(self.lineEdit)
+        self.removeInetButton = QtWidgets.QPushButton()
         self.removeInetButton.setAutoFillBackground(False)
         self.removeInetButton.setObjectName("removeInetButton")
-        self.NetworkAdaptorWidget.addWidget(self.removeInetButton)
+        self.networkAdaptorHLayout.addWidget(self.removeInetButton)
+        self.setLayout(self.networkAdaptorHLayout)
 
-        self.retranslateUi(Form)
-        QtCore.QMetaObject.connectSlotsByName(Form)
+        self.retranslateUi()
 
-    def retranslateUi(self, Form):
-        _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
-        self.internalnetLabel.setText(_translate("Form", "Network Adaptor Basename"))
+    def retranslateUi(self):
+        logging.debug("NetworkAdaptorWidget: retranslateUi(): instantiated")
+        self.internalnetLabel.setText("Network Adaptor Basename")
         # self.internalnetButton.setText(_translate("Form", "Internalnet"))
         # self.udpTunnelButton.setText(_translate("Form", "UDPTunnel"))
-        self.lineEdit.setText(_translate("Form", "intnet"))
-        self.removeInetButton.setText(_translate("Form", "X"))
+        self.lineEdit.setText("intnet")
+        self.removeInetButton.setText("X")
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    Form = QtWidgets.QWidget()
-    ui = NetworkAdaptorWidget()
-    ui.setupUi(Form)
-    Form.show()
+    ui = VMWidget()
+    ui.show()
     sys.exit(app.exec_())

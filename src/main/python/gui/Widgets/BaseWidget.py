@@ -3,8 +3,10 @@ import logging
 
 class BaseWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, basejsondata=None):
+        logging.debug("BaseWidget instantiated")
         QtWidgets.QWidget.__init__(self, parent=None)
-
+        
+        self.setWindowTitle("BaseWidget")
         self.setObjectName("BaseWidget")
         self.resize(444, 387)
         self.layoutWidget = QtWidgets.QWidget(parent)
@@ -130,8 +132,7 @@ class BaseWidget(QtWidgets.QWidget):
         self.retranslateUi(basejsondata)
 
     def retranslateUi(self, basejsondata):
-        _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle("BaseWidget")
+        logging.debug("BaseWidget: retranslateUi(): instantiated")
 
         ###Fill in data from json
         self.vBoxMangeLineEdit.setText(basejsondata["vbox-setup"]["path-to-vboxmanage"])
