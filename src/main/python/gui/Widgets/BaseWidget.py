@@ -151,6 +151,24 @@ class BaseWidget(QtWidgets.QWidget):
         ###
         self.vrdpBaseportLineEdit.setText(basejsondata["testbed-setup"]["vm-set"]["vrdp-baseport"])
 
+    def getWritableData(self):
+        logging.debug("BaseWidget: getWritableData(): instantiated")
+        #build JSON from text entry fields
+        jsondata = {}
+        jsondata["vbox-setup"] = {}
+        jsondata["vbox-setup"]["path-to-vboxmanage"] = self.vBoxMangeLineEdit.text()
+        jsondata["testbed-setup"] = {}
+        jsondata["testbed-setup"]["network-config"] = {}
+        jsondata["testbed-setup"]["network-config"]["ip-address"] = self.ipAddressLineEdit.text()
+        jsondata["testbed-setup"]["vm-set"] = {}
+        jsondata["testbed-setup"]["vm-set"]["base-groupname"] = self.baseGroupNameLineEdit.text()
+        jsondata["testbed-setup"]["vm-set"]["num-clones"] = str(self.numClonesEntry.value())
+        jsondata["testbed-setup"]["vm-set"]["linked-clones"] = self.linkedClonesComboBox.currentText()
+        jsondata["testbed-setup"]["vm-set"]["clone-snapshots"] = self.cloneSnapshotComboBox.currentText()
+        jsondata["testbed-setup"]["vm-set"]["base-outname"] = self.baseOutnameLineEdit.text()
+        jsondata["testbed-setup"]["vm-set"]["vrdp-baseport"] = self.vrdpBaseportLineEdit.text()
+        return jsondata
+
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)

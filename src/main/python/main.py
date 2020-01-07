@@ -331,8 +331,37 @@ class MainApp(QMainWindow):
         fileMenu = menubar.addMenu('&File')
         fileMenu.addAction(exitAct)
 
+    def getWritableData(self):
+        logging.debug("MainApp: getWritableData() instantiated")
+        jsondata = {}
+        jsondata["xml"] = {}
+        #get baseWidget data
+        ###TODO: make this work for multiple experiments (current testing assumes only one)
+        for baseData in self.baseWidgets.values():
+            if isinstance(baseData, BaseWidget):
+                jsondata["xml"] = baseData.getWritableData()
+        print(jsondata)
+        if "testbed-setup" not in jsondata["xml"]:
+            jsondata["xml"]["testbed-setup"] = {}
+        if "vm-set" not in jsondata["xml"]["testbed-setup"]:
+            jsondata["xml"]["testbed-setup"]["vm-set"] = {}
+        if "vm" not in jsondata["xml"]["testbed-setup"]["vm-set"]:
+            jsondata["xml"]["testbed-setup"]["vm-set"]["vm"] = []
+        if "material" not in jsondata["xml"]["testbed-setup"]["vm-set"]:
+            jsondata["xml"]["testbed-setup"]["vm-set"]["material"] = []
+
+        for vmData in self.vmWidgets.values():
+            if isinstance(vmData, VMWidget):                 
+                jsondata["xml"]["testbed-setup"]["vm-set"]["vm"].append(vmData.getWritableData())
+        for materialData in self.materialWidgets.values():
+            if isinstance(materialData, MaterialWidget):                 
+                jsondata["xml"]["testbed-setup"]["vm-set"]["material"].append(materialData.getWritableData())
+        
+
     def saveAll(self):
-        logging.debug("Saving All")
+        logging.debug("MainApp: saveAll() instantiated")
+        self.getWritableData()
+        #print(json.dumps(self.getWritableData(), indent=3))
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

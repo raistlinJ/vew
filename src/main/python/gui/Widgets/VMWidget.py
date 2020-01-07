@@ -9,6 +9,8 @@ class VMWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, vmjsondata=None):
         logging.debug("VMWidget instantiated")
         QtWidgets.QWidget.__init__(self, parent=None)
+        self.netAdaptors = []
+
         self.setObjectName("VMWidget")
         self.layoutWidget = QtWidgets.QWidget(parent)
         self.layoutWidget.setObjectName("layoutWidget")
@@ -77,7 +79,21 @@ class VMWidget(QtWidgets.QWidget):
         networkAdaptor.lineEdit.setText("intnet")
 
         self.iNetVertBox.addWidget(networkAdaptor)
-        return networkAdaptor
+        self.netAdaptors.append(networkAdaptor)
+
+    def getWritableData(self):
+        logging.debug("VMWidget: getWritableData(): instantiated")
+        #build JSON from text entry fields
+        jsondata = {}
+        jsondata["name"] = {}
+        jsondata["name"] = self.nameLineEdit.text()
+        jsondata["vrdp-enabled"] = {}
+        jsondata["vrdp-enabled"] = self.vrdpEnabledComboBox.currentText()
+        jsondata["internalnet-basename"] = [] #may be many
+        for netAdaptor in self.netAdaptors:
+            if isinstance(netAdaptor, NetworkAdaptorWidget):
+                jsondata["internalnet-basename"].append(netAdaptor.lineEdit.text())
+        return jsondata
 
 if __name__ == "__main__":
     import sys

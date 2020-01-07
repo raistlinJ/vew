@@ -35,6 +35,14 @@ class MaterialWidget(QtWidgets.QWidget):
         logging.debug("MaterialWidget: retranslateUi(): instantiated")
         self.nameLineEdit.setText(materialjsondata["name"])
 
+    def getWritableData(self):
+        logging.debug("VMWidget: getWritableData(): instantiated")
+        #build JSON from text entry fields
+        jsondata = {}
+        jsondata["name"] = {}
+        jsondata["name"] = self.nameLineEdit.text()
+        return jsondata
+
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
