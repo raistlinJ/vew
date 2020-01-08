@@ -43,6 +43,7 @@ class ExperimentConfigIO:
     def writeExperimentXMLFileData(self, jsondata, configfilename):
         logging.debug("ExperimentConfigIO: writeExperimentXMLFileData(): instantiated")
         try:
+            print("DIRECTORY: " + str(configfilename))
             with open(configfilename, 'w') as fd:
                 xmltodict.unparse(jsondata, output=fd, pretty=True)
         except Exception:

@@ -23,6 +23,7 @@ from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 import sys
 import logging
 import json
+import os
 
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -37,6 +38,9 @@ class MainApp(QMainWindow):
         self.baseWidgets = {}
         self.vmWidgets = {}
         self.materialWidgets = {}
+        self.cf = SystemConfigIO()
+        self.ec = ExperimentConfigIO()
+        self.readSystemConfig()
 
         self.setFixedSize(670,565)
         quit = QAction("Quit", self)
@@ -140,22 +144,25 @@ class MainApp(QMainWindow):
         self.setCentralWidget(self.outerBox)
         
     def readSystemConfig(self):
-        self.cf = SystemConfigIO()
-        self.vbox_path = self.cf.getConfig()['VBOX_LINUX']['VBOX_PATH']
-        self.experiment_path = self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH']
+        logging.debug("MainApp:readSystemConfig() instantiated")
+        self.vboxPath = self.cf.getConfig()['VBOX_LINUX']['VBOX_PATH']
+        self.experimentPath = self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH']
     
     def readExperimentConfig(self, configname):
-        self.ec = ExperimentConfigIO()
+        logging.debug("MainApp:readExperimentConfig() instantiated")
         return self.ec.getExperimentXMLFileData(configname)
 
     def populateUi(self):
-
+        logging.debug("MainApp:populateUi() instantiated")
 #####Create the following based on the config file
         confignametmp = "sample"
+        xmlconfigfile = os.path.join(self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample.xml")
+        jsonconfigfile = os.path.join(self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample.json")
+
         configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.workshopTree)
         configTreeWidgetItem.setText(0,confignametmp)
 
-        jsondata = self.readExperimentConfig(confignametmp)      
+        jsondata = self.readExperimentConfig(xmlconfigfile)      
 
     ##########testbed-setup data######
         basejsondata = jsondata["xml"]
@@ -207,6 +214,7 @@ class MainApp(QMainWindow):
 ###############################
 
     def onItemSelected(self):
+        logging.debug("MainApp:onItemSelected instantiated")
     	# Places the widget on the right 
         selectedItem = self.workshopTree.currentItem()
         #Check if it's the case that an experiment name was selected
@@ -340,7 +348,7 @@ class MainApp(QMainWindow):
         for baseData in self.baseWidgets.values():
             if isinstance(baseData, BaseWidget):
                 jsondata["xml"] = baseData.getWritableData()
-        print(jsondata)
+        ###Setup the dictionary
         if "testbed-setup" not in jsondata["xml"]:
             jsondata["xml"]["testbed-setup"] = {}
         if "vm-set" not in jsondata["xml"]["testbed-setup"]:
@@ -354,14 +362,20 @@ class MainApp(QMainWindow):
             if isinstance(vmData, VMWidget):                 
                 jsondata["xml"]["testbed-setup"]["vm-set"]["vm"].append(vmData.getWritableData())
         for materialData in self.materialWidgets.values():
-            if isinstance(materialData, MaterialWidget):                 
+            if isinstance(materialData, MaterialWidget):
                 jsondata["xml"]["testbed-setup"]["vm-set"]["material"].append(materialData.getWritableData())
-        
+        return jsondata
 
     def saveAll(self):
         logging.debug("MainApp: saveAll() instantiated")
-        self.getWritableData()
-        #print(json.dumps(self.getWritableData(), indent=3))
+        jsondata = self.getWritableData()
+        
+        xmlconfigfile = os.path.join(self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample.xml")
+        jsonconfigfile = os.path.join(self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample.json")
+        print("!!!Path1: " + str(xmlconfigfile))
+        print("!!!Path2: " + str(jsonconfigfile))
+        self.ec.writeExperimentXMLFileData(jsondata, xmlconfigfile)
+        self.ec.writeExperimentJSONFileData(jsondata, jsonconfigfile)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

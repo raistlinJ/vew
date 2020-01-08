@@ -8,17 +8,16 @@ import os
 
 class ExperimentConfigIO:
     def __init__(self):
-        self.s = SystemConfigIO()
+        pass
 
-    def getExperimentXMLFileData(self, configname):
-        logging.debug("getExperimentXMLFileData(): instantiated")
-        try:
-            xmlconfigfile = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], configname,"Experiments",configname+".xml")
-            with open(xmlconfigfile) as fd:
+    def getExperimentXMLFileData(self, configfilename):
+        logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
+        try:    
+            with open(configfilename) as fd:
                 jsondata = xmltodict.parse(fd.read(), process_namespaces=True)
             return jsondata
         except FileNotFoundError:
-            logging.error("Error in getExperimentXMLFileData(): File not found: " + str(xmlconfigfile))
+            logging.error("Error in getExperimentXMLFileData(): File not found: " + str(configfilename))
             return None
         except Exception:
             logging.error("Error in getExperimentXMLFileData(): An error occured ")
@@ -26,15 +25,14 @@ class ExperimentConfigIO:
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             return None
 
-    def getExperimentJSONFileData(self, configname):
-        logging.debug("getExperimentJSONFileData(): instantiated")
+    def getExperimentJSONFileData(self, configfilename):
+        logging.debug("ExperimentConfigIO: getExperimentJSONFileData(): instantiated")
         try:
-            jsonconfigfile = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], configname,"Experiments",configname+".json")
-            with open(jsonconfigfile) as fd:
+            with open(configfilename) as fd:
                 jsondata = json.load(fd)
             return jsondata
         except FileNotFoundError:
-            logging.error("getExperimentJSONFileData(): File not found: " + str(jsonconfigfile))
+            logging.error("getExperimentJSONFileData(): File not found: " + str(configfilename))
             return None
         except Exception:
             logging.error("Error in getExperimentJSONFileData(): An error occured ")
@@ -42,11 +40,11 @@ class ExperimentConfigIO:
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             return None
 
-    def writeExperimentXMLFileData(self, jsondata, configname):
-        logging.debug("writeExperimentXMLFileData(): instantiated")
+    def writeExperimentXMLFileData(self, jsondata, configfilename):
+        logging.debug("ExperimentConfigIO: writeExperimentXMLFileData(): instantiated")
         try:
-            xmlconfigfile = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], configname,"Experiments",configname+".xml")
-            with open(xmlconfigfile, 'w') as fd:
+            print("DIRECTORY: " + str(configfilename))
+            with open(configfilename, 'w') as fd:
                 xmltodict.unparse(jsondata, output=fd, pretty=True)
         except Exception:
             logging.error("Error in writeExperimentXMLFileData(): An error occured ")
@@ -54,11 +52,10 @@ class ExperimentConfigIO:
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             return None
 
-    def writeExperimentJSONFileData(self, jsondata, configname):
-        logging.debug("writeExperimentJSONFileData(): instantiated")
+    def writeExperimentJSONFileData(self, jsondata, configfilename):
+        logging.debug("ExperimentConfigIO: writeExperimentJSONFileData(): instantiated")
         try:
-            jsonconfigfile = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], configname,"Experiments",configname+".json")
-            with open(jsonconfigfile, 'w') as fd:
+            with open(configfilename, 'w') as fd:
                 json.dump(jsondata, fd, indent=4)
         except Exception:
             logging.error("Error in writeExperimentJSONFileData(): An error occured ")
@@ -72,31 +69,31 @@ if __name__ == "__main__":
 
     logging.debug("Instantiating Experiment Config IO")
     e = ExperimentConfigIO()
-
-    configname = "sample"
-    
+    s = SystemConfigIO()
+    xmlconfigfile = os.path.join(s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample.xml")
+    jsonconfigfile = os.path.join(s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample.json")
 ####READ/WRITE Test for XML data
     logging.info("Reading XML data")
-    data = e.getExperimentXMLFileData(configname)
+    data = e.getExperimentXMLFileData(xmlconfigfile)
     logging.info("JSON READ:\r\n"+json.dumps(data))   
     
     logging.info("Writing XML data")
-    e.writeExperimentXMLFileData(data, configname)
+    e.writeExperimentXMLFileData(data, xmlconfigfile)
     
     logging.info("Reading XML data")
-    data = e.getExperimentXMLFileData(configname)
+    data = e.getExperimentXMLFileData(xmlconfigfile)
     logging.info("JSON READ:\r\n"+json.dumps(data))   
 
 ####READ/WRITE Test for JSON data
     logging.info("Reading JSON data")
-    data = e.getExperimentJSONFileData(configname)
+    data = e.getExperimentJSONFileData(jsonconfigfile)
     logging.info("JSON READ:\r\n"+json.dumps(data))   
 
     logging.info("Writing JSON data")
-    e.writeExperimentJSONFileData(data, configname)
+    e.writeExperimentJSONFileData(data, jsonconfigfile)
 
     logging.info("Reading JSON data")
-    data = e.getExperimentJSONFileData(configname)
+    data = e.getExperimentJSONFileData(jsonconfigfile)
     logging.info("JSON READ:\r\n"+json.dumps(data))   
 
     logging.debug("Experiment stop complete.")    

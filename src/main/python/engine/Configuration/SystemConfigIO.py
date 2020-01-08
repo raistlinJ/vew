@@ -7,6 +7,7 @@ import logging
 class SystemConfigIO():
 
     def __init__(self):
+        logging.debug("SystemConfigIO(): instantiated")
         if os.path.exists("config") and os.path.exists(os.path.join("config","resconfig.ini")):
             self.path = "config"
             self.filename = os.path.join("config","resconfig.ini")
@@ -17,7 +18,7 @@ class SystemConfigIO():
         self.readConfig()
 
     def readConfig(self):
-        logging.debug("readConfig(): instantiated")
+        logging.debug("SystemConfigIO: readConfig(): instantiated")
         logging.debug("readConfig(): checking if folder exists: " + self.path)
         if os.path.exists(self.path):
             logging.debug("readConfig(): folder was found: " + self.path)
@@ -40,13 +41,15 @@ class SystemConfigIO():
         self.config['VBOX_WIN']['VBOX_PATH'] = "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe"
         self.config['VBOX_LINUX'] = {}
         self.config['VBOX_LINUX']['VBOX_PATH'] = "VBoxManage"
+        self.config['EXPERIMENTS'] = {}
+        self.config['EXPERIMENTS']['EXPERIMENTS_PATH'] = "ExperimentData"
 
     def getConfig(self):
         return self.config
 
     #currently only accepts serverIP and username as saveable to the config file
     def writeConfig(self, serverIP, username):
-        logging.debug("writeConfig(): instantiated")
+        logging.debug("SystemConfigIO: writeConfig(): instantiated")
         #Write any default values here, e.g., 
         #self.config['SERVER']['SERVER_IP'] = serverIP
         #self.config['SERVER']['USERNAME'] = username
@@ -55,6 +58,7 @@ class SystemConfigIO():
             self.config.write(configfile)
 
     def writablePath(self, suffix=None):
+        logging.debug("SystemConfigIO: writablePath(): instantiated")
         if hasattr(QStandardPaths, "AppLocalDataLocation"):
             p = QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation)
         else:

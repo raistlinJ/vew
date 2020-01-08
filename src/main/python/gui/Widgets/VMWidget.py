@@ -9,7 +9,7 @@ class VMWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, vmjsondata=None):
         logging.debug("VMWidget instantiated")
         QtWidgets.QWidget.__init__(self, parent=None)
-        self.netAdaptors = []
+        self.netAdaptors = {}
 
         self.setObjectName("VMWidget")
         self.layoutWidget = QtWidgets.QWidget(parent)
@@ -54,7 +54,7 @@ class VMWidget(QtWidgets.QWidget):
         self.addAdaptorButton = QtWidgets.QPushButton(self.layoutWidget)
         self.addAdaptorButton.setObjectName("addAdaptorButton")
         self.addAdaptorButton.setText("Add Network Adaptor")
-        self.addAdaptorButton.clicked.connect(self.addAdaptor)
+        self.addAdaptorButton.clicked.connect(self.buttonAddAdaptor)
         self.outerVertBox.addWidget(self.addAdaptorButton, alignment=QtCore.Qt.AlignHCenter)
         self.setLayout(self.outerVertBox)
         self.retranslateUi(vmjsondata)
@@ -72,14 +72,32 @@ class VMWidget(QtWidgets.QWidget):
             else:
                 self.addAdaptor(vmjsondata["internalnet-basename"])
 
+    def buttonAddAdaptor(self):
+        logging.debug("VMWidget: buttonAddAdaptor(): instantiated")
+        #This additional function is needed because otherwise the parameters sent by the button clicked signal mess things up
+        self.addAdaptor()
+
     def addAdaptor(self, adaptorname="intnet", adaptortype="intnet"):
         logging.debug("VMWidget: addAdaptor(): instantiated: " + str(adaptorname) + " " + str(adaptortype))
-        logging.debug("addAdaptor() instantiated")
         networkAdaptor = NetworkAdaptorWidget()
-        networkAdaptor.lineEdit.setText("intnet")
-
+        networkAdaptor.lineEdit.setText(adaptorname)
         self.iNetVertBox.addWidget(networkAdaptor)
-        self.netAdaptors.append(networkAdaptor)
+        #need to keep track for easy removal later
+        networkAdaptor.removeInetButton.clicked.connect(self.removeAdaptor)
+        self.netAdaptors[networkAdaptor.removeInetButton] = networkAdaptor
+
+    
+    def removeAdaptor(self):
+        logging.debug("VMWidget: removeAdaptor(): instantiated")
+        logging.debug("VMWidget: sender info: " + str(self.sender()))
+        if self.sender() in self.netAdaptors:
+            widgetToRemove = self.netAdaptors[self.sender()]
+            print("adaptors before: "  + str(self.netAdaptors))
+            del self.netAdaptors[self.sender()]
+            print("adaptors after: "  + str(self.netAdaptors))
+            self.iNetVertBox.removeWidget(widgetToRemove)
+            widgetToRemove.deleteLater()
+            widgetToRemove = None
 
     def getWritableData(self):
         logging.debug("VMWidget: getWritableData(): instantiated")
@@ -90,7 +108,7 @@ class VMWidget(QtWidgets.QWidget):
         jsondata["vrdp-enabled"] = {}
         jsondata["vrdp-enabled"] = self.vrdpEnabledComboBox.currentText()
         jsondata["internalnet-basename"] = [] #may be many
-        for netAdaptor in self.netAdaptors:
+        for netAdaptor in self.netAdaptors.values():
             if isinstance(netAdaptor, NetworkAdaptorWidget):
                 jsondata["internalnet-basename"].append(netAdaptor.lineEdit.text())
         return jsondata

@@ -1,49 +1,48 @@
 {
-    "vbox-setup": {
-        "path-to-vboxmanage": "VBoxManage"
-    },
-    "testbed-setup": {
-        "network-config": {
-            "ip-address": "11.0.0.2"
+    "xml": {
+        "vbox-setup": {
+            "path-to-vboxmanage": "VBoxManage"
         },
-        "vm-set": {
-            "base-groupname": "Sample",
-            "num-clones": "7",
-            "clone-snapshots": "true",
-            "linked-clones": "true",
-            "base-outname": "601",
-            "vrdp-baseport": "6011",
-            "vagrant-provision-path": null,
-            "vm": [
-                {
-                    "name": "defaulta",
-                    "vrdp-enabled": "true",
-                    "on-startup": {
-                        "command": null,
-                        "copyfrom": null
+        "testbed-setup": {
+            "network-config": {
+                "ip-address": "11.0.0.21"
+            },
+            "vm-set": {
+                "base-groupname": "sample",
+                "num-clones": "7",
+                "linked-clones": "true",
+                "clone-snapshots": "true",
+                "base-outname": "601",
+                "vrdp-baseport": "6011",
+                "vm": [
+                    {
+                        "name": "defaulta",
+                        "vrdp-enabled": "true",
+                        "internalnet-basename": [
+                            "intneta",
+                            "intnetb"
+                        ]
                     },
-                    "on-stop": {
-                        "copyfrom": null,
-                        "command": null
+                    {
+                        "name": "defaultb",
+                        "vrdp-enabled": "false",
+                        "internalnet-basename": []
                     },
-                    "internalnet-basename": "sample_intnet01"
-                },
-                {
-                    "name": "defaultb",
-                    "vrdp-enabled": "false",
-                    "internalnet-basename": "sample_intnet02"
-                },
-                {
-                    "name": "defaultc",
-                    "vrdp-enabled": "false",
-                    "internalnet-basename": [
-                        "sample_intnet01",
-                        "sample_intnet02"
-                    ]
-                }
-            ],
-            "material": {
-                "name": "materialfile.txt"
+                    {
+                        "name": "defaultc",
+                        "vrdp-enabled": "true",
+                        "internalnet-basename": [
+                            "intnetf",
+                            "intnetg",
+                            "intnet"
+                        ]
+                    }
+                ],
+                "material": [
+                    {
+                        "name": "materialfile.txt"
+                    }
+                ]
             }
         }
     }

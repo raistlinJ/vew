@@ -36,7 +36,7 @@ class MaterialWidget(QtWidgets.QWidget):
         self.nameLineEdit.setText(materialjsondata["name"])
 
     def getWritableData(self):
-        logging.debug("VMWidget: getWritableData(): instantiated")
+        logging.debug("MaterialWidget: getWritableData(): instantiated")
         #build JSON from text entry fields
         jsondata = {}
         jsondata["name"] = {}
