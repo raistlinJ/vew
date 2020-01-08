@@ -19,21 +19,18 @@
                         "name": "defaulta",
                         "vrdp-enabled": "true",
                         "internalnet-basename": [
-                            "intneta",
-                            "intnetb"
+                            "intneta"
                         ]
                     },
                     {
                         "name": "defaultb",
-                        "vrdp-enabled": "false",
+                        "vrdp-enabled": "true",
                         "internalnet-basename": []
                     },
                     {
                         "name": "defaultc",
                         "vrdp-enabled": "true",
                         "internalnet-basename": [
-                            "intnetf",
-                            "intnetg",
                             "intnet"
                         ]
                     }

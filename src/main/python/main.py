@@ -40,12 +40,22 @@ class MainApp(QMainWindow):
         self.materialWidgets = {}
         self.cf = SystemConfigIO()
         self.ec = ExperimentConfigIO()
-        self.readSystemConfig()
 
         self.setFixedSize(670,565)
         quit = QAction("Quit", self)
         quit.triggered.connect(self.closeEvent)
         self.setWindowTitle("ARL South RES v0.1")
+
+        bottomLayout = QHBoxLayout()
+        self.statusBar = QtWidgets.QStatusBar()
+        self.setStatusBar(self.statusBar)
+        self.statusBar.showMessage("Loading GUI...")
+        bottomLayout.addWidget(self.statusBar)
+        #bottomLayout.addStretch()
+        #mainLayout.addWidget(self.statusBar)
+        self.saveButton = QtWidgets.QPushButton("Save All")
+        self.saveButton.clicked.connect(self.saveAll)
+        bottomLayout.addWidget(self.saveButton)
 
         self.tabWidget = QtWidgets.QTabWidget()
         self.tabWidget.setGeometry(QtCore.QRect(0, 15, 668, 565))
@@ -93,9 +103,6 @@ class MainApp(QMainWindow):
         # self.managerBox.setObjectName("managerBox")
         #self.tabWidget.addTab(self.managerBox_Form, "Frontend")
 
-        self.statusbar = QtWidgets.QStatusBar(self)
-        self.statusbar.setObjectName("statusbar")
-
         self.menubar = QtWidgets.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 768, 22))
         self.menubar.setObjectName("menubar")
@@ -135,25 +142,30 @@ class MainApp(QMainWindow):
         mainLayout = QVBoxLayout()
         mainLayout.addWidget(self.tabWidget)
 
-        self.saveButton = QtWidgets.QPushButton("Save All")
-        self.saveButton.clicked.connect(self.saveAll)
-        mainLayout.addWidget(self.saveButton, alignment=QtCore.Qt.AlignRight)
+        mainLayout.addLayout(bottomLayout)
 
         self.outerBox = QWidget()
         self.outerBox.setLayout(mainLayout)
         self.setCentralWidget(self.outerBox)
-        
+
+        self.statusBar.showMessage("Finished Loading GUI Components")
+
     def readSystemConfig(self):
         logging.debug("MainApp:readSystemConfig() instantiated")
         self.vboxPath = self.cf.getConfig()['VBOX_LINUX']['VBOX_PATH']
         self.experimentPath = self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH']
+        self.statusBar.showMessage("Finished reading system config")
     
     def readExperimentConfig(self, configname):
         logging.debug("MainApp:readExperimentConfig() instantiated")
-        return self.ec.getExperimentXMLFileData(configname)
+        xmldata = self.ec.getExperimentXMLFileData(configname)
+        self.statusBar.showMessage("Finished reading experiment config")
+        return xmldata
 
     def populateUi(self):
         logging.debug("MainApp:populateUi() instantiated")
+        self.statusBar.showMessage("Populating UI")
+        self.readSystemConfig()
 #####Create the following based on the config file
         confignametmp = "sample"
         xmlconfigfile = os.path.join(self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample.xml")
@@ -210,7 +222,7 @@ class MainApp(QMainWindow):
             materialWidget = MaterialWidget(self, materialsjsondata)
             self.materialWidgets[(confignametmp, materiallabel)] = materialWidget
             self.basedataStackedWidget.addWidget(materialWidget)
-
+        self.statusBar.showMessage("Completed populating the User Interface")
 ###############################
 
     def onItemSelected(self):
@@ -376,6 +388,7 @@ class MainApp(QMainWindow):
         print("!!!Path2: " + str(jsonconfigfile))
         self.ec.writeExperimentXMLFileData(jsondata, xmlconfigfile)
         self.ec.writeExperimentJSONFileData(jsondata, jsonconfigfile)
+        self.statusBar.showMessage("Saved succesfully to file " + str(xmlconfigfile), 2000)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
