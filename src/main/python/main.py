@@ -105,7 +105,7 @@ class MainApp(QMainWindow):
         self.setCentralWidget(self.outerBox)
         self.tabWidget.setCurrentIndex(0)
 
-        self.statusBar.showMessage("Finished Loading GUI Components")
+        #self.statusBar.showMessage("Finished Loading GUI Components")
 
     def readSystemConfig(self):
         logging.debug("MainApp:readSystemConfig() instantiated")
@@ -151,6 +151,10 @@ class MainApp(QMainWindow):
         self.readSystemConfig()
 #####Create the following based on the config file
         [xmlExperimentFilenames, xmlExperimentNames] = self.ec.getExperimentXMLFilenames()
+        if xmlExperimentFilenames == [] or xmlExperimentNames == []:
+            self.statusBar.showMessage("No configs found")
+            return
+
         #For all experiment files found
         for configname in xmlExperimentNames:
         ####Read Experiment Config Data and Populate Tree
@@ -211,7 +215,7 @@ class MainApp(QMainWindow):
                 materialWidget = MaterialWidget(self, materialsjsondata)
                 self.baseWidgets[configname]["MaterialWidgets"][materiallabel] = materialWidget
                 self.basedataStackedWidget.addWidget(materialWidget)
-            self.statusBar.showMessage("Completed populating the User Interface")
+            self.statusBar.showMessage("Completed populating the User Interface from " + str(len(xmlExperimentNames)) + " config files read", 6000)
     ###############################
 
     def onItemSelected(self):

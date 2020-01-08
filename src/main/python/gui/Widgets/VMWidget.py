@@ -91,7 +91,6 @@ class VMWidget(QtWidgets.QWidget):
         #need to keep track for easy removal later
         networkAdaptor.removeInetButton.clicked.connect(self.removeAdaptor)
         self.netAdaptors[networkAdaptor.removeInetButton] = networkAdaptor
-
     
     def removeAdaptor(self):
         logging.debug("VMWidget: removeAdaptor(): instantiated")

@@ -70,7 +70,8 @@ class ExperimentConfigIO:
         logging.debug("ExperimentConfigIO: getExperimentXMLFilenames(): Instantiated")
         try:
             #First get the folds in the experiments directory as specified in the config file
-            #jsonconfigfile = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], configname,"Experiments",configname+".json")
+            xmlExperimentFilenames = []
+            xmlExperimentNames = []
             experimentpath = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'])
             name_list = os.listdir(experimentpath)
             dirs = []
@@ -80,7 +81,7 @@ class ExperimentConfigIO:
                     dirs.append(fullpath)
             logging.debug("getExperimentXMLFilenames(): Completed " + str(dirs))
             if dirs == None or dirs == []:
-                return []
+                return [xmlExperimentFilenames, xmlExperimentNames]
             #now get the actual xml experiment files
             xmlExperimentFilenames = []
             xmlExperimentNames = []
