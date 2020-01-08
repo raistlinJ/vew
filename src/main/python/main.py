@@ -52,7 +52,7 @@ class MainApp(QMainWindow):
         self.statusBar.showMessage("Loading GUI...")
         bottomLayout.addWidget(self.statusBar)
         self.saveButton = QtWidgets.QPushButton("Save Current")
-        self.saveButton.clicked.connect(self.saveExperiment)
+        self.saveButton.clicked.connect(self.buttonSaveExperiment)
         self.saveButton.setEnabled(False)
         bottomLayout.addWidget(self.saveButton)
 
@@ -175,7 +175,8 @@ class MainApp(QMainWindow):
             basejsondata = jsondata["xml"]
             # Base Config Widget 
             self.baseWidget = BaseWidget(self, basejsondata)
-            self.baseWidgets[(configname)] = self.baseWidget
+            self.baseWidgets[configname] = {"BaseWidget": {}, "VMWidgets": {}, "MaterialWidgets": {} }
+            self.baseWidgets[configname]["BaseWidget"] = self.baseWidget
             self.basedataStackedWidget.addWidget(self.baseWidget)
 
         ##########vm data######
@@ -187,7 +188,8 @@ class MainApp(QMainWindow):
                     vm_item.setText(0,vmlabel)
                     # VM Config Widget
                     vmWidget = VMWidget(self, vm)
-                    self.vmWidgets[(configname, vmlabel)] = vmWidget
+                    #self.vmWidgets[(configname, vmlabel)] = vmWidget
+                    self.baseWidgets[configname]["VMWidgets"][vmlabel] = vmWidget
                     self.basedataStackedWidget.addWidget(vmWidget)
             else:
                 vm_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
@@ -195,19 +197,21 @@ class MainApp(QMainWindow):
                 vm_item.setText(0,vmlabel)
                 # VM Config Widget
                 vmWidget = VMWidget(self, vm)
-                self.vmWidgets[(configname, vmlabel)] = vmWidget
+                #self.vmWidgets[(configname, vmlabel)] = vmWidget
+                self.baseWidgets[configname]["VMWidgets"][vmlabel] = vmWidget
                 self.basedataStackedWidget.addWidget(vmWidget)
 
         ##########material data######
             materialsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["material"]
             if isinstance(materialsjsondata, list):
-                for material in materialsjsondata["material"]:
+                for material in materialsjsondata:
                     material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
                     materiallabel = "M: " + material["name"]
                     material_item.setText(0,materiallabel)
                     # Material Config Widget
                     materialWidget = MaterialWidget(self, material)
-                    self.materialWidgets[(configname, materiallabel)] = materialWidget
+                    #self.materialWidgets[(configname, materiallabel)] = materialWidget
+                    self.baseWidgets[configname]["MaterialWidgets"][materiallabel] = materialWidget
                     self.basedataStackedWidget.addWidget(materialWidget)
             else:
                 material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
@@ -215,7 +219,7 @@ class MainApp(QMainWindow):
                 material_item.setText(0,materiallabel)
                 # Material Config Widget
                 materialWidget = MaterialWidget(self, materialsjsondata)
-                self.materialWidgets[(configname, materiallabel)] = materialWidget
+                self.baseWidgets[configname]["MaterialWidgets"][materiallabel] = materialWidget
                 self.basedataStackedWidget.addWidget(materialWidget)
             self.statusBar.showMessage("Completed populating the User Interface")
     ###############################
@@ -231,16 +235,17 @@ class MainApp(QMainWindow):
         if(parentSelectedItem == None):
             #A base widget was selected
             self.baseWidget.baseGroupNameLineEdit.setText(selectedItem.text(0))
-            self.basedataStackedWidget.setCurrentWidget(self.baseWidgets[selectedItem.text(0)])
+            self.basedataStackedWidget.setCurrentWidget(self.baseWidgets[selectedItem.text(0)]["BaseWidget"])
         else:
             #Check if it's the case that a VM Name was selected
             if(selectedItem.text(0)[0] == "V"):
-                print("Setting right widget: " + str(self.vmWidgets[(parentSelectedItem.text(0), selectedItem.text(0))]))
-                self.basedataStackedWidget.setCurrentWidget(self.vmWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
+                #print("Setting right widget: " + str(self.vmWidgets[(parentSelectedItem.text(0), selectedItem.text(0))]))
+                print("Setting right widget: " + str(self.baseWidgets[parentSelectedItem.text(0)]["VMWidgets"][selectedItem.text(0)]))
+                self.basedataStackedWidget.setCurrentWidget(self.baseWidgets[parentSelectedItem.text(0)]["VMWidgets"][selectedItem.text(0)])
             #Check if it's the case that a Material Name was selected
             elif(selectedItem.text(0)[0] == "M"):
-                print("Setting right widget: " + str(self.materialWidgets[(parentSelectedItem.text(0), selectedItem.text(0))]))
-                self.basedataStackedWidget.setCurrentWidget(self.materialWidgets[(parentSelectedItem.text(0), selectedItem.text(0))])
+                print("Setting right widget: " + str(self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)]))
+                self.basedataStackedWidget.setCurrentWidget(self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)])
 
     def showContextMenu(self, position):
     	logging.debug("MainApp:showContextMenu() instantiated: " + str(position))
@@ -350,16 +355,13 @@ class MainApp(QMainWindow):
 
     def getWritableData(self, configname):
         logging.debug("MainApp: getWritableData() instantiated")
-        if configname == None:
-            return None
-
         jsondata = {}
         jsondata["xml"] = {}
         #get baseWidget data
+        baseWidget = self.baseWidgets[configname]["BaseWidget"]
         ###TODO: make this work for multiple experiments (current testing assumes only one)
-        for baseData in self.baseWidgets.values():
-            if isinstance(baseData, BaseWidget):
-                jsondata["xml"] = baseData.getWritableData()
+        if isinstance(baseWidget, BaseWidget):
+            jsondata["xml"] = baseWidget.getWritableData()
         ###Setup the dictionary
         if "testbed-setup" not in jsondata["xml"]:
             jsondata["xml"]["testbed-setup"] = {}
@@ -370,12 +372,10 @@ class MainApp(QMainWindow):
         if "material" not in jsondata["xml"]["testbed-setup"]["vm-set"]:
             jsondata["xml"]["testbed-setup"]["vm-set"]["material"] = []
 
-        for vmData in self.vmWidgets.values():
-            if isinstance(vmData, VMWidget):                 
-                jsondata["xml"]["testbed-setup"]["vm-set"]["vm"].append(vmData.getWritableData())
-        for materialData in self.materialWidgets.values():
-            if isinstance(materialData, MaterialWidget):
-                jsondata["xml"]["testbed-setup"]["vm-set"]["material"].append(materialData.getWritableData())
+        for vmData in self.baseWidgets[configname]["VMWidgets"].values():
+            jsondata["xml"]["testbed-setup"]["vm-set"]["vm"].append(vmData.getWritableData())
+        for materialData in self.baseWidgets[configname]["MaterialWidgets"].values():
+            jsondata["xml"]["testbed-setup"]["vm-set"]["material"].append(materialData.getWritableData())
         return jsondata
 
     def buttonSaveExperiment(self):
@@ -384,13 +384,12 @@ class MainApp(QMainWindow):
 
     def saveExperiment(self, configname=None):
         logging.debug("MainApp: saveExperiment() instantiated")
-        if configname == None:
-            selectedItem = self.workshopTree.currentItem()
-            #Check if it's the case that an experiment name was selected
-            parentSelectedItem = selectedItem.parent()
-            if parentSelectedItem != None:
-                selectedItem = parentSelectedItem
-
+        selectedItem = self.workshopTree.currentItem()
+        #Check if it's the case that an experiment name was selected
+        parentSelectedItem = selectedItem.parent()
+        if parentSelectedItem != None:
+            selectedItem = parentSelectedItem
+        configname = selectedItem.text(0)
         jsondata = self.getWritableData(configname)
         
         self.ec.writeExperimentXMLFileData(jsondata, configname)

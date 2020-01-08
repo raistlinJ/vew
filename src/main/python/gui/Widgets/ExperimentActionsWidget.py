@@ -44,14 +44,14 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
 
     def retranslateUi(self):
         logging.debug("ExperimentActionsWidget: retranslateUi(): instantiated")
-        self.setWindowTitle("ExperimentActionsWidget")
-        self.treeWidget.headerItem().setText(0, "Workshop")
-        self.treeWidget.headerItem().setText(1, "Status")
-        sortingEnabled = self.treeWidget.isSortingEnabled()
-        self.treeWidget.setSortingEnabled(False)
-        self.treeWidget.topLevelItem(0).setText(0, "Workshop 1")
-        self.treeWidget.topLevelItem(0).setText(1, "Clones Not Created")
-        self.treeWidget.setSortingEnabled(sortingEnabled)
+        # self.setWindowTitle("ExperimentActionsWidget")
+        # self.treeWidget.headerItem().setText(0, "Workshop")
+        # self.treeWidget.headerItem().setText(1, "Status")
+        # sortingEnabled = self.treeWidget.isSortingEnabled()
+        # self.treeWidget.setSortingEnabled(False)
+        # self.treeWidget.topLevelItem(0).setText(0, "Workshop 1")
+        # self.treeWidget.topLevelItem(0).setText(1, "Clones Not Created")
+        # self.treeWidget.setSortingEnabled(sortingEnabled)
 
     def showContextMenu(self, position):
         self.workshopMenu.popup(self.treeWidget.mapToGlobal(position))
