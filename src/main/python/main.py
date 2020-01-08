@@ -69,21 +69,21 @@ class MainApp(QMainWindow):
         self.windowBoxHLayout = QtWidgets.QHBoxLayout(self.windowBox)
         self.windowBoxHLayout.setContentsMargins(0, 0, 0, 0)
         self.windowBoxHLayout.setObjectName("windowBoxHLayout")
-        self.workshopTree = QtWidgets.QTreeWidget(self.windowBox)
-        self.workshopTree.itemSelectionChanged.connect(self.onItemSelected)
-        self.workshopTree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.workshopTree.customContextMenuRequested.connect(self.showContextMenu)
-        self.workshopTree.setEnabled(True)
+        self.experimentTree = QtWidgets.QTreeWidget(self.windowBox)
+        self.experimentTree.itemSelectionChanged.connect(self.onItemSelected)
+        self.experimentTree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.experimentTree.customContextMenuRequested.connect(self.showContextMenu)
+        self.experimentTree.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.workshopTree.sizePolicy().hasHeightForWidth())
-        self.workshopTree.setSizePolicy(sizePolicy)
-        self.workshopTree.setMaximumSize(200,521)
-        self.workshopTree.setObjectName("workshopTree")
-        self.workshopTree.headerItem().setText(0, "Workshops")
-        self.workshopTree.setSortingEnabled(False)
-        self.windowBoxHLayout.addWidget(self.workshopTree)
+        sizePolicy.setHeightForWidth(self.experimentTree.sizePolicy().hasHeightForWidth())
+        self.experimentTree.setSizePolicy(sizePolicy)
+        self.experimentTree.setMaximumSize(200,521)
+        self.experimentTree.setObjectName("experimentTree")
+        self.experimentTree.headerItem().setText(0, "Experiments")
+        self.experimentTree.setSortingEnabled(False)
+        self.windowBoxHLayout.addWidget(self.experimentTree)
         
         self.basedataStackedWidget = QStackedWidget(self)
         self.basedataStackedWidget.setObjectName("basedataStackedWidget")
@@ -111,31 +111,31 @@ class MainApp(QMainWindow):
 
     # Context menu for blank space
         self.blankTreeContextMenu = QtWidgets.QMenu()
-       	self.addWorkshop = self.blankTreeContextMenu.addAction("New Workshop")
-       	self.addWorkshop.triggered.connect(self.addWorkshopActionEvent)
-        self.importWorkshop = self.blankTreeContextMenu.addAction("Import Workshop from EBX archive")
-        self.importWorkshop.triggered.connect(self.importActionEvent)
+       	self.addExperiment = self.blankTreeContextMenu.addAction("New Experiment")
+       	self.addExperiment.triggered.connect(self.addExperimentActionEvent)
+        self.importExperiment = self.blankTreeContextMenu.addAction("Import Experiment from EBX archive")
+        self.importExperiment.triggered.connect(self.importActionEvent)
 
-    # Workshop context menu
-        self.workshopContextMenu = QtWidgets.QMenu()
-        self.addVM = self.workshopContextMenu.addAction("Add VM")
+    # Experiment context menu
+        self.experimentContextMenu = QtWidgets.QMenu()
+        self.addVM = self.experimentContextMenu.addAction("Add VM")
         self.addVM.triggered.connect(self.addVMActionEvent)
-        self.addMaterial = self.workshopContextMenu.addAction("Add Material File")
+        self.addMaterial = self.experimentContextMenu.addAction("Add Material File")
         self.addMaterial.triggered.connect(self.addMaterialActionEvent)
         # Add line separator here
-        self.createGuac = self.workshopContextMenu.addAction("Create Guacamole Users")
+        self.createGuac = self.experimentContextMenu.addAction("Create Guacamole Users")
         self.createGuac.triggered.connect(self.createGuacActionEvent)
-        self.removeGuac = self.workshopContextMenu.addAction("Remove Guacamole Users")
+        self.removeGuac = self.experimentContextMenu.addAction("Remove Guacamole Users")
         self.removeGuac.triggered.connect(self.removeGuacActionEvent)
         # Add line separator here
-        self.removeWorkshop = self.workshopContextMenu.addAction("Remove Workshop")
-        self.removeWorkshop.triggered.connect(self.removeWorkshopActionEvent)
-        self.exportWorkshop = self.workshopContextMenu.addAction("Export Workshop")
-        self.exportWorkshop.triggered.connect(self.exportWorkshopActionEvent)
+        self.removeExperiment = self.experimentContextMenu.addAction("Remove Experiment")
+        self.removeExperiment.triggered.connect(self.removeExperimentActionEvent)
+        self.exportExperiment = self.experimentContextMenu.addAction("Export Experiment")
+        self.exportExperiment.triggered.connect(self.exportExperimentActionEvent)
 
     # VM/Material context menu
         self.itemContextMenu = QtWidgets.QMenu()
-        self.removeItem = self.itemContextMenu.addAction("Remove Workshop Item")
+        self.removeItem = self.itemContextMenu.addAction("Remove Experiment Item")
         self.removeItem.triggered.connect(self.removeVMActionEvent)
 
         mainLayout = QVBoxLayout()
@@ -168,7 +168,7 @@ class MainApp(QMainWindow):
             jsondata = self.ec.getExperimentXMLFileData(configname)
             self.statusBar.showMessage("Finished reading experiment config")
 
-            configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.workshopTree)
+            configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
             configTreeWidgetItem.setText(0,configname)
 
         ##########testbed-setup data######
@@ -227,7 +227,7 @@ class MainApp(QMainWindow):
     def onItemSelected(self):
         logging.debug("MainApp:onItemSelected instantiated")
     	# Get the selected item
-        selectedItem = self.workshopTree.currentItem()
+        selectedItem = self.experimentTree.currentItem()
         # Now enable the save button
         self.saveButton.setEnabled(True)
         #Check if it's the case that an experiment name was selected
@@ -249,15 +249,15 @@ class MainApp(QMainWindow):
 
     def showContextMenu(self, position):
     	logging.debug("MainApp:showContextMenu() instantiated: " + str(position))
-    	if(self.workshopTree.itemAt(position) == None):
-    		self.blankTreeContextMenu.popup(self.workshopTree.mapToGlobal(position))
-    	elif(self.workshopTree.itemAt(position).parent() == None):
-    		self.workshopContextMenu.popup(self.workshopTree.mapToGlobal(position))
+    	if(self.experimentTree.itemAt(position) == None):
+    		self.blankTreeContextMenu.popup(self.experimentTree.mapToGlobal(position))
+    	elif(self.experimentTree.itemAt(position).parent() == None):
+    		self.experimentContextMenu.popup(self.experimentTree.mapToGlobal(position))
     	else:
-    		self.itemContextMenu.popup(self.workshopTree.mapToGlobal(position))
+    		self.itemContextMenu.popup(self.experimentTree.mapToGlobal(position))
     
-    def addWorkshopActionEvent(self):
-        logging.debug("MainApp:addWorkshopActionEvent() instantiated")
+    def addExperimentActionEvent(self):
+        logging.debug("MainApp:addExperimentActionEvent() instantiated")
 
     def importActionEvent(self):
         logging.debug("MainApp:importActionEvent() instantiated")
@@ -277,11 +277,11 @@ class MainApp(QMainWindow):
     def removeGuacActionEvent(self):
         logging.debug("MainApp:removeGuacActionEvent() instantiated")
 
-    def removeWorkshopActionEvent(self):
-        logging.debug("MainApp:removeWorkshopActionEvent() instantiated")
+    def removeExperimentActionEvent(self):
+        logging.debug("MainApp:removeExperimentActionEvent() instantiated")
         
-    def exportWorkshopActionEvent(self):
-        logging.debug("MainApp:exportWorkshopActionEvent() instantiated")
+    def exportExperimentActionEvent(self):
+        logging.debug("MainApp:exportExperimentActionEvent() instantiated")
 
     def removeVMActionEvent(self):
         logging.debug("MainApp:removeVMActionEvent() instantiated")
@@ -384,7 +384,7 @@ class MainApp(QMainWindow):
 
     def saveExperiment(self, configname=None):
         logging.debug("MainApp: saveExperiment() instantiated")
-        selectedItem = self.workshopTree.currentItem()
+        selectedItem = self.experimentTree.currentItem()
         #Check if it's the case that an experiment name was selected
         parentSelectedItem = selectedItem.parent()
         if parentSelectedItem != None:
