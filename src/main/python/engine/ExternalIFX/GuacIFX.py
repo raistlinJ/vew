@@ -86,7 +86,7 @@ class GuacIFX:
             
         logging.debug("Connection to guac successful: " + str(guacConn))
 
-        #######Read workshop-related info from file##########
+        #######Read experiment-related info from file##########
         tree = ET.parse(inputFilename)
         root = tree.getroot()
 
@@ -175,7 +175,7 @@ class GuacIFX:
             
         logging.debug("Connection to guac successful: " + str(guacConn))
 
-        #######Read workshop-related info from file##########
+        #######Read experiment-related info from file##########
         tree = ET.parse(inputFilename)
         root = tree.getroot()
 

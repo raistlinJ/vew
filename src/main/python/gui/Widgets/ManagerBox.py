@@ -1,12 +1,3 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'ManagerBox.ui'
-#
-# Created by: PyQt5 UI code generator 5.13.0
-#
-# WARNING! All changes made in this file will be lost!
-
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
@@ -60,18 +51,18 @@ class ManagerBox(object):
         self.padding7.setObjectName("padding7")
         self.clients_row.addWidget(self.padding7)
         self.verticalLayout_2.addLayout(self.clients_row)
-        self.workshops_row = QtWidgets.QHBoxLayout()
-        self.workshops_row.setObjectName("workshops_row")
+        self.experiments_row = QtWidgets.QHBoxLayout()
+        self.experiments_row.setObjectName("experiments_row")
         self.padding8 = QtWidgets.QWidget(self.verticalLayoutWidget_2)
         self.padding8.setObjectName("padding8")
-        self.workshops_row.addWidget(self.padding8)
-        self.workshops_running_label = QtWidgets.QLabel(self.verticalLayoutWidget_2)
-        self.workshops_running_label.setObjectName("workshops_running_label")
-        self.workshops_row.addWidget(self.workshops_running_label)
+        self.experiments_row.addWidget(self.padding8)
+        self.experiments_running_label = QtWidgets.QLabel(self.verticalLayoutWidget_2)
+        self.experiments_running_label.setObjectName("experiments_running_label")
+        self.experiments_row.addWidget(self.experiments_running_label)
         self.padding9 = QtWidgets.QWidget(self.verticalLayoutWidget_2)
         self.padding9.setObjectName("padding9")
-        self.workshops_row.addWidget(self.padding9)
-        self.verticalLayout_2.addLayout(self.workshops_row)
+        self.experiments_row.addWidget(self.padding9)
+        self.verticalLayout_2.addLayout(self.experiments_row)
         self.padding_row1 = QtWidgets.QWidget(self.verticalLayoutWidget_2)
         self.padding_row1.setObjectName("padding_row1")
         self.verticalLayout_2.addWidget(self.padding_row1)
@@ -91,4 +82,4 @@ class ManagerBox(object):
         self.manager_label.setText(_translate("Form", "Manager"))
         self.num_clients_label_header.setText(_translate("Form", "Participants viewing Frontend:"))
         self.num_clients_label_footer.setText(_translate("Form", "0"))
-        self.workshops_running_label.setText(_translate("Form", "Workshops Running:"))
+        self.experiments_running_label.setText(_translate("Form", "Experiments Running:"))

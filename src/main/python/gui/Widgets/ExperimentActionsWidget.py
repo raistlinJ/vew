@@ -22,21 +22,21 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.outerVertBox.addWidget(self.treeWidget)
 
         # Context menu for blank space
-        self.workshopMenu = QtWidgets.QMenu()
+        self.experimentMenu = QtWidgets.QMenu()
 
-        self.cloneWorkshop = self.workshopMenu.addAction("Signal - Create Clones")
-        self.cloneWorkshop.triggered.connect(self.cloneWorkshopActionEvent)
+        self.cloneExperiment = self.experimentMenu.addAction("Signal - Create Clones")
+        self.cloneExperiment.triggered.connect(self.cloneExperimentActionEvent)
         
-        self.startVMs = self.workshopMenu.addAction("Signal - Start VMs (headless)")
+        self.startVMs = self.experimentMenu.addAction("Signal - Start VMs (headless)")
         self.startVMs.triggered.connect(self.startVMsActionEvent)
         
-        self.poweroffVMs = self.workshopMenu.addAction("Signal - Power Off VMs")
+        self.poweroffVMs = self.experimentMenu.addAction("Signal - Power Off VMs")
         self.poweroffVMs.triggered.connect(self.poweroffVMsActionEvent)
 
-        self.restoreSnapshots = self.workshopMenu.addAction("Signal - Restore Snapshots")
+        self.restoreSnapshots = self.experimentMenu.addAction("Signal - Restore Snapshots")
         self.restoreSnapshots.triggered.connect(self.restoreSnapshotsActionEvent)
         
-        self.deleteClones = self.workshopMenu.addAction("Signal - Delete Clones")
+        self.deleteClones = self.experimentMenu.addAction("Signal - Delete Clones")
         self.deleteClones.triggered.connect(self.deleteClonesActionEvent)
         self.setLayout(self.outerVertBox)
 
@@ -45,18 +45,18 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
     def retranslateUi(self):
         logging.debug("ExperimentActionsWidget: retranslateUi(): instantiated")
         # self.setWindowTitle("ExperimentActionsWidget")
-        # self.treeWidget.headerItem().setText(0, "Workshop")
+        # self.treeWidget.headerItem().setText(0, "Experiment")
         # self.treeWidget.headerItem().setText(1, "Status")
         # sortingEnabled = self.treeWidget.isSortingEnabled()
         # self.treeWidget.setSortingEnabled(False)
-        # self.treeWidget.topLevelItem(0).setText(0, "Workshop 1")
+        # self.treeWidget.topLevelItem(0).setText(0, "Experiment 1")
         # self.treeWidget.topLevelItem(0).setText(1, "Clones Not Created")
         # self.treeWidget.setSortingEnabled(sortingEnabled)
 
     def showContextMenu(self, position):
-        self.workshopMenu.popup(self.treeWidget.mapToGlobal(position))
+        self.experimentMenu.popup(self.treeWidget.mapToGlobal(position))
 
-    def cloneWorkshopActionEvent(self):
+    def cloneExperimentActionEvent(self):
         pass
 
     def startVMsActionEvent(self):

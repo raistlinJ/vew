@@ -99,7 +99,7 @@ class MainApp(QMainWindow):
         self.managerBox = ManagerBox()
         self.managerBox_Form = QtWidgets.QWidget()
         self.managerBox.setupUi(self.managerBox_Form)
-        # self.managerBox.setObjectName("managerBox")
+        #self.managerBox.setObjectName("managerBox")
         #self.tabWidget.addTab(self.managerBox_Form, "Frontend")
 
         self.menubar = QtWidgets.QMenuBar(self)
