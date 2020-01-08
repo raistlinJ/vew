@@ -51,8 +51,6 @@ class MainApp(QMainWindow):
         self.setStatusBar(self.statusBar)
         self.statusBar.showMessage("Loading GUI...")
         bottomLayout.addWidget(self.statusBar)
-        #bottomLayout.addStretch()
-        #mainLayout.addWidget(self.statusBar)
         self.saveButton = QtWidgets.QPushButton("Save All")
         self.saveButton.clicked.connect(self.saveAll)
         bottomLayout.addWidget(self.saveButton)

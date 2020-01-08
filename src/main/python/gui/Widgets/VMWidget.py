@@ -9,6 +9,8 @@ class VMWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, vmjsondata=None):
         logging.debug("VMWidget instantiated")
         QtWidgets.QWidget.__init__(self, parent=None)
+        self.setStyleSheet("QGroupBox { font-weight: bold; }")
+
         self.netAdaptors = {}
 
         self.setObjectName("VMWidget")
@@ -45,11 +47,12 @@ class VMWidget(QtWidgets.QWidget):
         self.vrdpEnabledHorBox.addWidget(self.vrdpEnabledComboBox)
         self.outerVertBox.addLayout(self.vrdpEnabledHorBox)
 
-        self.iNetScrollArea = QtWidgets.QScrollArea()
+        self.iNetGroupBox = QtWidgets.QGroupBox("Internal Network Adaptors")       
         self.iNetVertBox = QtWidgets.QVBoxLayout()
         self.iNetVertBox.setObjectName("iNetVertBox")
-        self.iNetScrollArea.setLayout(self.iNetVertBox)
-        self.outerVertBox.addWidget(self.iNetScrollArea)
+        self.iNetVertBox.setAlignment(QtCore.Qt.AlignTop)
+        self.iNetGroupBox.setLayout(self.iNetVertBox)
+        self.outerVertBox.addWidget(self.iNetGroupBox)
         
         self.addAdaptorButton = QtWidgets.QPushButton(self.layoutWidget)
         self.addAdaptorButton.setObjectName("addAdaptorButton")
@@ -64,7 +67,7 @@ class VMWidget(QtWidgets.QWidget):
         self.nameLineEdit.setText(vmjsondata["name"])
         self.vrdpEnabledComboBox.setCurrentIndex(self.vrdpEnabledComboBox.findText(vmjsondata["vrdp-enabled"]))
 
-        ###add adaptors
+        ###Add Adaptors from File
         if "internalnet-basename" in vmjsondata:
             if isinstance(vmjsondata["internalnet-basename"], list):
                 for adaptor in vmjsondata["internalnet-basename"]:
@@ -81,7 +84,9 @@ class VMWidget(QtWidgets.QWidget):
         logging.debug("VMWidget: addAdaptor(): instantiated: " + str(adaptorname) + " " + str(adaptortype))
         networkAdaptor = NetworkAdaptorWidget()
         networkAdaptor.lineEdit.setText(adaptorname)
+        #self.iNetVertBox.addWidget(networkAdaptor, alignment=QtCore.Qt.AlignTop)
         self.iNetVertBox.addWidget(networkAdaptor)
+
         #need to keep track for easy removal later
         networkAdaptor.removeInetButton.clicked.connect(self.removeAdaptor)
         self.netAdaptors[networkAdaptor.removeInetButton] = networkAdaptor
