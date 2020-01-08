@@ -1,3 +1,8 @@
+import sys
+import logging
+import json
+import os
+
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow
@@ -20,11 +25,6 @@ from gui.Widgets.ManagerBox import ManagerBox
 from engine.Configuration.SystemConfigIO import SystemConfigIO
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 
-import sys
-import logging
-import json
-import os
-
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
@@ -46,69 +46,75 @@ class MainApp(QMainWindow):
         quit.triggered.connect(self.closeEvent)
         self.setWindowTitle("ARL South RES v0.1")
 
-        bottomLayout = QHBoxLayout()
-        self.statusBar = QtWidgets.QStatusBar()
-        self.setStatusBar(self.statusBar)
-        self.statusBar.showMessage("Loading GUI...")
-        bottomLayout.addWidget(self.statusBar)
-        self.saveButton = QtWidgets.QPushButton("Save Current")
-        self.saveButton.clicked.connect(self.buttonSaveExperiment)
-        self.saveButton.setEnabled(False)
-        bottomLayout.addWidget(self.saveButton)
-
         self.tabWidget = QtWidgets.QTabWidget()
         self.tabWidget.setGeometry(QtCore.QRect(0, 15, 668, 565))
         self.tabWidget.setObjectName("tabWidget")
 
         # Configuration Window (windowBox) contains:
         ## windowBoxHLayout contains:
-        ###treeWidget (Left)
-        ###basedataBoxHLayout (Right)
-        self.windowBox = QtWidgets.QWidget()
-        self.windowBox.setObjectName("windowBox")
-        self.windowBoxHLayout = QtWidgets.QHBoxLayout(self.windowBox)
+        ###experimentTree (Left)
+        ###basedataStackedWidget (Right)
+        self.windowWidget = QtWidgets.QWidget()
+        self.windowWidget.setObjectName("windowWidget")
+        self.windowBoxHLayout = QtWidgets.QHBoxLayout()
         self.windowBoxHLayout.setContentsMargins(0, 0, 0, 0)
         self.windowBoxHLayout.setObjectName("windowBoxHLayout")
-        self.experimentTree = QtWidgets.QTreeWidget(self.windowBox)
+        self.windowWidget.setLayout(self.windowBoxHLayout)
+
+        self.experimentTree = QtWidgets.QTreeWidget()
         self.experimentTree.itemSelectionChanged.connect(self.onItemSelected)
         self.experimentTree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.experimentTree.customContextMenuRequested.connect(self.showContextMenu)
         self.experimentTree.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.experimentTree.sizePolicy().hasHeightForWidth())
-        self.experimentTree.setSizePolicy(sizePolicy)
         self.experimentTree.setMaximumSize(200,521)
         self.experimentTree.setObjectName("experimentTree")
         self.experimentTree.headerItem().setText(0, "Experiments")
         self.experimentTree.setSortingEnabled(False)
         self.windowBoxHLayout.addWidget(self.experimentTree)
         
-        self.basedataStackedWidget = QStackedWidget(self)
+        self.basedataStackedWidget = QStackedWidget()
         self.basedataStackedWidget.setObjectName("basedataStackedWidget")
         self.windowBoxHLayout.addWidget(self.basedataStackedWidget)
-        self.tabWidget.addTab(self.windowBox, "Configuration")
+        self.tabWidget.addTab(self.windowWidget, "Configuration")
 
         # VBox Actions Tab
         self.experimentActionsWidget = ExperimentActionsWidget()
         self.experimentActionsWidget.setObjectName("experimentActionsWidget")
         self.tabWidget.addTab(self.experimentActionsWidget, "Experiment Actions")      
 
-        # Frontend tab
-        self.managerBox = ManagerBox()
-        self.managerBox_Form = QtWidgets.QWidget()
-        self.managerBox.setupUi(self.managerBox_Form)
-        #self.managerBox.setObjectName("managerBox")
-        #self.tabWidget.addTab(self.managerBox_Form, "Frontend")
-
-        self.menubar = QtWidgets.QMenuBar(self)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 768, 22))
-        self.menubar.setObjectName("menubar")
+        ##Create the bottom layout so that we can access the status bar
+        self.bottomLayout = QHBoxLayout()
+        self.statusBar = QtWidgets.QStatusBar()
+        self.setStatusBar(self.statusBar)
+        self.statusBar.showMessage("Loading GUI...")
+        self.bottomLayout.addWidget(self.statusBar)
+        self.saveButton = QtWidgets.QPushButton("Save Current")
+        self.saveButton.clicked.connect(self.buttonSaveExperiment)
+        self.saveButton.setEnabled(False)
+        self.bottomLayout.addWidget(self.saveButton)
 
         self.populateUi()
+        self.setupContextMenus()
+
+        self.mainLayout = QVBoxLayout()
+        self.mainLayout.addWidget(self.tabWidget)
+        self.mainLayout.addLayout(self.bottomLayout)
+
+        self.outerBox = QWidget()
+        self.outerBox.setLayout(self.mainLayout)
+        self.setCentralWidget(self.outerBox)
         self.tabWidget.setCurrentIndex(0)
 
+        self.statusBar.showMessage("Finished Loading GUI Components")
+
+    def readSystemConfig(self):
+        logging.debug("MainApp:readSystemConfig() instantiated")
+        self.vboxPath = self.cf.getConfig()['VBOX_LINUX']['VBOX_PATH']
+        self.experimentPath = self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH']
+        self.statusBar.showMessage("Finished reading system config")
+    
+    def setupContextMenus(self):
+        logging.debug("MainApp:setupContextMenus() instantiated")
     # Context menu for blank space
         self.blankTreeContextMenu = QtWidgets.QMenu()
        	self.addExperiment = self.blankTreeContextMenu.addAction("New Experiment")
@@ -138,23 +144,7 @@ class MainApp(QMainWindow):
         self.removeItem = self.itemContextMenu.addAction("Remove Experiment Item")
         self.removeItem.triggered.connect(self.removeVMActionEvent)
 
-        mainLayout = QVBoxLayout()
-        mainLayout.addWidget(self.tabWidget)
 
-        mainLayout.addLayout(bottomLayout)
-
-        self.outerBox = QWidget()
-        self.outerBox.setLayout(mainLayout)
-        self.setCentralWidget(self.outerBox)
-
-        self.statusBar.showMessage("Finished Loading GUI Components")
-
-    def readSystemConfig(self):
-        logging.debug("MainApp:readSystemConfig() instantiated")
-        self.vboxPath = self.cf.getConfig()['VBOX_LINUX']['VBOX_PATH']
-        self.experimentPath = self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH']
-        self.statusBar.showMessage("Finished reading system config")
-    
     def populateUi(self):
         logging.debug("MainApp:populateUi() instantiated")
         self.statusBar.showMessage("Populating UI")
