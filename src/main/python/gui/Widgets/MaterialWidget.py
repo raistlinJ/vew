@@ -8,10 +8,8 @@ class MaterialWidget(QtWidgets.QWidget):
         QtWidgets.QWidget.__init__(self, parent=None)
         self.setWindowTitle("MaterialWidget")
         self.setObjectName("MaterialWidget")
-        self.resize(444, 387)
 
         self.outerVertBox = QtWidgets.QVBoxLayout()
-        self.outerVertBox.setContentsMargins(0, 0, 0, 0)
         self.outerVertBox.setObjectName("outerVertBox")
         self.nameHorBox = QtWidgets.QHBoxLayout()
         self.nameHorBox.setObjectName("nameHorBox")
@@ -19,6 +17,7 @@ class MaterialWidget(QtWidgets.QWidget):
         self.nameLabel.setObjectName("nameLabel")
         self.nameLabel.setText("Name:")
         self.nameHorBox.addWidget(self.nameLabel)
+
         self.nameLineEdit = QtWidgets.QLineEdit()
         self.nameLineEdit.setAcceptDrops(False)
         self.nameLineEdit.setReadOnly(True)

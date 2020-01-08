@@ -23,10 +23,12 @@ class NetworkAdaptorWidget(QtWidgets.QWidget):
         self.lineEdit = QtWidgets.QLineEdit()
         self.lineEdit.setObjectName("lineEdit")
         self.networkAdaptorHLayout.addWidget(self.lineEdit)
+
         self.removeInetButton = QtWidgets.QPushButton()
         self.removeInetButton.setAutoFillBackground(False)
         self.removeInetButton.setObjectName("removeInetButton")
         self.networkAdaptorHLayout.addWidget(self.removeInetButton)
+        
         self.setLayout(self.networkAdaptorHLayout)
 
         self.retranslateUi()

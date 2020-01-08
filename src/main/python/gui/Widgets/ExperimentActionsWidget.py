@@ -7,13 +7,10 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         QtWidgets.QWidget.__init__(self, parent=None)
 
         self.outerVertBox = QtWidgets.QVBoxLayout()
-        self.outerVertBox.setContentsMargins(0, 0, 0, 0)
         self.outerVertBox.setObjectName("outerVertBox")
 
         self.setObjectName("ExperimentActionsWidget")
-        self.resize(336, 281)
         self.treeWidget = QtWidgets.QTreeWidget(parent)
-        self.treeWidget.setGeometry(QtCore.QRect(0, 0, 660, 520))
         self.treeWidget.setObjectName("treeWidget")
         self.treeWidget.header().resizeSection(0, 150)
         self.treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
