@@ -34,7 +34,7 @@ class VMWidget(QtWidgets.QWidget):
         self.nameLineEdit.setObjectName("nameLineEdit")
         self.nameHLayout.addWidget(self.nameLineEdit)
         self.outerVertBox.addLayout(self.nameHLayout)
-        
+
         self.vrdpEnabledHorBox = QtWidgets.QHBoxLayout()
         self.vrdpEnabledHorBox.setObjectName("vrdpEnabledHorBox")
         self.vrdpEnabledLabel = QtWidgets.QLabel()
@@ -86,7 +86,6 @@ class VMWidget(QtWidgets.QWidget):
         logging.debug("VMWidget: addAdaptor(): instantiated: " + str(adaptorname) + " " + str(adaptortype))
         networkAdaptor = NetworkAdaptorWidget()
         networkAdaptor.lineEdit.setText(adaptorname)
-        #self.iNetVertBox.addWidget(networkAdaptor, alignment=QtCore.Qt.AlignTop)
         self.iNetVertBox.addWidget(networkAdaptor)
 
         #need to keep track for easy removal later
