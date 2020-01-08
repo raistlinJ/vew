@@ -51,8 +51,9 @@ class MainApp(QMainWindow):
         self.setStatusBar(self.statusBar)
         self.statusBar.showMessage("Loading GUI...")
         bottomLayout.addWidget(self.statusBar)
-        self.saveButton = QtWidgets.QPushButton("Save All")
-        self.saveButton.clicked.connect(self.saveAll)
+        self.saveButton = QtWidgets.QPushButton("Save Current")
+        self.saveButton.clicked.connect(self.saveExperiment)
+        self.saveButton.setEnabled(False)
         bottomLayout.addWidget(self.saveButton)
 
         self.tabWidget = QtWidgets.QTabWidget()
@@ -69,7 +70,7 @@ class MainApp(QMainWindow):
         self.windowBoxHLayout.setContentsMargins(0, 0, 0, 0)
         self.windowBoxHLayout.setObjectName("windowBoxHLayout")
         self.workshopTree = QtWidgets.QTreeWidget(self.windowBox)
-        self.workshopTree.itemClicked.connect(self.onItemSelected)
+        self.workshopTree.itemSelectionChanged.connect(self.onItemSelected)
         self.workshopTree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.workshopTree.customContextMenuRequested.connect(self.showContextMenu)
         self.workshopTree.setEnabled(True)
@@ -154,79 +155,77 @@ class MainApp(QMainWindow):
         self.experimentPath = self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH']
         self.statusBar.showMessage("Finished reading system config")
     
-    def readExperimentConfig(self, configname):
-        logging.debug("MainApp:readExperimentConfig() instantiated")
-        xmldata = self.ec.getExperimentXMLFileData(configname)
-        self.statusBar.showMessage("Finished reading experiment config")
-        return xmldata
-
     def populateUi(self):
         logging.debug("MainApp:populateUi() instantiated")
         self.statusBar.showMessage("Populating UI")
         self.readSystemConfig()
 #####Create the following based on the config file
-        confignametmp = "sample"
-        xmlconfigfile = os.path.join(self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample.xml")
-        jsonconfigfile = os.path.join(self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample.json")
+        [xmlExperimentFilenames, xmlExperimentNames] = self.ec.getExperimentXMLFilenames()
+        #For all experiment files found
+        for configname in xmlExperimentNames:
+        ####Read Experiment Config Data and Populate Tree
+            logging.info("Reading XML data for " + str(configname))
+            jsondata = self.ec.getExperimentXMLFileData(configname)
+            self.statusBar.showMessage("Finished reading experiment config")
 
-        configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.workshopTree)
-        configTreeWidgetItem.setText(0,confignametmp)
+            configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.workshopTree)
+            configTreeWidgetItem.setText(0,configname)
 
-        jsondata = self.readExperimentConfig(xmlconfigfile)      
+        ##########testbed-setup data######
+            basejsondata = jsondata["xml"]
+            # Base Config Widget 
+            self.baseWidget = BaseWidget(self, basejsondata)
+            self.baseWidgets[(configname)] = self.baseWidget
+            self.basedataStackedWidget.addWidget(self.baseWidget)
 
-    ##########testbed-setup data######
-        basejsondata = jsondata["xml"]
-        # Base Config Widget 
-        self.baseWidget = BaseWidget(self, basejsondata)
-        self.baseWidgets[(confignametmp)] = self.baseWidget
-        self.basedataStackedWidget.addWidget(self.baseWidget)
-
-    ##########vm data######
-        vmsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["vm"]
-        if isinstance(vmsjsondata, list):
-            for vm in vmsjsondata:
+        ##########vm data######
+            vmsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["vm"]
+            if isinstance(vmsjsondata, list):
+                for vm in vmsjsondata:
+                    vm_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
+                    vmlabel = "V: " + vm["name"]
+                    vm_item.setText(0,vmlabel)
+                    # VM Config Widget
+                    vmWidget = VMWidget(self, vm)
+                    self.vmWidgets[(configname, vmlabel)] = vmWidget
+                    self.basedataStackedWidget.addWidget(vmWidget)
+            else:
                 vm_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
-                vmlabel = "V: " + vm["name"]
+                vmlabel = "V: " + vmsjsondata["name"]
                 vm_item.setText(0,vmlabel)
                 # VM Config Widget
                 vmWidget = VMWidget(self, vm)
-                self.vmWidgets[(confignametmp, vmlabel)] = vmWidget
+                self.vmWidgets[(configname, vmlabel)] = vmWidget
                 self.basedataStackedWidget.addWidget(vmWidget)
-        else:
-            vm_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
-            vmlabel = "V: " + vmsjsondata["name"]
-            vm_item.setText(0,vmlabel)
-            # VM Config Widget
-            vmWidget = VMWidget(self, vm)
-            self.vmWidgets[(confignametmp, vmlabel)] = vmWidget
-            self.basedataStackedWidget.addWidget(vmWidget)
 
-    ##########material data######
-        materialsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["material"]
-        if isinstance(materialsjsondata, list):
-            for material in materialsjsondata["material"]:
+        ##########material data######
+            materialsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["material"]
+            if isinstance(materialsjsondata, list):
+                for material in materialsjsondata["material"]:
+                    material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
+                    materiallabel = "M: " + material["name"]
+                    material_item.setText(0,materiallabel)
+                    # Material Config Widget
+                    materialWidget = MaterialWidget(self, material)
+                    self.materialWidgets[(configname, materiallabel)] = materialWidget
+                    self.basedataStackedWidget.addWidget(materialWidget)
+            else:
                 material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
-                materiallabel = "M: " + material["name"]
+                materiallabel = "M: " + materialsjsondata["name"]
                 material_item.setText(0,materiallabel)
                 # Material Config Widget
-                materialWidget = MaterialWidget(self, material)
-                self.materialWidgets[(confignametmp, materiallabel)] = materialWidget
+                materialWidget = MaterialWidget(self, materialsjsondata)
+                self.materialWidgets[(configname, materiallabel)] = materialWidget
                 self.basedataStackedWidget.addWidget(materialWidget)
-        else:
-            material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
-            materiallabel = "M: " + materialsjsondata["name"]
-            material_item.setText(0,materiallabel)
-            # Material Config Widget
-            materialWidget = MaterialWidget(self, materialsjsondata)
-            self.materialWidgets[(confignametmp, materiallabel)] = materialWidget
-            self.basedataStackedWidget.addWidget(materialWidget)
-        self.statusBar.showMessage("Completed populating the User Interface")
-###############################
+            self.statusBar.showMessage("Completed populating the User Interface")
+    ###############################
 
     def onItemSelected(self):
         logging.debug("MainApp:onItemSelected instantiated")
-    	# Places the widget on the right 
+    	# Get the selected item
         selectedItem = self.workshopTree.currentItem()
+        # Now enable the save button
+        self.saveButton.setEnabled(True)
         #Check if it's the case that an experiment name was selected
         parentSelectedItem = selectedItem.parent()
         if(parentSelectedItem == None):
@@ -349,8 +348,11 @@ class MainApp(QMainWindow):
         fileMenu = menubar.addMenu('&File')
         fileMenu.addAction(exitAct)
 
-    def getWritableData(self):
+    def getWritableData(self, configname):
         logging.debug("MainApp: getWritableData() instantiated")
+        if configname == None:
+            return None
+
         jsondata = {}
         jsondata["xml"] = {}
         #get baseWidget data
@@ -376,17 +378,24 @@ class MainApp(QMainWindow):
                 jsondata["xml"]["testbed-setup"]["vm-set"]["material"].append(materialData.getWritableData())
         return jsondata
 
-    def saveAll(self):
-        logging.debug("MainApp: saveAll() instantiated")
-        jsondata = self.getWritableData()
+    def buttonSaveExperiment(self):
+        logging.debug("MainApp: saveExperiment() instantiated")
+        self.saveExperiment()
+
+    def saveExperiment(self, configname=None):
+        logging.debug("MainApp: saveExperiment() instantiated")
+        if configname == None:
+            selectedItem = self.workshopTree.currentItem()
+            #Check if it's the case that an experiment name was selected
+            parentSelectedItem = selectedItem.parent()
+            if parentSelectedItem != None:
+                selectedItem = parentSelectedItem
+
+        jsondata = self.getWritableData(configname)
         
-        xmlconfigfile = os.path.join(self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample.xml")
-        jsonconfigfile = os.path.join(self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], "sample","Experiments","sample.json")
-        print("!!!Path1: " + str(xmlconfigfile))
-        print("!!!Path2: " + str(jsonconfigfile))
-        self.ec.writeExperimentXMLFileData(jsondata, xmlconfigfile)
-        self.ec.writeExperimentJSONFileData(jsondata, jsonconfigfile)
-        self.statusBar.showMessage("Saved succesfully to file " + str(xmlconfigfile), 2000)
+        self.ec.writeExperimentXMLFileData(jsondata, configname)
+        self.ec.writeExperimentJSONFileData(jsondata, configname)
+        self.statusBar.showMessage("Succesfully saved experiment file for " + str(configname), 2000)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

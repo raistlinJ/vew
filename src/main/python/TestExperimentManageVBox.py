@@ -126,11 +126,11 @@ if __name__ == "__main__":
     e = ExperimentManageVBox()
 
     logging.info("Starting Experiment")
-    e.startExperiment("ExperimentData/sample/Experiments/sample.xml")
+    e.startExperiment("sample")
     logging.debug("Experiment start complete.")    
 
     #####---Stop Experiment Test#####
     time.sleep(30)
     logging.info("Stopping Experiment")
-    e.stopExperiment("ExperimentData/sample/Experiments/sample.xml")
+    e.stopExperiment("sample")
     logging.debug("Experiment stop complete.")    

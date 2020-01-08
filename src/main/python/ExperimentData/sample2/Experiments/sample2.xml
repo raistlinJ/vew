@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xml>
+	<vbox-setup>
+		<path-to-vboxmanage>VBoxManage</path-to-vboxmanage>
+	</vbox-setup>
+	<testbed-setup>
+		<network-config>
+			<ip-address>11.0.0.21</ip-address>
+		</network-config>
+		<vm-set>
+			<base-groupname>sample</base-groupname>
+			<num-clones>7</num-clones>
+			<linked-clones>true</linked-clones>
+			<clone-snapshots>true</clone-snapshots>
+			<base-outname>601</base-outname>
+			<vrdp-baseport>6011</vrdp-baseport>
+			<vm>
+				<name>defaulta</name>
+				<vrdp-enabled>true</vrdp-enabled>
+				<internalnet-basename>intneta</internalnet-basename>
+				<internalnet-basename>intnetb</internalnet-basename>
+				<internalnet-basename>intnetc</internalnet-basename>
+				<internalnet-basename>intnetd</internalnet-basename>
+				<internalnet-basename>intnet</internalnet-basename>
+			</vm>
+			<vm>
+				<name>defaultb</name>
+				<vrdp-enabled>true</vrdp-enabled>
+				<internalnet-basename>intnet</internalnet-basename>
+				<internalnet-basename>intnet</internalnet-basename>
+				<internalnet-basename>intnet</internalnet-basename>
+			</vm>
+			<vm>
+				<name>defaultc</name>
+				<vrdp-enabled>true</vrdp-enabled>
+				<internalnet-basename>intnet</internalnet-basename>
+				<internalnet-basename>intnet</internalnet-basename>
+				<internalnet-basename>intnet</internalnet-basename>
+				<internalnet-basename>intnet</internalnet-basename>
+			</vm>
+			<material>
+				<name>materialfile.txt</name>
+			</material>
+		</vm-set>
+	</testbed-setup>
+</xml>
