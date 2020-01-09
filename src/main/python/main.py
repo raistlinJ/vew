@@ -227,7 +227,7 @@ class MainApp(QMainWindow):
         selectedItem = self.experimentTree.currentItem()
         if selectedItem == None:
             logging.debug("MainApp:onItemSelected no configurations left")
-            self.statusBar.showMessage("No configuration items available.")
+            self.statusBar.showMessage("No configuration items selected or available.")
             return
         # Now enable the save button
         self.saveButton.setEnabled(True)
@@ -272,6 +272,11 @@ class MainApp(QMainWindow):
     def addMaterialActionEvent(self):
         logging.debug("MainApp:addMaterialActionEvent() instantiated")
         selectedItem = self.experimentTree.currentItem()
+        if selectedItem == None:
+            logging.debug("MainApp:onItemSelected no configurations left")
+            self.statusBar.showMessage("Could not add item. No configuration items selected or available.")
+            return
+
         selectedItemName = selectedItem.text(0)
         #Check if it's the case that an experiment name was selected
         filesChosen = MaterialFileDialog().materialDialog()
@@ -291,6 +296,7 @@ class MainApp(QMainWindow):
             materialWidget = MaterialWidget(self, materialsjsondata)
             self.baseWidgets[selectedItem.text(0)]["MaterialWidgets"][materiallabel] = materialWidget
             self.basedataStackedWidget.addWidget(materialWidget)
+        self.statusBar.showMessage("Added Material: " + str(selectedItemName) + " from experiment: " + str(selectedItem.text(0)))
 
     def createGuacActionEvent(self):
         logging.debug("MainApp:addMaterialActionEvent() instantiated")
@@ -301,6 +307,11 @@ class MainApp(QMainWindow):
     def removeExperimentItemActionEvent(self):
         logging.debug("MainApp:removeExperimentItemActionEvent() instantiated")
         selectedItem = self.experimentTree.currentItem()
+        if selectedItem == None:
+            logging.debug("MainApp:onItemSelected no configurations left")
+            self.statusBar.showMessage("Could not remove. No configuration items selected or available.")
+            return
+
         selectedItemName = selectedItem.text(0)
         #Check if it's the case that an experiment name was selected
         parentSelectedItem = selectedItem.parent()
@@ -425,6 +436,10 @@ class MainApp(QMainWindow):
     def saveExperiment(self, configname=None):
         logging.debug("MainApp: saveExperiment() instantiated")
         selectedItem = self.experimentTree.currentItem()
+        if selectedItem == None:
+            logging.debug("MainApp:onItemSelected no configurations left")
+            self.statusBar.showMessage("Could not save. No configuration items selected or available.")
+            return
         #Check if it's the case that an experiment name was selected
         parentSelectedItem = selectedItem.parent()
         if parentSelectedItem != None:
