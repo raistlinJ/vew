@@ -26,6 +26,7 @@ from engine.Configuration.SystemConfigIO import SystemConfigIO
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 from gui.Dialogs.MaterialAddFileDialog import MaterialAddFileDialog
 from gui.Dialogs.MaterialRemoveFileDialog import MaterialRemoveFileDialog
+from gui.Dialogs.ExperimentRemoveFileDialog import ExperimentRemoveFileDialog
 
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -318,8 +319,9 @@ class MainApp(QMainWindow):
         parentSelectedItem = selectedItem.parent()
         if(parentSelectedItem == None):
             #A base widget was selected
+            experimentRemoveFileDialog = ExperimentRemoveFileDialog().experimentRemoveFileDialog(selectedItemName)
             self.experimentTree.invisibleRootItem().removeChild(selectedItem)
-            self.basedataStackedWidget.removeWidget(self.baseWidgets[selectedItem.text(0)]["BaseWidget"])
+            self.basedataStackedWidget.removeWidget(self.baseWidgets[selectedItemName]["BaseWidget"])
             self.statusBar.showMessage("Removed experiment: " + str(selectedItemName))
         else:
             #Check if it's the case that a VM Name was selected
