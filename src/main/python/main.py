@@ -25,6 +25,7 @@ from gui.Widgets.ManagerBox import ManagerBox
 from engine.Configuration.SystemConfigIO import SystemConfigIO
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 from gui.Dialogs.MaterialAddFileDialog import MaterialAddFileDialog
+from gui.Dialogs.MaterialRemoveFileDialog import MaterialRemoveFileDialog
 
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -329,10 +330,12 @@ class MainApp(QMainWindow):
                 self.statusBar.showMessage("Removed VM: " + str(selectedItemName) + " from experiment: " + str(parentSelectedItem.text(0)))
             #Check if it's the case that a Material Name was selected
             elif(selectedItem.text(0)[0] == "M"):
+                materialName = selectedItemName.split("M: ")[1]
+                materialRemoveFileDialog = MaterialRemoveFileDialog().materialRemoveFileDialog(parentSelectedItem.text(0), materialName)
                 parentSelectedItem.removeChild(selectedItem)
                 self.basedataStackedWidget.removeWidget(self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)])
                 del self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)]
-                self.statusBar.showMessage("Removed Material: " + str(selectedItemName) + " from experiment: " + str(parentSelectedItem.text(0)))
+                self.statusBar.showMessage("Removed Material: " + str(materialName) + " from experiment: " + str(parentSelectedItem.text(0)))
         
     def exportExperimentActionEvent(self):
         logging.debug("MainApp:exportExperimentActionEvent() instantiated")
