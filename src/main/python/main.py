@@ -24,6 +24,7 @@ from gui.Widgets.ExperimentActionsWidget import ExperimentActionsWidget
 from gui.Widgets.ManagerBox import ManagerBox
 from engine.Configuration.SystemConfigIO import SystemConfigIO
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
+from gui.Dialogs.MaterialFileDialog import MaterialFileDialog
 
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -135,14 +136,14 @@ class MainApp(QMainWindow):
         self.removeGuac.triggered.connect(self.removeGuacActionEvent)
         # Add line separator here
         self.removeExperiment = self.experimentContextMenu.addAction("Remove Experiment")
-        self.removeExperiment.triggered.connect(self.removeExperimentActionEvent)
+        self.removeExperiment.triggered.connect(self.removeExperimentItemActionEvent)
         self.exportExperiment = self.experimentContextMenu.addAction("Export Experiment")
         self.exportExperiment.triggered.connect(self.exportExperimentActionEvent)
 
     # VM/Material context menu
         self.itemContextMenu = QtWidgets.QMenu()
         self.removeItem = self.itemContextMenu.addAction("Remove Experiment Item")
-        self.removeItem.triggered.connect(self.removeVMActionEvent)
+        self.removeItem.triggered.connect(self.removeExperimentItemActionEvent)
 
 
     def populateUi(self):
@@ -174,47 +175,49 @@ class MainApp(QMainWindow):
             self.basedataStackedWidget.addWidget(self.baseWidget)
 
         ##########vm data######
-            vmsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["vm"]
-            if isinstance(vmsjsondata, list):
-                for vm in vmsjsondata:
+            if "vm" in jsondata["xml"]["testbed-setup"]["vm-set"]:
+                vmsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["vm"]
+                if isinstance(vmsjsondata, list):
+                    for vm in vmsjsondata:
+                        vm_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
+                        vmlabel = "V: " + vm["name"]
+                        vm_item.setText(0,vmlabel)
+                        # VM Config Widget
+                        vmWidget = VMWidget(self, vm)
+                        #self.vmWidgets[(configname, vmlabel)] = vmWidget
+                        self.baseWidgets[configname]["VMWidgets"][vmlabel] = vmWidget
+                        self.basedataStackedWidget.addWidget(vmWidget)
+                else:
                     vm_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
-                    vmlabel = "V: " + vm["name"]
+                    vmlabel = "V: " + vmsjsondata["name"]
                     vm_item.setText(0,vmlabel)
                     # VM Config Widget
                     vmWidget = VMWidget(self, vm)
                     #self.vmWidgets[(configname, vmlabel)] = vmWidget
                     self.baseWidgets[configname]["VMWidgets"][vmlabel] = vmWidget
                     self.basedataStackedWidget.addWidget(vmWidget)
-            else:
-                vm_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
-                vmlabel = "V: " + vmsjsondata["name"]
-                vm_item.setText(0,vmlabel)
-                # VM Config Widget
-                vmWidget = VMWidget(self, vm)
-                #self.vmWidgets[(configname, vmlabel)] = vmWidget
-                self.baseWidgets[configname]["VMWidgets"][vmlabel] = vmWidget
-                self.basedataStackedWidget.addWidget(vmWidget)
 
         ##########material data######
-            materialsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["material"]
-            if isinstance(materialsjsondata, list):
-                for material in materialsjsondata:
+            if "material" in jsondata["xml"]["testbed-setup"]["vm-set"]:
+                materialsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["material"]
+                if isinstance(materialsjsondata, list):
+                    for material in materialsjsondata:
+                        material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
+                        materiallabel = "M: " + material["name"]
+                        material_item.setText(0,materiallabel)
+                        # Material Config Widget
+                        materialWidget = MaterialWidget(self, material)
+                        #self.materialWidgets[(configname, materiallabel)] = materialWidget
+                        self.baseWidgets[configname]["MaterialWidgets"][materiallabel] = materialWidget
+                        self.basedataStackedWidget.addWidget(materialWidget)
+                else:
                     material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
-                    materiallabel = "M: " + material["name"]
+                    materiallabel = "M: " + materialsjsondata["name"]
                     material_item.setText(0,materiallabel)
                     # Material Config Widget
-                    materialWidget = MaterialWidget(self, material)
-                    #self.materialWidgets[(configname, materiallabel)] = materialWidget
+                    materialWidget = MaterialWidget(self, materialsjsondata)
                     self.baseWidgets[configname]["MaterialWidgets"][materiallabel] = materialWidget
                     self.basedataStackedWidget.addWidget(materialWidget)
-            else:
-                material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
-                materiallabel = "M: " + materialsjsondata["name"]
-                material_item.setText(0,materiallabel)
-                # Material Config Widget
-                materialWidget = MaterialWidget(self, materialsjsondata)
-                self.baseWidgets[configname]["MaterialWidgets"][materiallabel] = materialWidget
-                self.basedataStackedWidget.addWidget(materialWidget)
             self.statusBar.showMessage("Completed populating the User Interface from " + str(len(xmlExperimentNames)) + " config files read", 6000)
     ###############################
 
@@ -222,6 +225,10 @@ class MainApp(QMainWindow):
         logging.debug("MainApp:onItemSelected instantiated")
     	# Get the selected item
         selectedItem = self.experimentTree.currentItem()
+        if selectedItem == None:
+            logging.debug("MainApp:onItemSelected no configurations left")
+            self.statusBar.showMessage("No configuration items available.")
+            return
         # Now enable the save button
         self.saveButton.setEnabled(True)
         #Check if it's the case that an experiment name was selected
@@ -264,6 +271,26 @@ class MainApp(QMainWindow):
 
     def addMaterialActionEvent(self):
         logging.debug("MainApp:addMaterialActionEvent() instantiated")
+        selectedItem = self.experimentTree.currentItem()
+        selectedItemName = selectedItem.text(0)
+        #Check if it's the case that an experiment name was selected
+        filesChosen = MaterialFileDialog().materialDialog()
+        if filesChosen == []:
+            logging.debug("MainApp: addMaterialActionEvent(): File choose canceled")
+            return
+        for fileChosen in filesChosen:
+            fileChosen = os.path.basename(fileChosen)
+            logging.debug("MainApp: addMaterialActionEvent(): File choosen: " + fileChosen)
+            #Add the item to the tree
+            material_item = QtWidgets.QTreeWidgetItem(selectedItem)
+            materiallabel = "M: " + fileChosen
+            material_item.setText(0,materiallabel)
+            # Material Config Widget
+            #Now add the item to the stack and list of baseWidgets
+            materialsjsondata = {"name": fileChosen}
+            materialWidget = MaterialWidget(self, materialsjsondata)
+            self.baseWidgets[selectedItem.text(0)]["MaterialWidgets"][materiallabel] = materialWidget
+            self.basedataStackedWidget.addWidget(materialWidget)
 
     def createGuacActionEvent(self):
         logging.debug("MainApp:addMaterialActionEvent() instantiated")
@@ -271,14 +298,33 @@ class MainApp(QMainWindow):
     def removeGuacActionEvent(self):
         logging.debug("MainApp:removeGuacActionEvent() instantiated")
 
-    def removeExperimentActionEvent(self):
-        logging.debug("MainApp:removeExperimentActionEvent() instantiated")
+    def removeExperimentItemActionEvent(self):
+        logging.debug("MainApp:removeExperimentItemActionEvent() instantiated")
+        selectedItem = self.experimentTree.currentItem()
+        selectedItemName = selectedItem.text(0)
+        #Check if it's the case that an experiment name was selected
+        parentSelectedItem = selectedItem.parent()
+        if(parentSelectedItem == None):
+            #A base widget was selected
+            self.experimentTree.invisibleRootItem().removeChild(selectedItem)
+            self.basedataStackedWidget.removeWidget(self.baseWidgets[selectedItem.text(0)]["BaseWidget"])
+            self.statusBar.showMessage("Removed experiment: " + str(selectedItemName))
+        else:
+            #Check if it's the case that a VM Name was selected
+            if(selectedItem.text(0)[0] == "V"):
+                parentSelectedItem.removeChild(selectedItem)
+                self.basedataStackedWidget.removeWidget(self.baseWidgets[parentSelectedItem.text(0)]["VMWidgets"][selectedItem.text(0)])
+                del self.baseWidgets[parentSelectedItem.text(0)]["VMWidgets"][selectedItem.text(0)]
+                self.statusBar.showMessage("Removed VM: " + str(selectedItemName) + " from experiment: " + str(parentSelectedItem.text(0)))
+            #Check if it's the case that a Material Name was selected
+            elif(selectedItem.text(0)[0] == "M"):
+                parentSelectedItem.removeChild(selectedItem)
+                self.basedataStackedWidget.removeWidget(self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)])
+                del self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)]
+                self.statusBar.showMessage("Removed Material: " + str(selectedItemName) + " from experiment: " + str(parentSelectedItem.text(0)))
         
     def exportExperimentActionEvent(self):
         logging.debug("MainApp:exportExperimentActionEvent() instantiated")
-
-    def removeVMActionEvent(self):
-        logging.debug("MainApp:removeVMActionEvent() instantiated")
 
     def closeEvent(self, event):
         logging.debug("MainApp:closeEvent(): instantiated")

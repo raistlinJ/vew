@@ -28,8 +28,15 @@ class MaterialWidget(QtWidgets.QWidget):
         self.outerVertBox.addStretch()
         
         self.setLayout(self.outerVertBox)
+        if materialjsondata == None:
+            materialjsondata = self.createDefaultJSONData() 
         self.retranslateUi(materialjsondata)
         
+    def createDefaultJSONData(self):
+        jsondata = {}
+        jsondata["name"] = ""
+        return jsondata
+
     def retranslateUi(self, materialjsondata):
         logging.debug("MaterialWidget: retranslateUi(): instantiated")
         self.nameLineEdit.setText(materialjsondata["name"])
@@ -38,7 +45,6 @@ class MaterialWidget(QtWidgets.QWidget):
         logging.debug("MaterialWidget: getWritableData(): instantiated")
         #build JSON from text entry fields
         jsondata = {}
-        jsondata["name"] = {}
         jsondata["name"] = self.nameLineEdit.text()
         return jsondata
 
