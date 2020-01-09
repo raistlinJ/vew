@@ -36,7 +36,7 @@ class MaterialCopyThread(QThread):
                 self.watchsignal.emit( stringExec, None, None)
                 shutil.copy(filename, self.destinationPath)
             logging.debug("MaterialCopyThread(): thread ending")
-            self.watchsignal.emit("Finished Copying Files", None, True)
+            self.watchsignal.emit("Finished Adding Files", None, True)
             return
         except FileNotFoundError:
             logging.error("Error in MaterialCopyThread(): File not found")
