@@ -24,7 +24,7 @@ from gui.Widgets.ExperimentActionsWidget import ExperimentActionsWidget
 from gui.Widgets.ManagerBox import ManagerBox
 from engine.Configuration.SystemConfigIO import SystemConfigIO
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
-from gui.Dialogs.MaterialFileDialog import MaterialFileDialog
+from gui.Dialogs.MaterialAddFileDialog import MaterialAddFileDialog
 
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -279,7 +279,7 @@ class MainApp(QMainWindow):
 
         selectedItemName = selectedItem.text(0)
         #Check if it's the case that an experiment name was selected
-        filesChosen = MaterialFileDialog().materialDialog()
+        filesChosen = MaterialAddFileDialog().materialAddFileDialog(selectedItemName)
         if filesChosen == []:
             logging.debug("MainApp: addMaterialActionEvent(): File choose canceled")
             return
@@ -296,7 +296,7 @@ class MainApp(QMainWindow):
             materialWidget = MaterialWidget(self, materialsjsondata)
             self.baseWidgets[selectedItem.text(0)]["MaterialWidgets"][materiallabel] = materialWidget
             self.basedataStackedWidget.addWidget(materialWidget)
-        self.statusBar.showMessage("Added Material: " + str(selectedItemName) + " from experiment: " + str(selectedItem.text(0)))
+        self.statusBar.showMessage("Added " + str(len(filesChosen)) + " material files to experiment: " + str(selectedItem.text(0)))
 
     def createGuacActionEvent(self):
         logging.debug("MainApp:addMaterialActionEvent() instantiated")
