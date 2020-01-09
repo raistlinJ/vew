@@ -98,6 +98,7 @@ class VBoxManage(VMManage):
             #for each vm, get the machine readable info
             logging.debug("runVMSInfo(): collecting VM extended info")
             vmNum = 1
+            vmShowInfoCmd = ""
             for aVM in self.vms:
                 logging.debug("runVMSInfo(): collecting # " + str(vmNum) + " of " + str(len(self.vms)))
                 vmShowInfoCmd = self.vbox_path + " showvminfo \"" + str(self.vms[aVM].UUID) + "\"" + " --machinereadable"
