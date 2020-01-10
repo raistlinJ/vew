@@ -83,6 +83,9 @@ class VMRetrieveDialog(QDialog):
 
         if len(selectedItems) > 0:
             self.ok_button.setEnabled(True)
+        else:
+            self.ok_button.setEnabled(False)
+            return
         self.vmNames = []
         for selectedItem in selectedItems:
             self.vmNames.append(selectedItem.text())
