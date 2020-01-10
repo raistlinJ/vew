@@ -27,6 +27,7 @@ from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 from gui.Dialogs.MaterialAddFileDialog import MaterialAddFileDialog
 from gui.Dialogs.MaterialRemoveFileDialog import MaterialRemoveFileDialog
 from gui.Dialogs.ExperimentRemoveFileDialog import ExperimentRemoveFileDialog
+from gui.Dialogs.VMRetreiveDialog import VMRetrieveDialog
 
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -270,12 +271,45 @@ class MainApp(QMainWindow):
 
     def addVMActionEvent(self):
         logging.debug("MainApp:addVMActionEvent() instantiated")
+        selectedItem = self.experimentTree.currentItem()
+        if selectedItem == None:
+            logging.debug("MainApp:addVMActionEvent no configurations left")
+            self.statusBar.showMessage("Could not add VM. No configuration items selected or available.")
+            return
+        selectedItemName = selectedItem.text(0)
+        #Now allow the user to choose the VM:
+        (response, vmsChosen) = VMRetrieveDialog(self).exec_()
+        
+        if response == QMessageBox.Ok and vmsChosen != None:
+            logging.debug("configureVM(): OK pressed and VMs selected " + str(vmsChosen))
+        else:
+            logging.debug("configureVM(): Cancel pressed or no VM selected")
+            return
+
+        if vmsChosen == []:
+            logging.debug("MainApp: addVMActionEvent(): File choose canceled")
+            return
+
+        for vmChosen in vmsChosen:
+            logging.debug("MainApp: addVMActionEvent(): File choosen: " + vmChosen)
+            #Add the item to the tree
+            vmItem = QtWidgets.QTreeWidgetItem(selectedItem)
+            vmlabel = "V: " + vmChosen.split("\"")[1]
+            vmItem.setText(0,vmlabel)
+            # VM Config Widget
+            #Now add the item to the stack and list of baseWidgets
+            vmjsondata = {"name": vmChosen}
+            vmWidget = VMWidget(self, vmjsondata)
+            self.baseWidgets[selectedItemName]["VMWidgets"][vmlabel] = vmWidget
+            self.basedataStackedWidget.addWidget(vmWidget)
+        self.statusBar.showMessage("Added " + str(len(vmsChosen)) + " VM files to experiment: " + str(selectedItemName))
+
 
     def addMaterialActionEvent(self):
         logging.debug("MainApp:addMaterialActionEvent() instantiated")
         selectedItem = self.experimentTree.currentItem()
         if selectedItem == None:
-            logging.debug("MainApp:onItemSelected no configurations left")
+            logging.debug("MainApp:addMaterialActionEvent no configurations left")
             self.statusBar.showMessage("Could not add item. No configuration items selected or available.")
             return
 
@@ -298,7 +332,7 @@ class MainApp(QMainWindow):
             materialWidget = MaterialWidget(self, materialsjsondata)
             self.baseWidgets[selectedItem.text(0)]["MaterialWidgets"][materiallabel] = materialWidget
             self.basedataStackedWidget.addWidget(materialWidget)
-        self.statusBar.showMessage("Added " + str(len(filesChosen)) + " material files to experiment: " + str(selectedItem.text(0)))
+        self.statusBar.showMessage("Added " + str(len(filesChosen)) + " material files to experiment: " + str(selectedItemName))
 
     def createGuacActionEvent(self):
         logging.debug("MainApp:addMaterialActionEvent() instantiated")
@@ -319,7 +353,7 @@ class MainApp(QMainWindow):
         parentSelectedItem = selectedItem.parent()
         if(parentSelectedItem == None):
             #A base widget was selected
-            experimentRemoveFileDialog = ExperimentRemoveFileDialog().experimentRemoveFileDialog(selectedItemName)
+            ExperimentRemoveFileDialog().experimentRemoveFileDialog(selectedItemName)
             self.experimentTree.invisibleRootItem().removeChild(selectedItem)
             self.basedataStackedWidget.removeWidget(self.baseWidgets[selectedItemName]["BaseWidget"])
             self.statusBar.showMessage("Removed experiment: " + str(selectedItemName))
@@ -333,7 +367,7 @@ class MainApp(QMainWindow):
             #Check if it's the case that a Material Name was selected
             elif(selectedItem.text(0)[0] == "M"):
                 materialName = selectedItemName.split("M: ")[1]
-                materialRemoveFileDialog = MaterialRemoveFileDialog().materialRemoveFileDialog(parentSelectedItem.text(0), materialName)
+                MaterialRemoveFileDialog().materialRemoveFileDialog(parentSelectedItem.text(0), materialName)
                 parentSelectedItem.removeChild(selectedItem)
                 self.basedataStackedWidget.removeWidget(self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)])
                 del self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)]
@@ -457,7 +491,7 @@ class MainApp(QMainWindow):
         self.statusBar.showMessage("Succesfully saved experiment file for " + str(configname), 2000)
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     appctxt = ApplicationContext()
     app = MainApp()
     QApplication.setStyle(QStyleFactory.create('Fusion'))

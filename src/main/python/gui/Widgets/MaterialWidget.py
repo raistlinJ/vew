@@ -33,6 +33,7 @@ class MaterialWidget(QtWidgets.QWidget):
         self.retranslateUi(materialjsondata)
         
     def createDefaultJSONData(self):
+        logging.debug("MaterialWidget: createDefaultJSONData(): instantiated")
         jsondata = {}
         jsondata["name"] = ""
         return jsondata

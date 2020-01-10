@@ -7,8 +7,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
 
 from engine.Engine import Engine
 from time import sleep
-from engine.VMManage.VMManage import VMManage
-from engine.Connection.Connection import Connection
+from engine.Manager.VMManage.VMManage import VMManage
 import logging
 
 class WatchRetrieveThread(QThread):
@@ -20,18 +19,19 @@ class WatchRetrieveThread(QThread):
 
     # run method gets called when we start the thread
     def run(self):
-        logging.debug("watchConnStatus(): instantiated")
+        logging.debug("WatchRetrieveThread(): instantiated")
         self.watchsignal.emit("Querying VirtualBox Service...", None, None)
         e = Engine.getInstance()
         logging.debug("watchRetrieveStatus(): running: vm-manage refresh")
         e.execute("vm-manage refresh")
-        #will check status every 1 second and will either display stopped or ongoing or connected
+        #will check status every 0.5 second and will either display stopped or ongoing or connected
         dots = 1
         while(True):
             logging.debug("watchRetrieveStatus(): running: vm-manage refresh")
             self.status = e.execute("vm-manage mgrstatus")
+            logging.info("STATUS: " + str(self.status))
             logging.debug("watchRetrieveStatus(): result: " + str(self.status))
-            if self.status["mgrStatus"]["readStatus"] != VMManage.MANAGER_IDLE or (self.status["mgrStatus"]["writeStatus"] != VMManage.MANAGER_IDLE and self.status["mgrStatus"]["writeStatus"] != VMManage.MANAGER_UNKNOWN):
+            if self.status["readStatus"] != VMManage.MANAGER_IDLE or (self.status["writeStatus"] != VMManage.MANAGER_IDLE and self.status["writeStatus"] != VMManage.MANAGER_UNKNOWN):
                 dotstring = ""
                 for i in range(1,dots):
                     dotstring = dotstring + "."
@@ -42,16 +42,14 @@ class WatchRetrieveThread(QThread):
             else:
                 break
             sleep(0.5)
-        logging.debug("watchConnStatus(): thread ending")
+        logging.debug("WatchRetrieveThread(): thread ending")
         self.watchsignal.emit("Retrieval Complete", self.status, True)
         return
 
-
-
-class VMRetrieveDialog(QDialog):
+class VMRetrievingDialog(QDialog):
     def __init__(self, parent):
-        logging.debug("VMRetrieveDialog(): instantiated")
-        super(VMRetrieveDialog, self).__init__(parent)     
+        logging.debug("VMRetrievingDialog(): instantiated")
+        super(VMRetrievingDialog, self).__init__(parent)     
         
         self.setWindowFlag(Qt.WindowCloseButtonHint, False)
         
@@ -60,8 +58,8 @@ class VMRetrieveDialog(QDialog):
         self.ok_button.setEnabled(False)
         
         self.buttons.accepted.connect( self.accept )
-        self.setWindowTitle("Virtual Machine Retrieval")
-        self.setFixedSize(225, 75)
+        self.setWindowTitle("Retrieving")
+        #self.setFixedSize(225, 75)
                        
         self.box_main_layout = QGridLayout()
         self.box_main = QWidget()
@@ -80,7 +78,7 @@ class VMRetrieveDialog(QDialog):
         t = WatchRetrieveThread()
         t.watchsignal.connect(self.setStatus)
         t.start()
-        result = super(VMRetrieveDialog, self).exec_()
+        result = super(VMRetrievingDialog, self).exec_()
         logging.debug("exec_(): initiated")
         logging.debug("exec_: self.status: " + str(self.status))
         return self.status

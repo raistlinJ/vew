@@ -28,6 +28,21 @@ if __name__ == "__main__":
 ###Engine tests
     res = e.execute("engine status ")
 
+###VMManage tests
+    sleep(5)
+    #Check status without refresh
+    res = e.execute("vm-manage vmstatus defaulta")
+    logging.debug("VM-Manage Status of ubuntu-core4.7: " + str(res))
+    
+    #Refresh
+    sleep(5)
+    res = e.execute("vm-manage refresh")
+    logging.debug("Refreshing" + str(res))
+
+    #Check status after refresh
+    res = e.execute("vm-manage vmstatus defaulta")
+    logging.debug("VM-Manage Status of ubuntu-core4.7: " + str(res))
+
 ###Packager tests
     #e.execute(sys.argv[1:])
     e.execute("packager status")

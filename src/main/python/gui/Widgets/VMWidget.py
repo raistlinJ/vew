@@ -61,13 +61,22 @@ class VMWidget(QtWidgets.QWidget):
         self.addAdaptorButton.setText("Add Network Adaptor")
         self.addAdaptorButton.clicked.connect(self.buttonAddAdaptor)
         self.outerVertBox.addWidget(self.addAdaptorButton, alignment=QtCore.Qt.AlignHCenter)
+        if vmjsondata == None:
+            vmjsondata = self.createDefaultJSONData() 
+
         self.setLayout(self.outerVertBox)
         self.retranslateUi(vmjsondata)
 
     def retranslateUi(self, vmjsondata):
         logging.debug("VMWidget: retranslateUi(): instantiated")
-        self.nameLineEdit.setText(vmjsondata["name"])
-        self.vrdpEnabledComboBox.setCurrentIndex(self.vrdpEnabledComboBox.findText(vmjsondata["vrdp-enabled"]))
+        if "name" in vmjsondata:
+            self.nameLineEdit.setText(vmjsondata["name"])
+        else:
+            self.nameLineEdit.setText("")
+        if "vrdp-enabled" in vmjsondata:
+            self.vrdpEnabledComboBox.setCurrentIndex(self.vrdpEnabledComboBox.findText(vmjsondata["vrdp-enabled"]))
+        else:
+            self.vrdpEnabledComboBox.setCurrentIndex(self.vrdpEnabledComboBox.findText("true"))
 
         ###Add Adaptors from File
         if "internalnet-basename" in vmjsondata:
@@ -116,6 +125,16 @@ class VMWidget(QtWidgets.QWidget):
         for netAdaptor in self.netAdaptors.values():
             if isinstance(netAdaptor, NetworkAdaptorWidget):
                 jsondata["internalnet-basename"].append(netAdaptor.lineEdit.text())
+        return jsondata
+
+    def createDefaultJSONData(self):
+        logging.debug("VMWidget: createDefaultJSONData(): instantiated")
+        jsondata = {}
+        jsondata["name"] = ""
+        jsondata["vrdp-enabled"] = {}
+        jsondata["vrdp-enabled"] = self.vrdpEnabledComboBox.setCurrentIndex(self.vrdpEnabledComboBox.findText("true"))
+        jsondata["internalnet-basename"] = [] #may be many
+        jsondata["internalnet-basename"].append("intnet")
         return jsondata
 
 if __name__ == "__main__":

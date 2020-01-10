@@ -7,28 +7,21 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
 
 from engine.Engine import Engine
 from time import sleep
-from engine.Configuration.ConfigurationFile import ConfigurationFile
-from engine.Connection.Connection import Connection
-from gui.Dialogs.VMRetrieveDialog import VMRetrieveDialog
-from gui.Dialogs.ConfiguringVMDialog import ConfiguringVMDialog
+from engine.Configuration.SystemConfigIO import SystemConfigIO
+from gui.Dialogs.VMRetrievingDialog import VMRetrievingDialog
 from gui.Widgets.VMTreeWidget import VMTreeWidget
 import logging
 import configparser
 
-class ConfigureVMDialog(QDialog):
-    CONFIG_FILE = "config/config.ini"
-    def __init__(self, parent, connection):
-        logging.debug("ConfigureVMDialog(): instantiated")
-        super(ConfigureVMDialog, self).__init__(parent)      
+class VMRetrieveDialog(QDialog):
 
-        self.cf = ConfigurationFile()
-        self.serverIntIP = self.cf.getConfig()['SERVER']['INTERNAL_IP']
-        self.connName = Connection.NAME
-        
-        self.connection = connection
+    def __init__(self, parent):
+        logging.debug("VMRetrieveDialog(): instantiated")
+        super(VMRetrieveDialog, self).__init__(parent)      
+        self.parent = parent
+        self.s = SystemConfigIO()
         self.vms = {}
         self.vmName = None
-        self.adaptorSelected = None
         self.vmStatus = None
 
         self.buttons = QDialogButtonBox()
@@ -39,14 +32,14 @@ class ConfigureVMDialog(QDialog):
         self.buttons.accepted.connect( self.accept )
         self.buttons.rejected.connect( self.reject )
 
-        self.setWindowTitle("Configure Virtual Machine")
-        self.setFixedSize(550, 300)
+        self.setWindowTitle("Add Virtual Machines")
+        #self.setFixedSize(550, 300)
 
         self.box_main_layout = QGridLayout()
         self.box_main = QWidget()
         self.box_main.setLayout(self.box_main_layout)
 
-        label = QLabel("Select a VM and Adaptor")
+        label = QLabel("Select VMs to add")
         self.box_main_layout.addWidget(label, 1, 0)
         
         self.setLayout(self.box_main_layout)       
@@ -58,12 +51,14 @@ class ConfigureVMDialog(QDialog):
         
         self.box_main_layout.addWidget(self.treeWidget, 1, 0)
         
-        s = VMRetrieveDialog(self).exec_()
-        self.vms = s["mgrStatus"]["vmstatus"]
+        s = VMRetrievingDialog(self.parent).exec_()
+        self.vms = s["vmstatus"]
         
         if len(self.vms) == 0:
             logging.error("No VMs were retrieved")
             noVMsDialog = QMessageBox.critical(self, "VM Error", "No VMs were found. If you think this is incorrect, please check the path to VBoxManage in config/config.ini and then restart the program.", QMessageBox.Ok)
+
+        #self.treeWidget.setSelectionMode(VMTreeWidget.MultiSelection)
         self.treeWidget.populateTreeStore(self.vms)
         #self.treeWidget.adjustSize()
         #self.adjustSize()
@@ -74,30 +69,16 @@ class ConfigureVMDialog(QDialog):
         self.setLayout(self.box_main_layout)
 
     def exec_(self):
-        logging.debug("ConfigureVMDialog: exec(): instantiated")
-        result = super(ConfigureVMDialog, self).exec_()
+        result = super(VMRetrieveDialog, self).exec_()
         if str(result) == str(1):        
             logging.debug("dialog_response(): OK was pressed")
-            self.configuringVM()
-            return (QMessageBox.Ok, self.vmName)
-        return (QMessageBox.Cancel, None)
+#            self.configuringVM()
+            return (QMessageBox.Ok, [self.vmName])
+        return (QMessageBox.Cancel, [])
 
         
     def onItemSelected(self, row, column):
-        logging.debug("ConfigureVMDialog: onItemSelected(): instantiated")
-        self.vmStatus = self.treeWidget.item(row,2).text()
-        if "Running" in str(self.vmStatus) or "No adaptors enabled" in str(self.vmStatus):
-            self.ok_button.setEnabled(False)
-            return
+        self.vmStatus = self.treeWidget.item(row,1).text()
         self.vmName = self.treeWidget.item(row,0).text()
-        self.adaptorSelected = self.treeWidget.cellWidget(row,1).currentText()
         self.ok_button.setEnabled(True)
-            
-    def configuringVM(self):
-        logging.debug("dialogResponseActionEvent(): OK was pressed: " + str(self.vmName) + " " + str(self.adaptorSelected))
-        self.status = {"vmName" : self.vmName, "adaptorSelected" : self.adaptorSelected}
-        #get the first value in adaptorSelected (should always be a number)
-        adaptorNum = self.adaptorSelected[0]
-        octetLocal = self.connection["localIP"].split(".")[3]
-        configuringVMDialog = ConfiguringVMDialog(self, self.vmName, self.connection["localIP"], self.serverIntIP, octetLocal, adaptorNum, self.connName).exec_()
-        
+                    

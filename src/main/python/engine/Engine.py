@@ -6,6 +6,9 @@ from time import sleep
 from engine.Manager.ConnectionManage.ConnectionManageGuacRDP import ConnectionManageGuacRDP
 from engine.Manager.PackageManage.PackageManageVBox import PackageManageVBox
 from engine.Manager.ExperimentManage.ExperimentManageVBox import ExperimentManageVBox
+from engine.Manager.VMManage.VBoxManage import VBoxManage
+from engine.Manager.VMManage.VBoxManageWin import VBoxManageWin
+
 import threading
 
 class Engine:
@@ -28,6 +31,12 @@ class Engine:
         
         ##These are defaults and will be based on the SystemConfigIO values, for now make assumptions
         #Create the ConnectionManage
+        if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
+            self.vmManage = VBoxManage()
+        else:
+            self.vmManage = VBoxManageWin()
+
+        #Create the ConnectionManage
         self.connectionManage = ConnectionManageGuacRDP()
         #Create the PackageManage
         self.packageManage = PackageManageVBox()
@@ -42,9 +51,24 @@ class Engine:
         #query all of the managers status and then return them here
 
         #return "\r\nConnections: \r\n" + str(connsStatus) + "\r\nVMs:\r\n" + str(vmsStatus)
-        return {"PackageMgr" : self.packageManage.getPackageManageStatus(),
+        return {"VMMgr" : self.vmManage.getManagerStatus,
+                    "PackageMgr" : self.packageManage.getPackageManageStatus(),
                     "ConnectionMgr" : self.connectionManage.getConnectionManageStatus(),
                     "ExperimentMgr": self.experimentManage.getExperimentManageStatus() }
+
+    def vmManageVMStatusCmd(self, args):
+        logging.debug("vmManageStatusCmd(): instantiated")
+        #will get the current configured VM (if any) display status
+        vmName = "\""+args.vmName+"\""
+        logging.debug("vmManageStatusCmd(): Returning VM status for: " + str(vmName))
+        #self.vmManage.refreshAllVMInfo()
+        return self.vmManage.getVMStatus(vmName)
+        
+    def vmManageMgrStatusCmd(self, args):
+        return self.vmManage.getManagerStatus()
+        
+    def vmManageRefreshCmd(self, args):
+        self.vmManage.refreshAllVMInfo()
 
     def packagerStatusCmd(self, args):
         logging.debug("packagerStatusCmd(): instantiated")
@@ -125,11 +149,7 @@ class Engine:
         configfilename = args.configfilename
 
         return self.experimentManage.removeExperiment(configfilename)
-
-
-    def vmManageRefreshCmd(self, args):
-        self.vmManage.refreshAllVMInfo()
-        
+  
     def vmConfigCmd(self, args):
         logging.debug("vmConfigCmd(): instantiated")
         vmName = "\""+args.vmName+"\""
@@ -168,6 +188,21 @@ class Engine:
         self.engineParser = self.subParsers.add_parser('engine', help='retrieve overall engine status')
         self.engineParser.add_argument('status', help='retrieve engine status')
         self.engineParser.set_defaults(func=self.engineStatusCmd)
+
+#-----------VM Manage
+        self.vmManageParser = self.subParsers.add_parser('vm-manage')
+        self.vmManageSubParsers = self.vmManageParser.add_subparsers(help='manage vm')
+
+        self.vmStatusParser = self.vmManageSubParsers.add_parser('vmstatus', help='retrieve vm status')
+        self.vmStatusParser.add_argument('vmName', metavar='<vm name>', action="store",
+                                           help='name of vm to retrieve status')
+        self.vmStatusParser.set_defaults(func=self.vmManageVMStatusCmd)
+
+        self.vmStatusParser = self.vmManageSubParsers.add_parser('mgrstatus', help='retrieve manager status')
+        self.vmStatusParser.set_defaults(func=self.vmManageMgrStatusCmd)
+
+        self.vmRefreshParser = self.vmManageSubParsers.add_parser('refresh', help='retreive current vm information')
+        self.vmRefreshParser.set_defaults(func=self.vmManageRefreshCmd)
 
 # -----------Packager
         self.packageManageParser = self.subParsers.add_parser('packager')
@@ -274,6 +309,18 @@ if __name__ == "__main__":
 
 ###Engine tests
     res = e.execute("engine status ")
+
+###VMManage tests
+    res = e.execute("vm-manage refresh")
+    sleep(5)
+    #Check status without refresh
+    res = e.execute("vm-manage vmstatus \"ubuntu-core4.7\"")
+    logging.debug("VM-Manage Status of ubuntu-core4.7: " + str(res))
+
+    #Refresh
+    sleep(5)
+    res = e.execute("vm-manage refresh")
+    logging.debug("Refreshing" + str(res))
 
 ###Packager tests
     #e.execute(sys.argv[1:])
