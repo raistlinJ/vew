@@ -18,6 +18,7 @@ class ExperimentAddThread(QThread):
         
         self.filename = filename
         self.successfilenames = []
+        self.successfoldernames = []
         self.destinationPath = destinationPath
         self.foldersToCreate = []
         self.filesToCreate = []
@@ -38,28 +39,40 @@ class ExperimentAddThread(QThread):
             logging.debug("ExperimentAddThread(): Creating files and folders for " + str(self.destinationPath) + " " + str(self.filename) )
             
             #will check status every 1 second and will either display stopped or ongoing or connected
-            numFiles = len(self.filename)
-            currFileNum = 1
-            for filename in self.filename:
-                logging.debug("ExperimentAddThread(): copying file: " + str(filename))
-                stringExec = "Copying file (" + str(currFileNum) + "/" + str(numFiles) + ") " + filename
+            numFolders = len(self.foldersToCreate)
+            currFolderNum = 1
+            for filename in self.foldersToCreate:
+                logging.debug("ExperimentAddThread(): creating folder: " + str(filename))
+                stringExec = "Creating folder (" + str(currFolderNum) + "/" + str(numFolders) + ") " + filename
                 self.watchsignal.emit( stringExec, None, None)
-                shutil.copy(filename, self.destinationPath)
+                os.makedirs(filename)
+                self.successfoldernames.append(filename)
+            logging.debug("ExperimentAddThread(): thread ending")
+            self.watchsignal.emit("Finished Creating Folders", None, False)
+
+            numFiles = len(self.filesToCreate)
+            currFileNum = 1
+            for filename in self.filesToCreate:
+                logging.debug("ExperimentAddThread(): creating file: " + str(filename))
+                stringExec = "Creating folder (" + str(currFileNum) + "/" + str(numFiles) + ") " + filename
+                self.watchsignal.emit( stringExec, None, None)
+                open(filename, "w").close()
                 self.successfilenames.append(filename)
             logging.debug("ExperimentAddThread(): thread ending")
-            self.watchsignal.emit("Finished Adding Files", None, True)
+            self.watchsignal.emit("Finished Creating Experiment", None, True)
+
             return
         except FileNotFoundError:
             logging.error("Error in ExperimentAddThread(): File not found")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.watchsignal.emit("One or more files were not found and were not added.", None, True)
+            self.watchsignal.emit("One or more file not found.", None, True)
             return None
         except:
             logging.error("Error in ExperimentAddThread(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.watchsignal.emit("One or more files could not be added. Check permissions.", None, True)
+            self.watchsignal.emit("One or more file could not be created. Check permissions.", None, True)
             return None
         finally:
             return None
@@ -101,7 +114,7 @@ class ExperimentAddingDialog(QDialog):
         result = super(ExperimentAddingDialog, self).exec_()
         logging.debug("exec_(): initiated")
         logging.debug("exec_: self.status: " + str(self.status))
-        return (self.status, t.successfilenames)
+        return (self.status, t.successfoldernames, t.successfilenames)
 
     def setStatus(self, msg, status, buttonEnabled):
         if status != None:

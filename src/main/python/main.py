@@ -28,6 +28,7 @@ from gui.Dialogs.MaterialAddFileDialog import MaterialAddFileDialog
 from gui.Dialogs.MaterialRemoveFileDialog import MaterialRemoveFileDialog
 from gui.Dialogs.ExperimentRemoveFileDialog import ExperimentRemoveFileDialog
 from gui.Dialogs.VMRetreiveDialog import VMRetrieveDialog
+from gui.Dialogs.ExperimentAddDialog import ExperimentAddDialog
 
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -272,11 +273,23 @@ class MainApp(QMainWindow):
     
     def addExperimentActionEvent(self):
         logging.debug("MainApp:addExperimentActionEvent() instantiated")
-        #Ask the user for an experiment name:
-        #Check to make sure it's not already in use
-        #Create the directory structures
-        #Add the baseWidget to the treeWidget
-        ##Create the direct
+        configname = ExperimentAddDialog().experimentAddDialog(self, self.baseWidgets.keys())
+        
+        if configname != None:
+            logging.debug("configureVM(): OK pressed and valid configname entered: " + str(configname))
+        else:
+            logging.debug("configureVM(): Cancel pressed or no VM selected")
+            return
+        
+        ##Now add the item to the tree widget and create the baseWidget
+        configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
+        configTreeWidgetItem.setText(0,configname)
+        # Base Config Widget 
+        self.baseWidget = BaseWidget(self, configname, configname)
+        self.baseWidgets[configname] = {"BaseWidget": {}, "VMWidgets": {}, "MaterialWidgets": {} }
+        self.baseWidgets[configname]["BaseWidget"] = self.baseWidget
+        self.basedataStackedWidget.addWidget(self.baseWidget)
+        self.statusBar.showMessage("Added new experiment: " + str(configname))
 
     def importActionEvent(self):
         logging.debug("MainApp:importActionEvent() instantiated")
@@ -372,6 +385,7 @@ class MainApp(QMainWindow):
 
             self.experimentTree.invisibleRootItem().removeChild(selectedItem)
             self.basedataStackedWidget.removeWidget(self.baseWidgets[selectedItemName]["BaseWidget"])
+            del self.baseWidgets[selectedItemName]
             self.statusBar.showMessage("Removed experiment: " + str(selectedItemName))
         else:
             #Check if it's the case that a VM Name was selected
