@@ -17,6 +17,7 @@ class ExperimentRemoveThread(QThread):
         logging.debug("ExperimentRemoveThread(): instantiated")
         
         self.filenames = filenames
+        self.successfilenames = []
         self.destinationPath = destinationPath
 
     # run method gets called when we start the thread
@@ -31,21 +32,27 @@ class ExperimentRemoveThread(QThread):
             self.watchsignal.emit( stringExec, None, None)
             if os.path.exists(fullfilename):
                 shutil.rmtree(fullfilename, ignore_errors=True)
+                self.successfilenames.append(self.filenames)
                 self.watchsignal.emit("Finished Removing Experiment", None, True)
             else:
-                self.watchsignal.emit("Experiment not found in experiments folder; skipping", None, True)
-            logging.debug("ExperimentRemoveThread(): thread ending")
-            
+                logging.debug("Experiment file not found: " + str(fullfilename) + " Removing from GUI.")
+                self.successfilenames.append(self.filenames)
+                self.watchsignal.emit("Experiment file not found: " + str(filenames) + " Removing from GUI.", None, True)
+            logging.debug("ExperimentRemoveThread(): thread ending")    
             return
         except FileNotFoundError:
             logging.error("Error in ExperimentRemoveThread(): File not found")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.watchsignal.emit("One or more files were not found and were not added.", None, True)
             return None
-        except Exception:
+        except:
             logging.error("Error in ExperimentRemoveThread(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.watchsignal.emit("One or more files could not be added. Check permissions.", None, True)
+            return None
+        finally:
             return None
 
 class ExperimentRemovingFileDialog(QDialog):
@@ -85,7 +92,7 @@ class ExperimentRemovingFileDialog(QDialog):
         result = super(ExperimentRemovingFileDialog, self).exec_()
         logging.debug("exec_(): initiated")
         logging.debug("exec_: self.status: " + str(self.status))
-        return self.status
+        return (self.status, t.successfilenames)
 
     def setStatus(self, msg, status, buttonEnabled):
         if status != None:

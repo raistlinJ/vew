@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
         QVBoxLayout, QWidget, QMessageBox)
-
+import sys, traceback
 from engine.Engine import Engine
 from time import sleep
 from engine.Manager.VMManage.VMManage import VMManage
@@ -21,30 +21,45 @@ class WatchRetrieveThread(QThread):
     def run(self):
         logging.debug("WatchRetrieveThread(): instantiated")
         self.watchsignal.emit("Querying VirtualBox Service...", None, None)
-        e = Engine.getInstance()
-        logging.debug("watchRetrieveStatus(): running: vm-manage refresh")
-        e.execute("vm-manage refresh")
-        #will check status every 0.5 second and will either display stopped or ongoing or connected
-        dots = 1
-        while(True):
+        try:
+            e = Engine.getInstance()
             logging.debug("watchRetrieveStatus(): running: vm-manage refresh")
-            self.status = e.execute("vm-manage mgrstatus")
-            logging.info("STATUS: " + str(self.status))
-            logging.debug("watchRetrieveStatus(): result: " + str(self.status))
-            if self.status["readStatus"] != VMManage.MANAGER_IDLE or (self.status["writeStatus"] != VMManage.MANAGER_IDLE and self.status["writeStatus"] != VMManage.MANAGER_UNKNOWN):
-                dotstring = ""
-                for i in range(1,dots):
-                    dotstring = dotstring + "."
-                self.watchsignal.emit( "Reading VM Status"+dotstring, self.status, None)
-                dots = dots+1
-                if dots > 4:
-                    dots = 1
-            else:
-                break
-            sleep(0.5)
-        logging.debug("WatchRetrieveThread(): thread ending")
-        self.watchsignal.emit("Retrieval Complete", self.status, True)
-        return
+            e.execute("vm-manage refresh")
+            #will check status every 0.5 second and will either display stopped or ongoing or connected
+            dots = 1
+            while(True):
+                logging.debug("watchRetrieveStatus(): running: vm-manage refresh")
+                self.status = e.execute("vm-manage mgrstatus")
+                logging.info("STATUS: " + str(self.status))
+                logging.debug("watchRetrieveStatus(): result: " + str(self.status))
+                if self.status["readStatus"] != VMManage.MANAGER_IDLE or (self.status["writeStatus"] != VMManage.MANAGER_IDLE and self.status["writeStatus"] != VMManage.MANAGER_UNKNOWN):
+                    dotstring = ""
+                    for i in range(1,dots):
+                        dotstring = dotstring + "."
+                    self.watchsignal.emit( "Reading VM Status"+dotstring, self.status, None)
+                    dots = dots+1
+                    if dots > 4:
+                        dots = 1
+                else:
+                    break
+                sleep(0.5)
+            logging.debug("WatchRetrieveThread(): thread ending")
+            self.watchsignal.emit("Retrieval Complete", self.status, True)
+            return
+        except FileNotFoundError:
+            logging.error("Error in ExperimentRemoveThread(): File not found")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.watchsignal.emit("Error retrieving VMs. Check your paths and permissions.", None, True)
+            return None
+        except:
+            logging.error("Error in ExperimentRemoveThread(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.watchsignal.emit("Error retrieving VMs. Check your paths and permissions.", None, True)
+            return None
+        finally:
+            return None
 
 class VMRetrievingDialog(QDialog):
     def __init__(self, parent):

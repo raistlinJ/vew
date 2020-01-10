@@ -287,7 +287,7 @@ class MainApp(QMainWindow):
             return
 
         if vmsChosen == []:
-            logging.debug("MainApp: addVMActionEvent(): File choose canceled")
+            logging.debug("configureVM(): Canceled or a file could not be added. Try again later or check permissions")
             return
 
         for vmChosen in vmsChosen:
@@ -317,7 +317,7 @@ class MainApp(QMainWindow):
         #Check if it's the case that an experiment name was selected
         filesChosen = MaterialAddFileDialog().materialAddFileDialog(selectedItemName)
         if filesChosen == []:
-            logging.debug("MainApp: addMaterialActionEvent(): File choose canceled")
+            logging.debug("addMaterialActionEvent(): Canceled or a file could not be added. Try again later or check permissions")
             return
         for fileChosen in filesChosen:
             fileChosen = os.path.basename(fileChosen)
@@ -353,7 +353,11 @@ class MainApp(QMainWindow):
         parentSelectedItem = selectedItem.parent()
         if(parentSelectedItem == None):
             #A base widget was selected
-            ExperimentRemoveFileDialog().experimentRemoveFileDialog(selectedItemName)
+            successfilenames = ExperimentRemoveFileDialog().experimentRemoveFileDialog(selectedItemName)
+            if successfilenames == []:
+                logging.debug("removeExperimentItemActionEvent(): Canceled or a file could not be removed. Try again later or check permissions")
+                return
+
             self.experimentTree.invisibleRootItem().removeChild(selectedItem)
             self.basedataStackedWidget.removeWidget(self.baseWidgets[selectedItemName]["BaseWidget"])
             self.statusBar.showMessage("Removed experiment: " + str(selectedItemName))
@@ -367,7 +371,10 @@ class MainApp(QMainWindow):
             #Check if it's the case that a Material Name was selected
             elif(selectedItem.text(0)[0] == "M"):
                 materialName = selectedItemName.split("M: ")[1]
-                MaterialRemoveFileDialog().materialRemoveFileDialog(parentSelectedItem.text(0), materialName)
+                successfilenames = MaterialRemoveFileDialog().materialRemoveFileDialog(parentSelectedItem.text(0), materialName)
+                if successfilenames == []:
+                    logging.debug("Canceled or a file could not be removed. Try again later or check permissions")
+                    return
                 parentSelectedItem.removeChild(selectedItem)
                 self.basedataStackedWidget.removeWidget(self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)])
                 del self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)]

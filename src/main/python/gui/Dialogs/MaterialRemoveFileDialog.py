@@ -11,9 +11,12 @@ class MaterialRemoveFileDialog:
         self.materialname = materialname
         self.s = SystemConfigIO()
         self.destinationPath = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], self.configname,"Materials")
-        self.removeMaterial(materialname)
+        successfilenames = self.removeMaterial(materialname)
         logging.debug("materialRemoveFileDialog(): Completed")
+        return successfilenames
 
     def removeMaterial(self, materialname):
         logging.debug("removeMaterial(): instantiated")
-        materialRemovingFileDialog = MaterialRemovingFileDialog(None, materialname, self.destinationPath).exec_()
+        (status, successfilenames) = MaterialRemovingFileDialog(None, materialname, self.destinationPath).exec_()
+        return successfilenames
+        

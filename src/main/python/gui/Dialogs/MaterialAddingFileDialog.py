@@ -17,6 +17,7 @@ class MaterialCopyThread(QThread):
         logging.debug("MaterialCopyThread(): instantiated")
         
         self.filenames = filenames
+        self.successfilenames = []
         self.destinationPath = destinationPath
 
     # run method gets called when we start the thread
@@ -35,6 +36,7 @@ class MaterialCopyThread(QThread):
                 stringExec = "Copying file (" + str(currFileNum) + "/" + str(numFiles) + ") " + filename
                 self.watchsignal.emit( stringExec, None, None)
                 shutil.copy(filename, self.destinationPath)
+                self.successfilenames.append(filename)
             logging.debug("MaterialCopyThread(): thread ending")
             self.watchsignal.emit("Finished Adding Files", None, True)
             return
@@ -42,11 +44,15 @@ class MaterialCopyThread(QThread):
             logging.error("Error in MaterialCopyThread(): File not found")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.watchsignal.emit("One or more files were not found and were not added.", None, True)
             return None
-        except Exception:
+        except:
             logging.error("Error in MaterialCopyThread(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.watchsignal.emit("One or more files could not be added. Check permissions.", None, True)
+            return None
+        finally:
             return None
 
 class MaterialAddingFileDialog(QDialog):
@@ -86,7 +92,7 @@ class MaterialAddingFileDialog(QDialog):
         result = super(MaterialAddingFileDialog, self).exec_()
         logging.debug("exec_(): initiated")
         logging.debug("exec_: self.status: " + str(self.status))
-        return self.status
+        return (self.status, t.successfilenames)
 
     def setStatus(self, msg, status, buttonEnabled):
         if status != None:

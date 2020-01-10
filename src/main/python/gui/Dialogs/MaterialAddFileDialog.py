@@ -14,11 +14,11 @@ class MaterialAddFileDialog:
         filenames = ""
         filenames, _ = QFileDialog.getOpenFileNames(widget, "Choose Material", "")
         if len(filenames) > 1:
-            self.copyMaterial(filenames)
-            return filenames
+            successfilenames = self.copyMaterial(filenames)
+            return successfilenames
         elif len(filenames) == 1:
-            self.copyMaterial(filenames)
-            return filenames
+            successfilenames = self.copyMaterial(filenames)
+            return successfilenames
         else:
             return []
         logging.debug("materialAddFileDialog(): Completed")
@@ -27,5 +27,5 @@ class MaterialAddFileDialog:
         logging.debug("copyMaterial(): instantiated")
         #self.status = {"vmName" : self.vmName, "adaptorSelected" : self.adaptorSelected}
         #get the first value in adaptorSelected (should always be a number)
-        
-        materialAddingFileDialog = MaterialAddingFileDialog(None, filenames, self.destinationPath).exec_()
+        status, successfilenames = MaterialAddingFileDialog(None, filenames, self.destinationPath).exec_()
+        return successfilenames

@@ -17,6 +17,7 @@ class MaterialRemoveThread(QThread):
         logging.debug("MaterialRemoveThread(): instantiated")
         
         self.filenames = filenames
+        self.successfilenames = []
         self.destinationPath = destinationPath
 
     # run method gets called when we start the thread
@@ -31,21 +32,27 @@ class MaterialRemoveThread(QThread):
             self.watchsignal.emit( stringExec, None, None)
             if os.path.exists(fullfilename):
                 os.remove(fullfilename)
+                self.successfilenames.append(self.filenames)
                 self.watchsignal.emit("Finished Removing Files", None, True)
             else:
-                self.watchsignal.emit("File not found in experiment folder; skipping", None, True)
+                self.watchsignal.emit("Material file not found: " + str(self.filenames) + " Removing from GUI.", None, True)
+                self.successfilenames.append(self.filenames)
+                logging.debug("Material file not found: " + str(fullfilename) + " Removing from GUI.")
             logging.debug("MaterialRemoveThread(): thread ending")
-            
             return
         except FileNotFoundError:
-            logging.error("Error in MaterialRemoveThread(): File not found")
+            logging.error("One or more files were not found and were not removed.")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.watchsignal.emit("One or more files were not found and were not removed.", None, True)
             return None
-        except Exception:
-            logging.error("Error in MaterialRemoveThread(): An error occured ")
+        except:
+            logging.error("Some files couldn't not be removed. Try again later or check permissions.")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.watchsignal.emit("Some files couldn't not be removed. Try again later or check permissions.", None, True)
+            return None
+        finally:
             return None
 
 class MaterialRemovingFileDialog(QDialog):
@@ -85,7 +92,7 @@ class MaterialRemovingFileDialog(QDialog):
         result = super(MaterialRemovingFileDialog, self).exec_()
         logging.debug("exec_(): initiated")
         logging.debug("exec_: self.status: " + str(self.status))
-        return self.status
+        return (self.status, t.successfilenames)
 
     def setStatus(self, msg, status, buttonEnabled):
         if status != None:
