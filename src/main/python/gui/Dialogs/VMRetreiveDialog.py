@@ -21,8 +21,7 @@ class VMRetrieveDialog(QDialog):
         self.parent = parent
         self.s = SystemConfigIO()
         self.vms = {}
-        self.vmName = None
-        self.vmStatus = None
+        self.vmNames = []
 
         self.buttons = QDialogButtonBox()
         self.ok_button = self.buttons.addButton( self.buttons.Ok )
@@ -47,7 +46,7 @@ class VMRetrieveDialog(QDialog):
 #####
         # Here we will place the tree view
         self.treeWidget = VMTreeWidget(self)
-        self.treeWidget.cellClicked.connect(self.onItemSelected)
+        self.treeWidget.itemSelectionChanged.connect(self.onItemSelected)
         
         self.box_main_layout.addWidget(self.treeWidget, 1, 0)
         
@@ -69,16 +68,23 @@ class VMRetrieveDialog(QDialog):
         self.setLayout(self.box_main_layout)
 
     def exec_(self):
+        logging.debug("VMRetrieveDialog(): exec_() instantiated")
         result = super(VMRetrieveDialog, self).exec_()
         if str(result) == str(1):        
             logging.debug("dialog_response(): OK was pressed")
 #            self.configuringVM()
-            return (QMessageBox.Ok, [self.vmName])
-        return (QMessageBox.Cancel, [])
-
+            return (QMessageBox.Ok, self.vmNames)
+        return (QMessageBox.Cancel, self.vmNames)
         
-    def onItemSelected(self, row, column):
-        self.vmStatus = self.treeWidget.item(row,1).text()
-        self.vmName = self.treeWidget.item(row,0).text()
-        self.ok_button.setEnabled(True)
+    def onItemSelected(self):
+        logging.debug("VMRetrieveDialog(): onItemSelected() instantiated")
+        selectedItems = self.treeWidget.selectedItems()
+        logging.debug("VMRetrieveDialog(): onItemSelected() selected items: " + str(selectedItems))
+
+        if len(selectedItems) > 0:
+            self.ok_button.setEnabled(True)
+        self.vmNames = []
+        for selectedItem in selectedItems:
+            self.vmNames.append(selectedItem.text())
+
                     

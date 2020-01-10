@@ -195,7 +195,7 @@ class MainApp(QMainWindow):
                     vmlabel = "V: " + vmsjsondata["name"]
                     vm_item.setText(0,vmlabel)
                     # VM Config Widget
-                    vmWidget = VMWidget(self, vm)
+                    vmWidget = VMWidget(self, vmsjsondata)
                     #self.vmWidgets[(configname, vmlabel)] = vmWidget
                     self.baseWidgets[configname]["VMWidgets"][vmlabel] = vmWidget
                     self.basedataStackedWidget.addWidget(vmWidget)
@@ -291,7 +291,7 @@ class MainApp(QMainWindow):
             return
 
         for vmChosen in vmsChosen:
-            logging.debug("MainApp: addVMActionEvent(): File choosen: " + vmChosen)
+            logging.debug("MainApp: addVMActionEvent(): File choosen: " + str(vmChosen))
             #Add the item to the tree
             vmItem = QtWidgets.QTreeWidgetItem(selectedItem)
             vmlabel = "V: " + vmChosen.split("\"")[1]
