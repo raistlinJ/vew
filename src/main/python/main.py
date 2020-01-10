@@ -128,14 +128,20 @@ class MainApp(QMainWindow):
 
     # Experiment context menu
         self.experimentContextMenu = QtWidgets.QMenu()
-        self.addVM = self.experimentContextMenu.addAction("Add VM")
+        self.addVMContextSubMenu = QtWidgets.QMenu()
+        self.experimentContextMenu.addMenu(self.addVMContextSubMenu)
+        self.addVMContextSubMenu.setTitle("Add")
+        self.addVM = self.addVMContextSubMenu.addAction("Virtual Machines")
         self.addVM.triggered.connect(self.addVMActionEvent)
-        self.addMaterial = self.experimentContextMenu.addAction("Add Material File")
+        self.addMaterial = self.addVMContextSubMenu.addAction("Material Files")
         self.addMaterial.triggered.connect(self.addMaterialActionEvent)
         # Add line separator here
-        self.createGuac = self.experimentContextMenu.addAction("Create Guacamole Users")
+        self.guacContextSubMenu = QtWidgets.QMenu()
+        self.experimentContextMenu.addMenu(self.guacContextSubMenu)
+        self.guacContextSubMenu.setTitle("CIT Remote Access")
+        self.createGuac = self.guacContextSubMenu.addAction("Create Users")
         self.createGuac.triggered.connect(self.createGuacActionEvent)
-        self.removeGuac = self.experimentContextMenu.addAction("Remove Guacamole Users")
+        self.removeGuac = self.guacContextSubMenu.addAction("Remove Users")
         self.removeGuac.triggered.connect(self.removeGuacActionEvent)
         # Add line separator here
         self.removeExperiment = self.experimentContextMenu.addAction("Remove Experiment")
@@ -147,7 +153,6 @@ class MainApp(QMainWindow):
         self.itemContextMenu = QtWidgets.QMenu()
         self.removeItem = self.itemContextMenu.addAction("Remove Experiment Item")
         self.removeItem.triggered.connect(self.removeExperimentItemActionEvent)
-
 
     def populateUi(self):
         logging.debug("MainApp:populateUi() instantiated")
@@ -166,13 +171,21 @@ class MainApp(QMainWindow):
             jsondata = self.ec.getExperimentXMLFileData(configname)
             self.statusBar.showMessage("Finished reading experiment config")
 
+        ##########testbed-setup data######
+            if jsondata == None:
+                jsondata = {}
+            if "xml" not in jsondata or jsondata["xml"] == None or str(jsondata["xml"]).strip() == "":
+                jsondata["xml"] = {}
+            if "testbed-setup" not in jsondata["xml"]:
+                jsondata["xml"]["testbed-setup"] = {}
+            if "vm-set" not in jsondata["xml"]["testbed-setup"]:
+                jsondata["xml"]["testbed-setup"]["vm-set"] = {}
+
             configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
             configTreeWidgetItem.setText(0,configname)
-
-        ##########testbed-setup data######
             basejsondata = jsondata["xml"]
             # Base Config Widget 
-            self.baseWidget = BaseWidget(self, basejsondata)
+            self.baseWidget = BaseWidget(self, configname, configname, basejsondata)
             self.baseWidgets[configname] = {"BaseWidget": {}, "VMWidgets": {}, "MaterialWidgets": {} }
             self.baseWidgets[configname]["BaseWidget"] = self.baseWidget
             self.basedataStackedWidget.addWidget(self.baseWidget)
@@ -186,8 +199,7 @@ class MainApp(QMainWindow):
                         vmlabel = "V: " + vm["name"]
                         vm_item.setText(0,vmlabel)
                         # VM Config Widget
-                        vmWidget = VMWidget(self, vm)
-                        #self.vmWidgets[(configname, vmlabel)] = vmWidget
+                        vmWidget = VMWidget(self, configname, vm["name"], vm)
                         self.baseWidgets[configname]["VMWidgets"][vmlabel] = vmWidget
                         self.basedataStackedWidget.addWidget(vmWidget)
                 else:
@@ -195,8 +207,7 @@ class MainApp(QMainWindow):
                     vmlabel = "V: " + vmsjsondata["name"]
                     vm_item.setText(0,vmlabel)
                     # VM Config Widget
-                    vmWidget = VMWidget(self, vmsjsondata)
-                    #self.vmWidgets[(configname, vmlabel)] = vmWidget
+                    vmWidget = VMWidget(self, configname, vmsjsondata["name"], vmsjsondata)
                     self.baseWidgets[configname]["VMWidgets"][vmlabel] = vmWidget
                     self.basedataStackedWidget.addWidget(vmWidget)
 
@@ -209,8 +220,7 @@ class MainApp(QMainWindow):
                         materiallabel = "M: " + material["name"]
                         material_item.setText(0,materiallabel)
                         # Material Config Widget
-                        materialWidget = MaterialWidget(self, material)
-                        #self.materialWidgets[(configname, materiallabel)] = materialWidget
+                        materialWidget = MaterialWidget(self, configname, material["name"], material)
                         self.baseWidgets[configname]["MaterialWidgets"][materiallabel] = materialWidget
                         self.basedataStackedWidget.addWidget(materialWidget)
                 else:
@@ -218,7 +228,7 @@ class MainApp(QMainWindow):
                     materiallabel = "M: " + materialsjsondata["name"]
                     material_item.setText(0,materiallabel)
                     # Material Config Widget
-                    materialWidget = MaterialWidget(self, materialsjsondata)
+                    materialWidget = MaterialWidget(self, configname, materialsjsondata["name"], materialsjsondata)
                     self.baseWidgets[configname]["MaterialWidgets"][materiallabel] = materialWidget
                     self.basedataStackedWidget.addWidget(materialWidget)
             self.statusBar.showMessage("Completed populating the User Interface from " + str(len(xmlExperimentNames)) + " config files read", 6000)
@@ -299,7 +309,7 @@ class MainApp(QMainWindow):
             # VM Config Widget
             #Now add the item to the stack and list of baseWidgets
             vmjsondata = {"name": vmChosen}
-            vmWidget = VMWidget(self, vmjsondata)
+            vmWidget = VMWidget(self, selectedItemName, vmChosen, vmjsondata)
             self.baseWidgets[selectedItemName]["VMWidgets"][vmlabel] = vmWidget
             self.basedataStackedWidget.addWidget(vmWidget)
         self.statusBar.showMessage("Added " + str(len(vmsChosen)) + " VM files to experiment: " + str(selectedItemName))
@@ -329,7 +339,7 @@ class MainApp(QMainWindow):
             # Material Config Widget
             #Now add the item to the stack and list of baseWidgets
             materialsjsondata = {"name": fileChosen}
-            materialWidget = MaterialWidget(self, materialsjsondata)
+            materialWidget = MaterialWidget(self, selectedItemName, fileChosen, materialsjsondata)
             self.baseWidgets[selectedItem.text(0)]["MaterialWidgets"][materiallabel] = materialWidget
             self.basedataStackedWidget.addWidget(materialWidget)
         self.statusBar.showMessage("Added " + str(len(filesChosen)) + " material files to experiment: " + str(selectedItemName))
@@ -501,8 +511,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     appctxt = ApplicationContext()
     app = MainApp()
-    QApplication.setStyle(QStyleFactory.create('Fusion'))
-    #changePalette()
-   
+    QApplication.setStyle(QStyleFactory.create('Fusion')) 
     app.show()
     sys.exit(appctxt.app.exec_())

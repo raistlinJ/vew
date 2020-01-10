@@ -2,9 +2,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import logging
 
 class BaseWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None, basejsondata=None):
+    def __init__(self, parent=None, configname=None, widgetname="", basejsondata=None):
         logging.debug("BaseWidget instantiated")
+        if configname == None:
+            logging.error("configname cannot be empty")
+            return None
         QtWidgets.QWidget.__init__(self, parent=None)
+        self.widgetname = widgetname
+        self.configname = configname
         
         self.setWindowTitle("BaseWidget")
         self.setObjectName("BaseWidget")
@@ -138,20 +143,47 @@ class BaseWidget(QtWidgets.QWidget):
         logging.debug("BaseWidget: retranslateUi(): instantiated")
 
         ###Fill in data from json
+        if basejsondata == None:
+            basejsondata = {}
+        if "vbox-setup" not in basejsondata:
+            basejsondata["vbox-setup"] = {}
+        if "testbed-setup" not in basejsondata:
+            basejsondata["testbed-setup"] = {}
+        if "network-config" not in basejsondata["testbed-setup"]:
+            basejsondata["testbed-setup"]["network-config"] = {}
+        if "vm-set" not in basejsondata["testbed-setup"]:
+            basejsondata["testbed-setup"]["vm-set"] = {}
+
+        if "path-to-vboxmanage" not in basejsondata["vbox-setup"]:
+            basejsondata["vbox-setup"]["path-to-vboxmanage"] = "VBoxManage"
         self.vBoxMangeLineEdit.setText(basejsondata["vbox-setup"]["path-to-vboxmanage"])
         ###
+        if "ip-address" not in basejsondata["testbed-setup"]["network-config"]:
+            basejsondata["testbed-setup"]["network-config"]["ip-address"] = "11.0.0.2"
         self.ipAddressLineEdit.setText(basejsondata["testbed-setup"]["network-config"]["ip-address"])
         ###
+        if "base-groupname" not in basejsondata["testbed-setup"]["vm-set"]:
+            basejsondata["testbed-setup"]["vm-set"]["base-groupname"] = self.configname
         self.baseGroupNameLineEdit.setText(basejsondata["testbed-setup"]["vm-set"]["base-groupname"])
         ###
+        if "num-clones" not in basejsondata["testbed-setup"]["vm-set"]:
+            basejsondata["testbed-setup"]["vm-set"]["num-clones"] = str(5)
         self.numClonesEntry.setValue(int(basejsondata["testbed-setup"]["vm-set"]["num-clones"]))
         ###
+        if "linked-clones" not in basejsondata["testbed-setup"]["vm-set"]:
+            basejsondata["testbed-setup"]["vm-set"]["linked-clones"] = "true"
         self.linkedClonesComboBox.setCurrentIndex(self.linkedClonesComboBox.findText(basejsondata["testbed-setup"]["vm-set"]["linked-clones"]))
         ###
+        if "clone-snapshots" not in basejsondata["testbed-setup"]["vm-set"]:
+            basejsondata["testbed-setup"]["vm-set"]["clone-snapshots"] = "true"
         self.cloneSnapshotComboBox.setCurrentIndex(self.cloneSnapshotComboBox.findText(basejsondata["testbed-setup"]["vm-set"]["clone-snapshots"]))
         ###
+        if "base-outname" not in basejsondata["testbed-setup"]["vm-set"]:
+            basejsondata["testbed-setup"]["vm-set"]["base-outname"] = "true"
         self.baseOutnameLineEdit.setText(basejsondata["testbed-setup"]["vm-set"]["base-outname"])
         ###
+        if "vrdp-baseport" not in basejsondata["testbed-setup"]["vm-set"]:
+            basejsondata["testbed-setup"]["vm-set"]["vrdp-baseport"] = "1001"
         self.vrdpBaseportLineEdit.setText(basejsondata["testbed-setup"]["vm-set"]["vrdp-baseport"])
 
     def getWritableData(self):

@@ -30,7 +30,6 @@ class WatchRetrieveThread(QThread):
             while(True):
                 logging.debug("watchRetrieveStatus(): running: vm-manage refresh")
                 self.status = e.execute("vm-manage mgrstatus")
-                logging.info("STATUS: " + str(self.status))
                 logging.debug("watchRetrieveStatus(): result: " + str(self.status))
                 if self.status["readStatus"] != VMManage.MANAGER_IDLE or (self.status["writeStatus"] != VMManage.MANAGER_IDLE and self.status["writeStatus"] != VMManage.MANAGER_UNKNOWN):
                     dotstring = ""

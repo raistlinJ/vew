@@ -6,9 +6,15 @@ import logging
 
 class VMWidget(QtWidgets.QWidget):
 
-    def __init__(self, parent=None, vmjsondata=None):
+    def __init__(self, parent=None, configname=None, widgetname="", vmjsondata=None):
         logging.debug("VMWidget instantiated")
+        if configname == None or widgetname == "":
+            logging.error("configname and widgetname must be provided")
+            return None
         QtWidgets.QWidget.__init__(self, parent=None)
+        self.widgetname = widgetname
+        self.configname = configname
+
         self.setStyleSheet("QGroupBox { font-weight: bold; }")
 
         self.netAdaptors = {}
@@ -69,22 +75,23 @@ class VMWidget(QtWidgets.QWidget):
 
     def retranslateUi(self, vmjsondata):
         logging.debug("VMWidget: retranslateUi(): instantiated")
-        if "name" in vmjsondata:
-            self.nameLineEdit.setText(vmjsondata["name"])
-        else:
-            self.nameLineEdit.setText("")
-        if "vrdp-enabled" in vmjsondata:
-            self.vrdpEnabledComboBox.setCurrentIndex(self.vrdpEnabledComboBox.findText(vmjsondata["vrdp-enabled"]))
-        else:
-            self.vrdpEnabledComboBox.setCurrentIndex(self.vrdpEnabledComboBox.findText("true"))
+        if vmjsondata == None:
+            vmjsondata = {}
+        if "name" not in vmjsondata:
+            vmjsondata["name"] = self.widgetname
+        self.nameLineEdit.setText(vmjsondata["name"])
 
-        ###Add Adaptors from File
-        if "internalnet-basename" in vmjsondata:
-            if isinstance(vmjsondata["internalnet-basename"], list):
-                for adaptor in vmjsondata["internalnet-basename"]:
-                    self.addAdaptor(adaptor)
-            else:
-                self.addAdaptor(vmjsondata["internalnet-basename"])
+        if "vrdp-enabled" not in vmjsondata:
+            vmjsondata["vrdp-enabled"] = "false"
+        self.vrdpEnabledComboBox.setCurrentIndex(self.vrdpEnabledComboBox.findText(vmjsondata["vrdp-enabled"]))
+
+        if "internalnet-basename" not in vmjsondata:
+            vmjsondata["internalnet-basename"] = "intnet"
+        if isinstance(vmjsondata["internalnet-basename"], list):
+            for adaptor in vmjsondata["internalnet-basename"]:
+                self.addAdaptor(adaptor)
+        else:
+            self.addAdaptor(vmjsondata["internalnet-basename"])
 
     def buttonAddAdaptor(self):
         logging.debug("VMWidget: buttonAddAdaptor(): instantiated")

@@ -3,9 +3,15 @@ import logging
 
 class MaterialWidget(QtWidgets.QWidget):
 
-    def __init__(self, parent=None, materialjsondata=None):
+    def __init__(self, parent=None, configname=None, widgetname="", materialjsondata=None):
         logging.debug("MaterialWidget instantiated")
         QtWidgets.QWidget.__init__(self, parent=None)
+        if configname == None or widgetname == "":
+            logging.error("configname and widgetname must be provided")
+            return None
+        self.widgetname = widgetname
+        self.configname = configname
+
         self.setWindowTitle("MaterialWidget")
         self.setObjectName("MaterialWidget")
 
@@ -32,14 +38,12 @@ class MaterialWidget(QtWidgets.QWidget):
             materialjsondata = self.createDefaultJSONData() 
         self.retranslateUi(materialjsondata)
         
-    def createDefaultJSONData(self):
-        logging.debug("MaterialWidget: createDefaultJSONData(): instantiated")
-        jsondata = {}
-        jsondata["name"] = ""
-        return jsondata
-
     def retranslateUi(self, materialjsondata):
         logging.debug("MaterialWidget: retranslateUi(): instantiated")
+        if materialjsondata == None:
+            materialjsondata = {}
+        if "name" not in materialjsondata:
+            materialjsondata["name"] = self.widgetname
         self.nameLineEdit.setText(materialjsondata["name"])
 
     def getWritableData(self):
