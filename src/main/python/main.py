@@ -272,12 +272,14 @@ class MainApp(QMainWindow):
     
     def addExperimentActionEvent(self):
         logging.debug("MainApp:addExperimentActionEvent() instantiated")
+        #Ask the user for an experiment name:
+        #Check to make sure it's not already in use
+        #Create the directory structures
+        #Add the baseWidget to the treeWidget
+        ##Create the direct
 
     def importActionEvent(self):
         logging.debug("MainApp:importActionEvent() instantiated")
-
-    def download(self):
-        logging.debug("MainApp:download() instantiated")
 
     def addVMActionEvent(self):
         logging.debug("MainApp:addVMActionEvent() instantiated")
