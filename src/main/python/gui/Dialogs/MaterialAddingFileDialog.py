@@ -50,7 +50,7 @@ class MaterialCopyThread(QThread):
             logging.error("Error in MaterialCopyThread(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.watchsignal.emit("One or more files could not be added. Check permissions.", None, True)
+            self.watchsignal.emit("One or more files could not be removed.\r\nFile may be in use or you have invalid permissions.", None, True)
             return None
         finally:
             return None

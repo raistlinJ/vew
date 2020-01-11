@@ -31,7 +31,7 @@ class ExperimentRemoveThread(QThread):
             stringExec = "Removing experiment " + fullfilename
             self.watchsignal.emit( stringExec, None, None)
             if os.path.exists(fullfilename):
-                shutil.rmtree(fullfilename, ignore_errors=True)
+                shutil.rmtree(fullfilename)
                 self.successfilenames.append(self.filenames)
                 self.watchsignal.emit("Finished Removing Experiment", None, True)
             else:
@@ -50,7 +50,7 @@ class ExperimentRemoveThread(QThread):
             logging.error("Error in ExperimentRemoveThread(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.watchsignal.emit("One or more files could not be added. Check permissions.", None, True)
+            self.watchsignal.emit("One or more files could not be removed.\r\nFile may be in use or you have invalid permissions.", None, True)
             return None
         finally:
             return None
