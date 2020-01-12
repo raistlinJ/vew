@@ -11,8 +11,10 @@ class ExperimentAddDialog:
         self.s = SystemConfigIO()
         self.destinationPath = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'])
         self.configname, ok = QInputDialog.getText(parent, 'Experiment', 
-            'Enter new experiment name:')
+            'Enter new experiment name \r\n(non alphanumeric characters will be removed)')
         if ok:
+            #standardize and remove invalid characters
+            self.configname = ''.join(e for e in self.configname if e.isalnum())
             #check to make sure the name doesn't already exist
             if self.configname in existingconfignames:
                 QMessageBox.warning(self.parent,
