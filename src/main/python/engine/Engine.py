@@ -1,3 +1,6 @@
+#Arguments in have to have double quotes if it has spaces.
+#Once read by the injesting function, these quotes are removed
+#The quotes will then be added as needed for backend system calls
 import logging
 import shlex
 import argparse
@@ -60,7 +63,7 @@ class Engine:
         logging.debug("vmManageStatusCmd(): instantiated")
         #will get the current configured VM (if any) display status
         #vmName = "\""+args.vmName+"\""
-        vmName = args.vmName
+        vmName = args.vmName.replace("\"","").replace("'","")
         logging.debug("vmManageStatusCmd(): Returning VM status for: " + str(vmName))
         #self.vmManage.refreshAllVMInfo()
         return self.vmManage.getVMStatus(vmName)
@@ -154,7 +157,7 @@ class Engine:
     def vmConfigCmd(self, args):
         logging.debug("vmConfigCmd(): instantiated")
         #vmName = "\""+args.vmName+"\""
-        vmName = args.vmName
+        vmName = args.vmName.replace("\"","").replace("'","")
                 
         #check if vm exists
         logging.debug("vmConfigCmd(): Sending status request for VM: " + vmName)
@@ -170,7 +173,7 @@ class Engine:
     def vmManageStartCmd(self, args):
         logging.debug("vmManageStartCmd(): instantiated")
         #vmName = "\""+args.vmName+"\""
-        vmName = args.vmName
+        vmName = args.vmName.replace("\"","").replace("'","")
 
         logging.debug("Configured VM found, starting vm")
         #send start command
@@ -179,7 +182,7 @@ class Engine:
     def vmManageSuspendCmd(self, args):
         logging.debug("vmManageSuspendCmd(): instantiated")
         #vmName = "\""+args.vmName+"\""
-        vmName = args.vmName
+        vmName = args.vmName.replace("\"","").replace("'","")
 
         #send suspend command
         self.vmManage.suspendVM(vmName)

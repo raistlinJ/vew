@@ -41,6 +41,7 @@ class ExperimentManageVBox(ExperimentManage):
         # for name in vms["vm"]: 
         #     Create clones as shown in the cit-gen create_workshop python script (preserving internal networks, etc.)   
         #     self.vmManage.cloneVM("\""+name["name"]+"\"")
+        #     self.vmManage.cloneVM(name["name"])
 
         while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
             #waiting for vmmanager start vm to finish reading/writing...
@@ -49,20 +50,21 @@ class ExperimentManageVBox(ExperimentManage):
         self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
     #abstractmethod
-    def startExperiment(self, configfilename):
+    def startExperiment(self, configname):
         logging.debug("startExperiment(): instantiated")
-        t = threading.Thread(target=self.runStartExperiment, args=(configfilename,))
+        t = threading.Thread(target=self.runStartExperiment, args=(configname,))
         t.start()
         return 0
 
-    def runStartExperiment(self, configfilename):
+    def runStartExperiment(self, configname):
         logging.debug("runStartExperiment(): instantiated")
         self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_STARTING
         #call vmManage to start clones as specified in config file; wait and query the vmManage status, and then set the complete status
-        jsondata = self.eco.getExperimentXMLFileData(configfilename)
+        jsondata = self.eco.getExperimentXMLFileData(configname)
         vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         for name in vms["vm"]:    
-            self.vmManage.startVM("\""+name["name"]+"\"")
+            #self.vmManage.startVM("\""+name["name"]+"\"")
+            self.vmManage.startVM(name["name"])
             while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                 #waiting for vmmanager start vm to finish reading/writing...
                 time.sleep(1)
@@ -70,20 +72,21 @@ class ExperimentManageVBox(ExperimentManage):
         self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
     #abstractmethod
-    def stopExperiment(self, configfilename):
+    def stopExperiment(self, configname):
         logging.debug("stopExperiment(): instantiated")
-        t = threading.Thread(target=self.runStopExperiment, args=(configfilename,))
+        t = threading.Thread(target=self.runStopExperiment, args=(configname,))
         t.start()
         return 0
 
-    def runStopExperiment(self, configfilename):
+    def runStopExperiment(self, configname):
         logging.debug("runStopExperiment(): instantiated")
         self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_STOPPING
         #call vmManage to stop clones as specified in config file; wait and query the vmManage status, and then set the complete status
-        jsondata = self.eco.getExperimentXMLFileData(configfilename)
+        jsondata = self.eco.getExperimentXMLFileData(configname)
         vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         for name in vms["vm"]:    
-            self.vmManage.stopVM("\""+name["name"]+"\"")
+            #self.vmManage.stopVM("\""+name["name"]+"\"")
+            self.vmManage.stopVM(name["name"])
             while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                 #waiting for manager to finish reading/writing...
                 time.sleep(1)
@@ -91,13 +94,13 @@ class ExperimentManageVBox(ExperimentManage):
         self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
     #abstractmethod
-    def removeExperiment(self, configfilename):
+    def removeExperiment(self, configname):
         logging.debug("removeExperiment(): instantiated")
-        t = threading.Thread(target=self.runRemoveExperiment, args=(configfilename,))
+        t = threading.Thread(target=self.runRemoveExperiment, args=(configname,))
         t.start()
         return 0
         
-    def runRemoveExperiment(self, configfilename):
+    def runRemoveExperiment(self, configname):
         logging.debug("runRemoveExperiment(): instantiated")
         self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_REMOVING
         #call vmManage to remove clones as specified in config file; wait and query the vmManage status, and then set the complete status
@@ -106,7 +109,8 @@ class ExperimentManageVBox(ExperimentManage):
         # vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         # for name in vms["vm"]:  
         #     #only remove the clones, not the original vms!  
-        #     self.vmManage.removeVM("\""+name["name"]+"\"")
+        #     #self.vmManage.removeVM("\""+name["name"]+"\"")
+        #     self.vmManage.removeVM(name["name"])
 
         while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
             #waiting for manager to finish reading/writing...

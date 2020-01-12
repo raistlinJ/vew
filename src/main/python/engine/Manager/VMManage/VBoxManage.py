@@ -194,7 +194,7 @@ class VBoxManage(VMManage):
         try:
             logging.debug("runConfigureVM(): instantiated")
             self.writeStatus = VMManage.MANAGER_WRITING
-            vmConfigVMCmd = self.vbox_path + " modifyvm " + str(vmName) + " --nic" + str(adaptorNum) + " generic" + " --nicgenericdrv1 UDPTunnel " + "--cableconnected" + str(adaptorNum) + " on --nicproperty" + str(adaptorNum) + " sport=" + str(srcPort) + " --nicproperty" + str(adaptorNum) + " dport=" + str(dstPort) + " --nicproperty" + str(adaptorNum) + " dest=" + str(dstIPAddress)
+            vmConfigVMCmd = self.vbox_path + " modifyvm " + str(self.vms[vmName].UUID) + " --nic" + str(adaptorNum) + " generic" + " --nicgenericdrv1 UDPTunnel " + "--cableconnected" + str(adaptorNum) + " on --nicproperty" + str(adaptorNum) + " sport=" + str(srcPort) + " --nicproperty" + str(adaptorNum) + " dport=" + str(dstPort) + " --nicproperty" + str(adaptorNum) + " dest=" + str(dstIPAddress)
             #p.wait()
             #vmConfigVMCmd = "timeout " + str(VMManage.MANAGER_STATUS_TIMEOUT_VAL) + " " + self.vbox_path + " modifyvm " + str(vmName) + " --nic" + str(adaptorNum) + " intnet", "--intnet"+str(netNum), "TEST"
             logging.debug("runConfigureVM(): Running " + vmConfigVMCmd)
@@ -264,7 +264,7 @@ class VBoxManage(VMManage):
             if vmName not in self.vms:
                 logging.error("startVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
                 return -1
-            cmd = "startvm " + vmName
+            cmd = "startvm " + str(self.vms[vmName].UUID)
             t = threading.Thread(target=self.runVMCmd, args=(cmd,))
             t.start()
             return 0
@@ -279,7 +279,7 @@ class VBoxManage(VMManage):
             if vmName not in self.vms:
                 logging.error("suspendVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
                 return -1
-            cmd = "controlvm " + vmName + " savestate"
+            cmd = "controlvm " + str(self.vms[vmName].UUID) + " savestate"
             t = threading.Thread(target=self.runVMCmd, args=(cmd,))
             t.start()
             return 0
@@ -294,7 +294,7 @@ class VBoxManage(VMManage):
             if vmName not in self.vms:
                 logging.error("stopVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
                 return -1
-            cmd = "controlvm " + vmName + " poweroff"
+            cmd = "controlvm " + str(self.vms[vmName].UUID) + " poweroff"
             t = threading.Thread(target=self.runVMCmd, args=(cmd,))
             t.start()
             return 0
