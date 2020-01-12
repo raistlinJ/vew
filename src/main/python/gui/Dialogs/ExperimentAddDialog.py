@@ -11,7 +11,7 @@ class ExperimentAddDialog:
         self.s = SystemConfigIO()
         self.destinationPath = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'])
         self.configname, ok = QInputDialog.getText(parent, 'Experiment', 
-            'Enter experiment name:')
+            'Enter new experiment name:')
         if ok:
             #check to make sure the name doesn't already exist
             if self.configname in existingconfignames:
