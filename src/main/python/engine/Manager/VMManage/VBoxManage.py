@@ -87,7 +87,12 @@ class VBoxManage(VMManage):
                     logging.debug("runVMSInfo(): split Line: " + str(out.split("{")))
                     splitOut = out.split("{")
                     vm = VM()
-                    vm.name = splitOut[0].strip()
+                    tmpname = splitOut[0].strip()
+                    #has to be at least one character and every name has a start and end quote
+                    if len(tmpname) > 2:
+                        vm.name = splitOut[0].strip()[1:-1]
+                    else: 
+                        break
                     vm.UUID = splitOut[1].split("}")[0].strip()
                     logging.debug("UUID: " + vm.UUID)
                     self.vms[vm.name] = vm

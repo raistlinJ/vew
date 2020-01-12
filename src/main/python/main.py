@@ -319,7 +319,7 @@ class MainApp(QMainWindow):
             logging.debug("MainApp: addVMActionEvent(): File choosen: " + str(vmChosen))
             #Add the item to the tree
             vmItem = QtWidgets.QTreeWidgetItem(selectedItem)
-            vmlabel = "V: " + vmChosen.split("\"")[1]
+            vmlabel = "V: " + vmChosen
             vmItem.setText(0,vmlabel)
             # VM Config Widget
             #Now add the item to the stack and list of baseWidgets
@@ -379,7 +379,7 @@ class MainApp(QMainWindow):
         if(parentSelectedItem == None):
             #A base widget was selected
             successfilenames = ExperimentRemoveFileDialog().experimentRemoveFileDialog(selectedItemName)
-            if successfilenames == []:
+            if successfilenames == [] or successfilenames:
                 logging.debug("removeExperimentItemActionEvent(): Canceled or a file could not be removed. Try again later or check permissions")
                 return
 
