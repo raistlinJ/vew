@@ -43,6 +43,7 @@ class SystemConfigIO():
         self.config['VBOX_LINUX']['VBOX_PATH'] = "VBoxManage"
         self.config['EXPERIMENTS'] = {}
         self.config['EXPERIMENTS']['EXPERIMENTS_PATH'] = "ExperimentData"
+        self.config['EXPERIMENTS']['TEMP_DATA_PATH'] = "tmp"
 
     def getConfig(self):
         return self.config

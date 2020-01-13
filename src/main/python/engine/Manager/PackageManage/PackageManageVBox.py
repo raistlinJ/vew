@@ -5,7 +5,7 @@ import json
 from engine.Manager.PackageManage.PackageManage import PackageManage
 from engine.Manager.VMManage.VBoxManage import VBoxManage
 from engine.Manager.VMManage.VBoxManageWin import VBoxManageWin
-from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
+from engine.Configuration.SystemConfigIO import SystemConfigIO
 import time
 
 class PackageManageVBox(PackageManage):
@@ -17,6 +17,7 @@ class PackageManageVBox(PackageManage):
             self.vmManage = VBoxManage()
         else:
             self.vmManage = VBoxManageWin()
+        self.s = SystemConfigIO()
 
     #abstractmethod
     def importPackage(self, resfilename, runVagrantProvisionScript=False):
@@ -29,6 +30,12 @@ class PackageManageVBox(PackageManage):
         logging.debug("runImportPackage(): instantiated")
         self.writeStatus = PackageManage.PACKAGE_MANAGE_IMPORTING
         #Unzip the file contents
+            
+            # get path for temporary directory to hold uncompressed files
+            tmpPath = self.s.getConfig()['EXPERIMENTS']['TEMP_DATA_PATH']
+            tempPath = os.path.join(os.path.dirname(zipPath), "creatorImportTemp",
+                                    os.path.splitext(os.path.basename(zipPath))[0])
+            baseTempPath = os.path.join(os.path.dirname(zipPath), "creatorImportTemp")
 
         #Copy uncompressed file contents into a experiments subfolder
 
