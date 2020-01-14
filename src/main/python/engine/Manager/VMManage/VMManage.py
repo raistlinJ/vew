@@ -59,16 +59,14 @@ class VMManage:
 #    def runVMCommand(self, VMName, commandString):
 #        raise NotImplementedError()
 
-#TODO:
-#    def configureVMintnet(self, VMName, adaptorNum, adaptorName):
-#        raise NotImplementedError()
-
     def importVM(self, filepath):
         raise NotImplementedError()
 
-#TODO:
-#    def exportVM(self, filepath):
-#        raise NotImplementedError()
+    def snapshotVM(self, vmName):
+        raise NotImplementedError()
+
+    def exportVM(self, vmName, filepath):
+        raise NotImplementedError()
 
 #TODO:
 #    def cloneVM(self, vmName, cloneName):

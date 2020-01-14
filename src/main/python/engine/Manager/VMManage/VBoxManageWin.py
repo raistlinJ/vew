@@ -247,6 +247,13 @@ class VBoxManageWin(VMManage):
         t.start()
         return 0
 
+    def exportVM(self, vmName, filepath):
+        logging.debug("importVM(): instantiated")        
+        cmd = "export " + self.vms[vmName].UUID + "\" -o \"" + filepath + "\" --iso"
+        t = threading.Thread(target=self.runVMCmd, args=(cmd,))
+        t.start()
+        return 0
+
     def startVM(self, vmName):
         logging.debug("startVM(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:

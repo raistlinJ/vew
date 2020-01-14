@@ -20,11 +20,12 @@ class ExperimentManageVBox(ExperimentManage):
             self.vmManage = VBoxManageWin()
         if initializeVMManage:
             self.vmManage.refreshAllVMInfo()
+            while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:
+            #waiting for manager to finish query...
+                time.sleep(1)
         self.eco = ExperimentConfigIO()
         #TODO: need to add an interface for updating status... probably in the engine main interface
-        while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:
-            #waiting for manager to finish query...
-            time.sleep(1)
+
 
     #abstractmethod
     def createExperiment(self, configfilename):

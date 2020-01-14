@@ -21,6 +21,9 @@ class VBoxManage(VMManage):
         self.vbox_path = self.cf.getConfig()['VBOX_LINUX']['VBOX_PATH']
         if initializeVMManage:
             self.refreshAllVMInfo()
+            while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:
+            #waiting for manager to finish query...
+                time.sleep(1)
 
     def configureVM(self, vmName, srcIPAddress, dstIPAddress, srcPort, dstPort, adaptorNum):
         logging.info("configureVM(): instantiated")

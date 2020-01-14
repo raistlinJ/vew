@@ -19,6 +19,9 @@ if __name__ == "__main__":
 
     logging.debug("Instantiating Experiment Config IO")
     p = PackageManageVBox()
-    logging.info("Importing file")
-    p.importPackage(resfilename)
+    # logging.info("Importing file")
+    # p.importPackage(resfilename)
+    logging.info("Exporting file")
+    p.exportPackage("sample", "tmp\export")
+
     logging.info("Operation Complete")

@@ -35,7 +35,7 @@ class PackageManageVBox(PackageManage):
         #Unzip the file contents
         # get path for temporary directory to hold uncompressed files
         logging.debug("runImportPackage(): unzipping contents")
-        tmpPathBase = self.s.getConfig()['EXPERIMENTS']['TEMP_DATA_PATH']
+        tmpPathBase = os.path.join(self.s.getConfig()['EXPERIMENTS']['TEMP_DATA_PATH'], "import")
         assumedExperimentName = os.path.basename(resfilename)
         assumedExperimentName = os.path.splitext(assumedExperimentName)[0]
         self.unzipWorker(resfilename, tmpPathBase)
@@ -157,35 +157,74 @@ class PackageManageVBox(PackageManage):
         logging.debug("snapshotVMWorker(): complete")
 
     #abstractmethod
-    def exportPackage(self, configfilename, exportfilename):
-        logging.debug("exportPackage(): instantiated")
-        t = threading.Thread(target=self.runExportPackage, args=(configfilename, exportfilename,))
+    def exportPackage(self, experimentname, exportpath):
+        logging.debug("exportPackage: instantiated")
+        t = threading.Thread(target=self.runExportPackage, args=(experimentname, exportpath,))
         t.start()
         return 0
 
-    def runExportPackage(self, configfilename, exportfilename):
+    def runExportPackage(self, experimentname, exportpath):
         logging.debug("runExportPackage(): instantiated")
         self.writeStatus = PackageManage.PACKAGE_MANAGE_EXPORTING
 
-        #For ova files
-            #call vmManage to export VMs to ova as specified in config file; wait and query the vmManage status, and then set the complete status
-
-        #Zip the file contents to a .res file
+        #get/create the temp directory to hold all
+        experimentDatapath = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], experimentname)
+        tmpPathBase = os.path.join(self.s.getConfig()['EXPERIMENTS']['TEMP_DATA_PATH'], "export",experimentname)
+        tmpPathVMs = os.path.join(tmpPathBase,"VMs")
+        exportfilename = os.path.join(exportpath,experimentname+".res")
         
+        #first add to zip everything that exists in the experiment folder (will add vms later)
+        logging.debug("runExportPackage(): zipping non-VM files")
+        self.zipWorker(experimentDatapath, exportfilename)
+        logging.debug("runExportPackage(): completed zipping non-VM files")
+
+        # for material in self.currentWorkshop.materialList:
+        #     shutil.copy2(os.path.join(WORKSHOP_MATERIAL_DIRECTORY, self.currentWorkshop.baseGroupName, material.name),
+        #                  materialsPath)
+
+        # vmsToExport = self.currentWorkshop.vmList
+        # currVMNum = 0
+        # numVMs = len(vmsToExport)
+        # for vm in vmsToExport:
+        #     # subprocess.call([VBOXMANAGE_DIRECTORY, 'export', vm.name, '-o', os.path.join(folderPath,vm.name+'.ova')])
+        #     logging.debug("exportWorkshop(): Exporting VMS loop")
+        #     logging.debug("Current VM NAME: " + vm.name)
+        #     outputOva = os.path.join(folderPath, vm.name + '.ova')
+        #     logging.debug("exportWorkshop(): adjusting dialog progress value to " + str(currVMNum / (numVMs * 1.)))
+        #     GLib.idle_add(spinnerDialog.setProgressVal, currVMNum / (numVMs * 1.))
+        #     GLib.idle_add(spinnerDialog.setLabelVal, "Exporting VM " + str(currVMNum + 1) + "/" + str(numVMs) + ": " + str(vm.name))
+        #     currVMNum = currVMNum + 1
+        #     logging.debug("Checking if " + folderPath + " exists: ")
+        #     if os.path.exists(folderPath):
+        #         pd = ProcessDialog(VBOXMANAGE_DIRECTORY + " export \"" + vm.name + "\" -o \"" + outputOva + "\" --iso", granularity="char", capture="stderr")
+        #         pd.run()
+        #         #pd.destroy()
+        #     else:
+        #         logging.error("folderPath" + folderPath + " was not created!")
+
         self.writeStatus = PackageManage.PACKAGE_MANAGE_COMPLETE
+
+    def zipWorker(self, pathToAdd, zipfilename):
+        logging.debug("zipWorker(): instantiated")
+        with zipfile.ZipFile(zipfilename, 'w') as zipObj:
+            # Iterate over all the files in directory
+            logging.debug("zipWorker(): getting files in: " + str(pathToAdd))
+            for folderName, subfolders, filenames in os.walk(pathToAdd):
+                for filename in filenames:
+                    logging.debug("zipWorker(): adding to zip: " + str(filename))
+                    #create complete filepath of file in directory
+                    filePath = os.path.join(folderName, filename)
+                    # Add file to zip
+                    zipObj.write(filePath)
+
+    def exportVMWorker(self, vmName, filepath):
+        logging.debug("exportVMWorker(): instantiated")
+
 
     #abstractmethod
     def getPackageManageStatus(self):
         logging.debug("getPackageManageStatus(): instantiated")
         return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus}
-    
-    #abstractmethod
-    def decompressFileContents(self, compressedfilename, destinationdir):
-        logging.debug("decompressFileContents(): instantiated")
-
-    #abstractmethod
-    def compressFileContents(self, dirtocompress, destinationfilename):
-        logging.debug("compressFileContents(): instantiated")
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)

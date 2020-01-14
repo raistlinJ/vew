@@ -29,17 +29,9 @@ class PackageManage:
 
     #abstractmethod
     #TODO -- eventually, should be able to package multiple config files into a single res file
-    def exportPackage(self, configfilename, exportfilename):
+    def exportPackage(self, experimentname, exportpath):
         raise NotImplementedError()
 
     #abstractmethod
     def getPackageManageStatus(self):
-        raise NotImplementedError()
-    
-    #abstractmethod
-    def decompressFileContents(self, compressedfilename, destinationdir):
-        raise NotImplementedError()
-    
-    #abstractmethod
-    def compressFileContents(self, dirtocompress, destinationfilename):
         raise NotImplementedError()

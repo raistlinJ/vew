@@ -88,10 +88,10 @@ class Engine:
     def packagerExportCmd(self, args):
         logging.debug("packagerExportCmd(): instantiated")
         #will export package to res file
-        configfilename = args.configfilename
-        exportfilename = args.exportfilename
+        configfilename = args.configname
+        exportpath = args.exportpath
 
-        return self.packageManage.exportPackage(configfilename, exportfilename)
+        return self.packageManage.exportPackage(experimentname, exportpath)
 
     def connectionStatusCmd(self, args):
         #query connection manager status and then return it here
@@ -220,9 +220,9 @@ class Engine:
         self.packageManageImportParser.set_defaults(func=self.packagerImportCmd)
 
         self.packageManageExportParser = self.packageManageSubParsers.add_parser('export', help='export an experiment from config to a RES file')
-        self.packageManageExportParser.add_argument('configfilename', metavar='<config filename>', action="store",
-                                          help='path to config file')
-        self.packageManageExportParser.add_argument('exportfilename', metavar='<export filename>', action="store",
+        self.packageManageExportParser.add_argument('experimentname', metavar='<config filename>', action="store",
+                                          help='name of experiment')
+        self.packageManageExportParser.add_argument('exportpath', metavar='<export path>', action="store",
                                           help='path where res file will be created')
         self.packageManageExportParser.set_defaults(func=self.packagerExportCmd)
 
