@@ -36,24 +36,27 @@ class PackageManageVBox(PackageManage):
         # get path for temporary directory to hold uncompressed files
         logging.debug("runImportPackage(): unzipping contents")
         tmpPathBase = self.s.getConfig()['EXPERIMENTS']['TEMP_DATA_PATH']
+        assumedExperimentName = os.path.basename(resfilename)
+        assumedExperimentName = os.path.splitext(assumedExperimentName)[0]
         self.unzipWorker(resfilename, tmpPathBase)
         logging.debug("runImportPackage(): completed unzipping contents")
-        # tmpPathVMs = os.path.join(tmpPathBase,"VMs")
-        # #For ova files
-        #     #call vmManage to import VMs as specified in config file; wait and query the vmManage status, and then set the complete status
-        #     # Get all files that end with .ova
-        # if os.path.exists(tmpPathVMs):
-        #     vmFilenames = os.listdir(tmpPathVMs)
-        # vmNum = 1
-        # for vmFilename in vmFilenames:
-        #     if vmFilename.endswith(".ova"):
-        #         logging.debug("importActionEvent(): Importing " + str(vmFilename) + " into VirtualBox...")
-        #     logging.debug("Importing VM " + str(vmNum) + " of " + str(len(vmFilenames)))
-            
-        #     #Import the VM using a system call
-        #     self.importVMWorker(os.path.join(tmpPathVMs, vmFilename))           
-        #     #pd = ProcessDialog(VBOXMANAGE_DIRECTORY + " snapshot \"" + ova[:-4] + "\" take freshimport", granularity="char", capture="stderr")
-        #     vmNum = vmNum + 1
+        tmpPathVMs = os.path.join(tmpPathBase, assumedExperimentName, "VMs")
+        #For ova files
+            #call vmManage to import VMs as specified in config file; wait and query the vmManage status, and then set the complete status
+            # Get all files that end with .ova
+        vmFilenames = []
+        if os.path.exists(tmpPathVMs):
+            vmFilenames = os.listdir(tmpPathVMs)
+        logging.debug("runImportPackage(): Unzipped files: " + str(vmFilenames))
+        vmNum = 1
+        for vmFilename in vmFilenames:
+            if vmFilename.endswith(".ova"):
+                logging.debug("importActionEvent(): Importing " + str(vmFilename) + " into VirtualBox...")
+            logging.debug("Importing VM " + str(vmNum) + " of " + str(len(vmFilenames)))
+            #Import the VM using a system call
+            self.importVMWorker(os.path.join(tmpPathVMs, vmFilename))
+            self.snapshotVMWorker(os.path.join(vmFilename[:-4]))
+            vmNum = vmNum + 1
 
         self.writeStatus = PackageManage.PACKAGE_MANAGE_COMPLETE
 
@@ -119,9 +122,38 @@ class PackageManageVBox(PackageManage):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
 
-    def importVMWorker(self, vmName):
+    def importVMWorker(self, vmFilepath):
         logging.debug("importVMWorker(): instantiated")
-        # self.s.getConfig()["VBOX_PATH"]" import \"" + os.path.join(tempPath, ova) + "\" --options keepallmacs", granularity="char", capture="stderr"
+        self.vmManage.importVM(vmFilepath)
+        res = self.vmManage.getManagerStatus()
+        logging.debug("Waiting for import to complete...")
+        while res["writeStatus"] != self.vmManage.MANAGER_IDLE:
+            time.sleep(1)
+            logging.debug("Waiting for import vm to complete...")
+            res = self.vmManage.getManagerStatus()
+        logging.debug("Import complete...")
+        
+        logging.debug("Refreshing vmManager...")
+        self.vmManage.refreshAllVMInfo()
+        res = self.vmManage.getManagerStatus()
+        logging.debug("Waiting for refresh vms to complete...")
+        while res["readStatus"] != self.vmManage.MANAGER_IDLE:
+            time.sleep(1)
+            logging.debug("Waiting for refresh vms to complete...")
+            res = self.vmManage.getManagerStatus()
+        logging.debug("Refresh vmManager complete...")
+        logging.debug("importVMWorker(): complete")
+
+    def snapshotVMWorker(self, vmName):
+        logging.debug("snapshotVMWorker(): instantiated")
+        self.vmManage.snapshotVM(vmName)
+        res = self.vmManage.getManagerStatus()
+        logging.debug("Waiting for snapshot create to complete...")
+        while res["writeStatus"] != self.vmManage.MANAGER_IDLE:
+            time.sleep(1)
+            logging.debug("Waiting for snapshot vm to complete...")
+            res = self.vmManage.getManagerStatus()
+        logging.debug("snapshotVMWorker(): complete")
 
     #abstractmethod
     def exportPackage(self, configfilename, exportfilename):
