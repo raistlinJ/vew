@@ -40,7 +40,6 @@ class ExperimentManageVBox(ExperimentManage):
         # vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         # for name in vms["vm"]: 
         #     Create clones as shown in the cit-gen create_workshop python script (preserving internal networks, etc.)   
-        #     self.vmManage.cloneVM("\""+name["name"]+"\"")
         #     self.vmManage.cloneVM(name["name"])
 
         while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
@@ -63,7 +62,6 @@ class ExperimentManageVBox(ExperimentManage):
         jsondata = self.eco.getExperimentXMLFileData(configname)
         vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         for name in vms["vm"]:    
-            #self.vmManage.startVM("\""+name["name"]+"\"")
             self.vmManage.startVM(name["name"])
             while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                 #waiting for vmmanager start vm to finish reading/writing...
@@ -85,7 +83,6 @@ class ExperimentManageVBox(ExperimentManage):
         jsondata = self.eco.getExperimentXMLFileData(configname)
         vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         for name in vms["vm"]:    
-            #self.vmManage.stopVM("\""+name["name"]+"\"")
             self.vmManage.stopVM(name["name"])
             while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                 #waiting for manager to finish reading/writing...
@@ -109,7 +106,6 @@ class ExperimentManageVBox(ExperimentManage):
         # vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         # for name in vms["vm"]:  
         #     #only remove the clones, not the original vms!  
-        #     #self.vmManage.removeVM("\""+name["name"]+"\"")
         #     self.vmManage.removeVM(name["name"])
 
         while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:

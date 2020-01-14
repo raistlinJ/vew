@@ -62,7 +62,6 @@ class Engine:
     def vmManageVMStatusCmd(self, args):
         logging.debug("vmManageStatusCmd(): instantiated")
         #will get the current configured VM (if any) display status
-        #vmName = "\""+args.vmName+"\""
         vmName = args.vmName.replace("\"","").replace("'","")
         logging.debug("vmManageStatusCmd(): Returning VM status for: " + str(vmName))
         #self.vmManage.refreshAllVMInfo()
@@ -156,7 +155,6 @@ class Engine:
   
     def vmConfigCmd(self, args):
         logging.debug("vmConfigCmd(): instantiated")
-        #vmName = "\""+args.vmName+"\""
         vmName = args.vmName.replace("\"","").replace("'","")
                 
         #check if vm exists
@@ -172,7 +170,6 @@ class Engine:
                 
     def vmManageStartCmd(self, args):
         logging.debug("vmManageStartCmd(): instantiated")
-        #vmName = "\""+args.vmName+"\""
         vmName = args.vmName.replace("\"","").replace("'","")
 
         logging.debug("Configured VM found, starting vm")
@@ -181,7 +178,6 @@ class Engine:
 
     def vmManageSuspendCmd(self, args):
         logging.debug("vmManageSuspendCmd(): instantiated")
-        #vmName = "\""+args.vmName+"\""
         vmName = args.vmName.replace("\"","").replace("'","")
 
         #send suspend command
@@ -294,7 +290,7 @@ class Engine:
             logging.debug("execute(): returning result: " + str(r))
             return r.func(r)
         except argparse.ArgumentError as err:
-            logging.error(exc.message, '\n', err.argument)	
+            logging.error(err.message, '\n', err.argument_name)	
         # except SystemExit:
             # return
 
