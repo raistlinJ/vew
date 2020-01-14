@@ -20,7 +20,7 @@ class VBoxManageWin(VMManage):
         VMManage.__init__(self)
         self.cf = SystemConfigIO()
         self.vbox_path = self.cf.getConfig()['VBOX_WIN']['VBOX_PATH']
-        if initializeVMManage:
+        if inializeVMManage:
             self.refreshAllVMInfo()
 
     def configureVM(self, vmName, srcIPAddress, dstIPAddress, srcPort, dstPort, adaptorNum):
