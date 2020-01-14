@@ -10,7 +10,7 @@ from engine.Manager.VMManage.VBoxManageWin import VBoxManageWin
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 
 class ExperimentManageVBox(ExperimentManage):
-    def __init__(self):
+    def __init__(self, initializeVMManage = True):
         logging.debug("ExperimentManageVBox(): instantiated")
         ExperimentManage.__init__(self)
         #Create an instance of vmManage
@@ -18,7 +18,8 @@ class ExperimentManageVBox(ExperimentManage):
             self.vmManage = VBoxManage()
         else:
             self.vmManage = VBoxManageWin()
-        self.vmManage.refreshAllVMInfo()
+        if initializeVMManage:
+            self.vmManage.refreshAllVMInfo()
         self.eco = ExperimentConfigIO()
         #TODO: need to add an interface for updating status... probably in the engine main interface
         while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:

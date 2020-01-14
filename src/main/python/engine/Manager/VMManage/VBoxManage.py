@@ -14,14 +14,13 @@ from engine.Configuration.SystemConfigIO import SystemConfigIO
 
 class VBoxManage(VMManage):
 
-    def __init__(self):
+    def __init__(self, initializeVMManage=False):
         logging.info("VBoxManage.__init__(): instantiated")
         VMManage.__init__(self)
         self.cf = SystemConfigIO()
         self.vbox_path = self.cf.getConfig()['VBOX_LINUX']['VBOX_PATH']
-
-        #initial refresh
-        #self.refreshAllVMInfo()
+        if initializeVMManage:
+            self.refreshAllVMInfo()
 
     def configureVM(self, vmName, srcIPAddress, dstIPAddress, srcPort, dstPort, adaptorNum):
         logging.info("configureVM(): instantiated")

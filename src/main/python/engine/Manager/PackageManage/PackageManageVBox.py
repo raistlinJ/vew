@@ -44,6 +44,7 @@ class PackageManageVBox(PackageManage):
         #For ova files
             #call vmManage to import VMs as specified in config file; wait and query the vmManage status, and then set the complete status
             # Get all files that end with .ova
+            #import and then snapshot
         vmFilenames = []
         if os.path.exists(tmpPathVMs):
             vmFilenames = os.listdir(tmpPathVMs)
@@ -158,7 +159,7 @@ class PackageManageVBox(PackageManage):
     #abstractmethod
     def exportPackage(self, configfilename, exportfilename):
         logging.debug("exportPackage(): instantiated")
-        t = threading.Thread(target=self.runImportPackage, args=(configfilename, exportfilename,))
+        t = threading.Thread(target=self.runExportPackage, args=(configfilename, exportfilename,))
         t.start()
         return 0
 

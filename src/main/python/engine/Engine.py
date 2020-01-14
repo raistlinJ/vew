@@ -64,7 +64,6 @@ class Engine:
         #will get the current configured VM (if any) display status
         vmName = args.vmName.replace("\"","").replace("'","")
         logging.debug("vmManageStatusCmd(): Returning VM status for: " + str(vmName))
-        #self.vmManage.refreshAllVMInfo()
         return self.vmManage.getVMStatus(vmName)
         
     def vmManageMgrStatusCmd(self, args):
