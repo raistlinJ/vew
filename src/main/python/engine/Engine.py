@@ -81,7 +81,7 @@ class Engine:
         return self.packageManage.getPackageManageStatus()
 
     def packagerImportCmd(self, args):
-        logging.debug("packagerImportCmd(): instantiated")
+        logging.debug("packagerImportCmd(): instantiated: ")
         #will import res package from file
         resfilename = args.resfilename
 
@@ -318,31 +318,39 @@ if __name__ == "__main__":
     res = e.execute("engine status ")
 
 ###VMManage tests
-    res = e.execute("vm-manage refresh")
     sleep(5)
     #Check status without refresh
-    res = e.execute("vm-manage vmstatus \"ubuntu-core4.7\"")
+    res = e.execute("vm-manage vmstatus defaulta")
     logging.debug("VM-Manage Status of ubuntu-core4.7: " + str(res))
-
+    
     #Refresh
     sleep(5)
     res = e.execute("vm-manage refresh")
     logging.debug("Refreshing" + str(res))
+
+    #Check status after refresh
+    res = e.execute("vm-manage vmstatus defaulta")
+    logging.debug("VM-Manage Status of ubuntu-core4.7: " + str(res))
 
 ###Packager tests
     #e.execute(sys.argv[1:])
     e.execute("packager status")
     
     ###import
-    e.execute("packager import resfile.res")
+    logging.debug("Importing VM: " + str("samples\sample.res"))
+    e.execute("packager import \"samples\sample.res\"")
     res = e.execute("packager status")
+    logging.debug("Returned: " + str(res))
+    exit()
+
     while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
         sleep(1)
         logging.debug("Waiting for package import to complete...")
         res = e.execute("packager status")
+        logging.debug("Returned: " + str(res))
     logging.debug("Package import complete.")
     
-    e.execute("packager export sample myresfile.res")
+    e.execute("packager export sample \"sample\myresfile.res\"")
     res = e.execute("packager status")
     while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
         sleep(1)

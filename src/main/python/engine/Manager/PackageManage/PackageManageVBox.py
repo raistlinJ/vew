@@ -33,12 +33,11 @@ class PackageManageVBox(PackageManage):
         logging.debug("runImportPackage(): instantiated")
         self.writeStatus = PackageManage.PACKAGE_MANAGE_IMPORTING
         #Unzip the file contents
-            
         # get path for temporary directory to hold uncompressed files
+        logging.debug("runImportPackage(): unzipping contents")
         tmpPathBase = self.s.getConfig()['EXPERIMENTS']['TEMP_DATA_PATH']
-        #Copy uncompressed file contents into a experiments subfolder
         self.unzipWorker(resfilename, tmpPathBase)
-
+        logging.debug("runImportPackage(): completed unzipping contents")
         # tmpPathVMs = os.path.join(tmpPathBase,"VMs")
         # #For ova files
         #     #call vmManage to import VMs as specified in config file; wait and query the vmManage status, and then set the complete status
@@ -106,9 +105,8 @@ class PackageManageVBox(PackageManage):
                             len(members_list)) + ":\r\n" + entry_name + "\r\nExtracting: " + str(int_val) + " %")
                     if b == b'':
                         break
-                    logging.debug("unzipWorker(): Writing out file data for file: " + str(entry_name) + " data: " + str(b))
+                    #logging.debug("unzipWorker(): Writing out file data for file: " + str(entry_name) + " data: " + str(b))
                     o.write(b)
-                    time.sleep(0.1)
                 logging.debug("unzipWorker(): Finished processing file: " + str(entry_name))
                 i.close()
                 o.close()
