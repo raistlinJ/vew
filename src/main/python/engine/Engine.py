@@ -88,7 +88,7 @@ class Engine:
     def packagerExportCmd(self, args):
         logging.debug("packagerExportCmd(): instantiated")
         #will export package to res file
-        configfilename = args.configname
+        experimentname = args.experimentname
         exportpath = args.exportpath
 
         return self.packageManage.exportPackage(experimentname, exportpath)

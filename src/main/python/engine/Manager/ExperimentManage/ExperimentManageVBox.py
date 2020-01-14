@@ -20,12 +20,11 @@ class ExperimentManageVBox(ExperimentManage):
             self.vmManage = VBoxManageWin()
         if initializeVMManage:
             self.vmManage.refreshAllVMInfo()
-            while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:
+            while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
             #waiting for manager to finish query...
                 time.sleep(1)
         self.eco = ExperimentConfigIO()
         #TODO: need to add an interface for updating status... probably in the engine main interface
-
 
     #abstractmethod
     def createExperiment(self, configfilename):
@@ -119,6 +118,20 @@ class ExperimentManageVBox(ExperimentManage):
     def getExperimentManageStatus(self):
         logging.debug("getExperimentManageStatus(): instantiated")
         return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus}
+
+    def getExperimentVMNames(self, experimentname):
+        logging.debug("getExperimentVMNames(): instantiated")
+        jsondata = self.eco.getExperimentXMLFileData(experimentname)
+        vms = jsondata["xml"]["testbed-setup"]["vm-set"]
+        vmNames = []
+        #TODO: may have to check if this is a list or a single item
+        for name in vms["vm"]:    
+            vmNames.append(name["name"])
+        return vmNames
+
+    def getExperimentMaterialNames(self, experimentname):
+        logging.debug("getExperimentMaterialNames(): instantiated")
+        #TODO: implement this method
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)

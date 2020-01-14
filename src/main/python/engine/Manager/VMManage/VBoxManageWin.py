@@ -248,8 +248,11 @@ class VBoxManageWin(VMManage):
         return 0
 
     def exportVM(self, vmName, filepath):
-        logging.debug("importVM(): instantiated")        
-        cmd = "export " + self.vms[vmName].UUID + "\" -o \"" + filepath + "\" --iso"
+        logging.debug("importVM(): instantiated")
+        #first remove any quotes that may have been entered before (because we will add some after we add the file and extension)
+        filepath = filepath.replace("\"","")
+        exportfilename = os.path.join(filepath,vmName+".ova")
+        cmd = "export " + self.vms[vmName].UUID + " -o \"" + exportfilename + "\" --iso"
         t = threading.Thread(target=self.runVMCmd, args=(cmd,))
         t.start()
         return 0

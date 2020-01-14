@@ -3,6 +3,7 @@ import shlex
 import argparse
 import sys
 from time import sleep
+from engine.Manager.VMManage.VMManage import VMManage
 from engine.Manager.ConnectionManage.ConnectionManageGuacRDP import ConnectionManageGuacRDP
 from engine.Manager.PackageManage.PackageManageVBox import PackageManageVBox
 from engine.Manager.ExperimentManage.ExperimentManageVBox import ExperimentManageVBox
@@ -29,45 +30,67 @@ if __name__ == "__main__":
     res = e.execute("engine status ")
 
 ###VMManage tests
-    sleep(5)
     #Check status without refresh
+    logging.debug("VM-Manage Status of defaulta without refresh" + str(res))
     res = e.execute("vm-manage vmstatus defaulta")
-    logging.debug("VM-Manage Status of ubuntu-core4.7: " + str(res))
+    res = e.execute("vm-manage mgrstatus")
+    logging.debug("Returned: " + str(res))
+    while res["readStatus"] != VMManage.MANAGER_IDLE and res["readStatus"] != VMManage.MANAGER_UNKNOWN:
+        sleep(1)
+        logging.debug("Waiting for vmstatus to complete...")
+        res = e.execute("vm-manage mgrstatus")
+        logging.debug("Returned: " + str(res))
+    logging.debug("VM-Manage vmstatus complete.")
     
     #Refresh
     sleep(5)
-    res = e.execute("vm-manage refresh")
-    logging.debug("Refreshing" + str(res))
+    res = e.execute("vm-manage refresh")    
+    res = e.execute("vm-manage mgrstatus")
+    logging.debug("Returned: " + str(res))
+    while res["readStatus"] != VMManage.MANAGER_IDLE:
+        sleep(1)
+        logging.debug("Waiting for vmrefresh to complete...")
+        res = e.execute("vm-manage mgrstatus")
+        logging.debug("Returned: " + str(res))
+    logging.debug("VM-Manage vmstatus complete.")
 
     #Check status after refresh
+    sleep(5)
     res = e.execute("vm-manage vmstatus defaulta")
-    logging.debug("VM-Manage Status of ubuntu-core4.7: " + str(res))
+    logging.debug("VM-Manage Status of defaulta: " + str(res))
+    res = e.execute("vm-manage mgrstatus")
+    logging.debug("Returned: " + str(res))
+    while res["readStatus"] != VMManage.MANAGER_IDLE:
+        sleep(1)
+        logging.debug("Waiting for vmstatus to complete...")
+        res = e.execute("vm-manage mgrstatus")
+        logging.debug("Returned: " + str(res))
+    logging.debug("VM-Manage vmstatus complete.")
 
 ###Packager tests
-    #e.execute(sys.argv[1:])
-    e.execute("packager status")
-    
     ###import
-    logging.debug("Importing VM: " + str("samples\sample.res"))
+    sleep(5)
+    logging.debug("Importing RES file: " + str("samples\sample.res"))
     e.execute("packager import \"samples\sample.res\"")
     res = e.execute("packager status")
     logging.debug("Returned: " + str(res))
-    exit()
-
     while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
         sleep(1)
         logging.debug("Waiting for package import to complete...")
         res = e.execute("packager status")
         logging.debug("Returned: " + str(res))
     logging.debug("Package import complete.")
-    
-    e.execute("packager export sample \"sample\myresfile.res\"")
+
+    ###export
+    sleep(5)
+    logging.debug("Exporting experiment named: sample to " + "exportedtestwithspaces")
+    e.execute("packager export sample \"exported\sample with space\"")
     res = e.execute("packager status")
     while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
         sleep(1)
         logging.debug("Waiting for package export to complete...")
         res = e.execute("packager status")
-    logging.debug("Package export complete.") 
+    logging.debug("Package export complete.")    
     
 # ###Connection tests
 #     # sleep(60)#alternative, check status until packager is complete and idle

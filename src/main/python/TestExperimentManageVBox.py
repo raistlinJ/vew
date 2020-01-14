@@ -20,7 +20,7 @@ class ExperimentManageVBox(ExperimentManage):
             self.vmManage = VBoxManageWin()
         if initializeVMManage:
             self.refreshAllVMInfo()
-            while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:
+            while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
                 #waiting for manager to finish query...
                 time.sleep(1)
         self.eco = ExperimentConfigIO()
