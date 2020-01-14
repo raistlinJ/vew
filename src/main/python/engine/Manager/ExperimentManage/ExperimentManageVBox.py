@@ -10,7 +10,7 @@ from engine.Manager.VMManage.VBoxManageWin import VBoxManageWin
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 
 class ExperimentManageVBox(ExperimentManage):
-    def __init__(self):
+    def __init__(self, initializeVMManage = True):
         logging.debug("ExperimentManageVBox(): instantiated")
         ExperimentManage.__init__(self)
         #Create an instance of vmManage
@@ -18,12 +18,13 @@ class ExperimentManageVBox(ExperimentManage):
             self.vmManage = VBoxManage()
         else:
             self.vmManage = VBoxManageWin()
-        self.vmManage.refreshAllVMInfo()
+        if initializeVMManage:
+            self.vmManage.refreshAllVMInfo()
+            while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
+            #waiting for manager to finish query...
+                time.sleep(1)
         self.eco = ExperimentConfigIO()
         #TODO: need to add an interface for updating status... probably in the engine main interface
-        while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:
-            #waiting for manager to finish query...
-            time.sleep(1)
 
     #abstractmethod
     def createExperiment(self, configfilename):
@@ -40,7 +41,6 @@ class ExperimentManageVBox(ExperimentManage):
         # vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         # for name in vms["vm"]: 
         #     Create clones as shown in the cit-gen create_workshop python script (preserving internal networks, etc.)   
-        #     self.vmManage.cloneVM("\""+name["name"]+"\"")
         #     self.vmManage.cloneVM(name["name"])
 
         while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
@@ -63,7 +63,6 @@ class ExperimentManageVBox(ExperimentManage):
         jsondata = self.eco.getExperimentXMLFileData(configname)
         vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         for name in vms["vm"]:    
-            #self.vmManage.startVM("\""+name["name"]+"\"")
             self.vmManage.startVM(name["name"])
             while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                 #waiting for vmmanager start vm to finish reading/writing...
@@ -85,7 +84,6 @@ class ExperimentManageVBox(ExperimentManage):
         jsondata = self.eco.getExperimentXMLFileData(configname)
         vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         for name in vms["vm"]:    
-            #self.vmManage.stopVM("\""+name["name"]+"\"")
             self.vmManage.stopVM(name["name"])
             while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                 #waiting for manager to finish reading/writing...
@@ -109,7 +107,6 @@ class ExperimentManageVBox(ExperimentManage):
         # vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         # for name in vms["vm"]:  
         #     #only remove the clones, not the original vms!  
-        #     #self.vmManage.removeVM("\""+name["name"]+"\"")
         #     self.vmManage.removeVM(name["name"])
 
         while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
@@ -121,6 +118,20 @@ class ExperimentManageVBox(ExperimentManage):
     def getExperimentManageStatus(self):
         logging.debug("getExperimentManageStatus(): instantiated")
         return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus}
+
+    def getExperimentVMNames(self, experimentname):
+        logging.debug("getExperimentVMNames(): instantiated")
+        jsondata = self.eco.getExperimentXMLFileData(experimentname)
+        vms = jsondata["xml"]["testbed-setup"]["vm-set"]
+        vmNames = []
+        #TODO: may have to check if this is a list or a single item
+        for name in vms["vm"]:    
+            vmNames.append(name["name"])
+        return vmNames
+
+    def getExperimentMaterialNames(self, experimentname):
+        logging.debug("getExperimentMaterialNames(): instantiated")
+        #TODO: implement this method
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)

@@ -15,14 +15,16 @@ import configparser
 from engine.Configuration.SystemConfigIO import SystemConfigIO
 
 class VBoxManageWin(VMManage):
-    def __init__(self):
+    def __init__(self, inializeVMManage=False):
         logging.info("VBoxManageWin.__init__(): instantiated")
         VMManage.__init__(self)
         self.cf = SystemConfigIO()
         self.vbox_path = self.cf.getConfig()['VBOX_WIN']['VBOX_PATH']
-
-        #initial refresh
-        #self.refreshAllVMInfo()
+        if initializeVMManage:
+            self.refreshAllVMInfo()
+            while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
+                #waiting for manager to finish query...
+                time.sleep(1)
 
     def configureVM(self, vmName, srcIPAddress, dstIPAddress, srcPort, dstPort, adaptorNum):
         logging.info("configureVM(): instantiated")
@@ -196,7 +198,7 @@ class VBoxManageWin(VMManage):
         self.writeStatus = VMManage.MANAGER_WRITING
         self.readStatus = VMManage.MANAGER_READING
         vmCmd = self.vbox_path + " " + cmd
-        logging.debug("runConfigureVM(): Running " + vmCmd)
+        logging.debug("runVMCmd(): Running " + vmCmd)
         p = Popen(vmCmd, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo, encoding="utf-8")
         while True:
             out = p.stdout.readline()
@@ -229,7 +231,25 @@ class VBoxManageWin(VMManage):
             resVM = self.vms[vmName]
             vmStatus[resVM.name] = {"vmUUID" : resVM.UUID, "setupStatus" : resVM.setupStatus, "vmState" : resVM.state, "adaptorInfo" : resVM.adaptorInfo, "groups" : resVM.groups}
         return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "vmstatus" : vmStatus}
-        
+
+    def importVM(self, filepath):
+        logging.debug("importVM(): instantiated")
+        cmd = "import \"" + filepath + "\" --options keepallmacs"
+        t = threading.Thread(target=self.runVMCmd, args=(cmd,))
+        t.start()
+        return 0  
+
+    def snapshotVM(self, vmName):
+        logging.debug("snapshotVM(): instantiated")
+        #check to make sure the vm is known, if not should refresh or check name:
+        if vmName not in self.vms:
+            logging.error("snapshotVM(): " + filepath + " not found in list of known vms: \r\n" + str(self.vms))
+            return -1
+        cmd = " snapshot " + str(self.vms[vmName].UUID) + " take snapshot"
+        t = threading.Thread(target=self.runVMCmd, args=(cmd,))
+        t.start()
+        return 0
+
     def startVM(self, vmName):
         logging.debug("startVM(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:

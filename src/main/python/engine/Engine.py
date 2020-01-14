@@ -62,10 +62,8 @@ class Engine:
     def vmManageVMStatusCmd(self, args):
         logging.debug("vmManageStatusCmd(): instantiated")
         #will get the current configured VM (if any) display status
-        #vmName = "\""+args.vmName+"\""
         vmName = args.vmName.replace("\"","").replace("'","")
         logging.debug("vmManageStatusCmd(): Returning VM status for: " + str(vmName))
-        #self.vmManage.refreshAllVMInfo()
         return self.vmManage.getVMStatus(vmName)
         
     def vmManageMgrStatusCmd(self, args):
@@ -81,7 +79,7 @@ class Engine:
         return self.packageManage.getPackageManageStatus()
 
     def packagerImportCmd(self, args):
-        logging.debug("packagerImportCmd(): instantiated")
+        logging.debug("packagerImportCmd(): instantiated: ")
         #will import res package from file
         resfilename = args.resfilename
 
@@ -90,10 +88,10 @@ class Engine:
     def packagerExportCmd(self, args):
         logging.debug("packagerExportCmd(): instantiated")
         #will export package to res file
-        configfilename = args.configfilename
-        exportfilename = args.exportfilename
+        experimentname = args.experimentname
+        exportpath = args.exportpath
 
-        return self.packageManage.exportPackage(configfilename, exportfilename)
+        return self.packageManage.exportPackage(experimentname, exportpath)
 
     def connectionStatusCmd(self, args):
         #query connection manager status and then return it here
@@ -156,7 +154,6 @@ class Engine:
   
     def vmConfigCmd(self, args):
         logging.debug("vmConfigCmd(): instantiated")
-        #vmName = "\""+args.vmName+"\""
         vmName = args.vmName.replace("\"","").replace("'","")
                 
         #check if vm exists
@@ -172,7 +169,6 @@ class Engine:
                 
     def vmManageStartCmd(self, args):
         logging.debug("vmManageStartCmd(): instantiated")
-        #vmName = "\""+args.vmName+"\""
         vmName = args.vmName.replace("\"","").replace("'","")
 
         logging.debug("Configured VM found, starting vm")
@@ -181,7 +177,6 @@ class Engine:
 
     def vmManageSuspendCmd(self, args):
         logging.debug("vmManageSuspendCmd(): instantiated")
-        #vmName = "\""+args.vmName+"\""
         vmName = args.vmName.replace("\"","").replace("'","")
 
         #send suspend command
@@ -225,9 +220,9 @@ class Engine:
         self.packageManageImportParser.set_defaults(func=self.packagerImportCmd)
 
         self.packageManageExportParser = self.packageManageSubParsers.add_parser('export', help='export an experiment from config to a RES file')
-        self.packageManageExportParser.add_argument('configfilename', metavar='<config filename>', action="store",
-                                          help='path to config file')
-        self.packageManageExportParser.add_argument('exportfilename', metavar='<export filename>', action="store",
+        self.packageManageExportParser.add_argument('experimentname', metavar='<config filename>', action="store",
+                                          help='name of experiment')
+        self.packageManageExportParser.add_argument('exportpath', metavar='<export path>', action="store",
                                           help='path where res file will be created')
         self.packageManageExportParser.set_defaults(func=self.packagerExportCmd)
 
@@ -294,7 +289,7 @@ class Engine:
             logging.debug("execute(): returning result: " + str(r))
             return r.func(r)
         except argparse.ArgumentError as err:
-            logging.error(exc.message, '\n', err.argument)	
+            logging.error(err.message, '\n', err.argument_name)	
         # except SystemExit:
             # return
 
@@ -318,96 +313,126 @@ if __name__ == "__main__":
     res = e.execute("engine status ")
 
 ###VMManage tests
-    res = e.execute("vm-manage refresh")
-    sleep(5)
     #Check status without refresh
-    res = e.execute("vm-manage vmstatus \"ubuntu-core4.7\"")
-    logging.debug("VM-Manage Status of ubuntu-core4.7: " + str(res))
-
+    logging.debug("VM-Manage Status of defaulta without refresh" + str(res))
+    res = e.execute("vm-manage vmstatus defaulta")
+    res = e.execute("vm-manage mgrstatus")
+    logging.debug("Returned: " + str(res))
+    while res["readStatus"] != VMManage.MANAGER_IDLE and res["readStatus"] != VMManage.MANAGER_UNKNOWN:
+        sleep(1)
+        logging.debug("Waiting for vmstatus to complete...")
+        res = e.execute("vm-manage mgrstatus")
+        logging.debug("Returned: " + str(res))
+    logging.debug("VM-Manage vmstatus complete.")
+    
     #Refresh
     sleep(5)
-    res = e.execute("vm-manage refresh")
-    logging.debug("Refreshing" + str(res))
+    res = e.execute("vm-manage refresh")    
+    res = e.execute("vm-manage mgrstatus")
+    logging.debug("Returned: " + str(res))
+    while res["readStatus"] != VMManage.MANAGER_IDLE:
+        sleep(1)
+        logging.debug("Waiting for vmrefresh to complete...")
+        res = e.execute("vm-manage mgrstatus")
+        logging.debug("Returned: " + str(res))
+    logging.debug("VM-Manage vmstatus complete.")
+
+    #Check status after refresh
+    sleep(5)
+    res = e.execute("vm-manage vmstatus defaulta")
+    logging.debug("VM-Manage Status of defaulta: " + str(res))
+    res = e.execute("vm-manage mgrstatus")
+    logging.debug("Returned: " + str(res))
+    while res["readStatus"] != VMManage.MANAGER_IDLE:
+        sleep(1)
+        logging.debug("Waiting for vmstatus to complete...")
+        res = e.execute("vm-manage mgrstatus")
+        logging.debug("Returned: " + str(res))
+    logging.debug("VM-Manage vmstatus complete.")
 
 ###Packager tests
-    #e.execute(sys.argv[1:])
-    e.execute("packager status")
-    
     ###import
-    e.execute("packager import resfile.res")
+    sleep(5)
+    logging.debug("Importing RES file: " + str("samples\sample.res"))
+    e.execute("packager import \"samples\sample.res\"")
     res = e.execute("packager status")
+    logging.debug("Returned: " + str(res))
     while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
         sleep(1)
         logging.debug("Waiting for package import to complete...")
         res = e.execute("packager status")
+        logging.debug("Returned: " + str(res))
     logging.debug("Package import complete.")
-    
-    e.execute("packager export sample myresfile.res")
+
+    ###export
+    sleep(5)
+    logging.debug("Exporting experiment named: sample to " + "exportedtestwithspaces")
+    e.execute("packager export sample \"exported\sample with space\"")
     res = e.execute("packager status")
     while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
         sleep(1)
         logging.debug("Waiting for package export to complete...")
         res = e.execute("packager status")
-    logging.debug("Package export complete.") 
+    logging.debug("Package export complete.")    
     
-###Connection tests
-    # sleep(60)#alternative, check status until packager is complete and idle
-    e.execute("conns status")
-    e.execute("conns create sample")
+# ###Connection tests
+#     # sleep(60)#alternative, check status until packager is complete and idle
+#     e.execute("conns status")
+#     e.execute("conns create sample")
 
-    # sleep(10) #alternative, check status until connection manager is complete and idle
-    e.execute("conns status")
-    e.execute("conns remove sample")
+#     # sleep(10) #alternative, check status until connection manager is complete and idle
+#     e.execute("conns status")
+#     e.execute("conns remove sample")
     
-    # sleep(10) #alternative, check status until connection manager is complete and idle
-    e.execute("conns status")
-    e.execute("conns open sample 1 1")
+#     # sleep(10) #alternative, check status until connection manager is complete and idle
+#     e.execute("conns status")
+#     e.execute("conns open sample 1 1")
 
-    #####---Create Experiment Test#####
-    logging.info("Starting Experiment")
-    e.execute("experiment create sample")
-    res = e.execute("experiment status")
-    logging.debug("Waiting for experiment create to complete...")
-    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-        sleep(1)
-        logging.debug("Waiting for experiment create to complete...")
-        res = e.execute("experiment status")
-    logging.debug("Experiment create complete.")    
+#     #####---Create Experiment Test#####
+#     logging.info("Starting Experiment")
+#     e.execute("experiment create sample")
+#     res = e.execute("experiment status")
+#     logging.debug("Waiting for experiment create to complete...")
+#     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+#         sleep(1)
+#         logging.debug("Waiting for experiment create to complete...")
+#         res = e.execute("experiment status")
+#     logging.debug("Experiment create complete.")    
 
-    #####---Start Experiment Test#####
-    logging.info("Starting Experiment")
-    e.execute("experiment start sample")
-    res = e.execute("experiment status")
-    logging.debug("Waiting for experiment start to complete...")
-    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-        sleep(1)
-        logging.debug("Waiting for experiment start to complete...")
-        res = e.execute("experiment status")
-    logging.debug("Experiment start complete.")    
+#     #####---Start Experiment Test#####
+#     logging.info("Starting Experiment")
+#     e.execute("experiment start sample")
+#     res = e.execute("experiment status")
+#     logging.debug("Waiting for experiment start to complete...")
+#     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+#         sleep(1)
+#         logging.debug("Waiting for experiment start to complete...")
+#         res = e.execute("experiment status")
+#     logging.debug("Experiment start complete.")    
 
-    #####---Stop Experiment Test#####
-    sleep(5)
-    logging.info("Stopping Experiment")
-    e.execute("experiment stop sample")
-    res = e.execute("experiment status")
-    logging.debug("Waiting for experiment stop to complete...")
-    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-        sleep(1)
-        logging.debug("Waiting for experiment stop to complete...")
-        res = e.execute("experiment status")
-    logging.debug("Experiment stop complete.")    
+#     #####---Stop Experiment Test#####
+#     sleep(5)
+#     logging.info("Stopping Experiment")
+#     e.execute("experiment stop sample")
+#     res = e.execute("experiment status")
+#     logging.debug("Waiting for experiment stop to complete...")
+#     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+#         sleep(1)
+#         logging.debug("Waiting for experiment stop to complete...")
+#         res = e.execute("experiment status")
+#     logging.debug("Experiment stop complete.")    
 
-    #####---Remove Experiment Test#####
-    sleep(5)
-    logging.info("Remove Experiment")
-    e.execute("experiment remove sample")
-    res = e.execute("experiment status")
-    logging.debug("Waiting for experiment remove to complete...")
-    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-        sleep(1)
-        logging.debug("Waiting for experiment remove to complete...")
-        res = e.execute("experiment status")
-    logging.debug("Experiment remove complete.")    
+#     #####---Remove Experiment Test#####
+#     sleep(5)
+#     logging.info("Remove Experiment")
+#     e.execute("experiment remove sample")
+#     res = e.execute("experiment status")
+#     logging.debug("Waiting for experiment remove to complete...")
+#     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+#         sleep(1)
+#         logging.debug("Waiting for experiment remove to complete...")
+#         res = e.execute("experiment status")
+#     logging.debug("Experiment remove complete.")    
 
-    sleep(3) #allow some time for observation
-    #quit
+#     sleep(3) #allow some time for observation
+#     #quit
