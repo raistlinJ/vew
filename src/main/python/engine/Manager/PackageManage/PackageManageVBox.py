@@ -6,6 +6,8 @@ from engine.Manager.PackageManage.PackageManage import PackageManage
 from engine.Manager.VMManage.VBoxManage import VBoxManage
 from engine.Manager.VMManage.VBoxManageWin import VBoxManageWin
 from engine.Configuration.SystemConfigIO import SystemConfigIO
+import zipfile
+import os
 import time
 
 class PackageManageVBox(PackageManage):
@@ -18,6 +20,7 @@ class PackageManageVBox(PackageManage):
         else:
             self.vmManage = VBoxManageWin()
         self.s = SystemConfigIO()
+        self.s.readConfig()
 
     #abstractmethod
     def importPackage(self, resfilename, runVagrantProvisionScript=False):
@@ -31,18 +34,96 @@ class PackageManageVBox(PackageManage):
         self.writeStatus = PackageManage.PACKAGE_MANAGE_IMPORTING
         #Unzip the file contents
             
-            # get path for temporary directory to hold uncompressed files
-            tmpPath = self.s.getConfig()['EXPERIMENTS']['TEMP_DATA_PATH']
-            tempPath = os.path.join(os.path.dirname(zipPath), "creatorImportTemp",
-                                    os.path.splitext(os.path.basename(zipPath))[0])
-            baseTempPath = os.path.join(os.path.dirname(zipPath), "creatorImportTemp")
-
+        # get path for temporary directory to hold uncompressed files
+        tmpPathBase = self.s.getConfig()['EXPERIMENTS']['TEMP_DATA_PATH']
         #Copy uncompressed file contents into a experiments subfolder
+        self.unzipWorker(resfilename, tmpPathBase)
 
-        #For ova files
-            #call vmManage to import VMs as specified in config file; wait and query the vmManage status, and then set the complete status
+        # tmpPathVMs = os.path.join(tmpPathBase,"VMs")
+        # #For ova files
+        #     #call vmManage to import VMs as specified in config file; wait and query the vmManage status, and then set the complete status
+        #     # Get all files that end with .ova
+        # if os.path.exists(tmpPathVMs):
+        #     vmFilenames = os.listdir(tmpPathVMs)
+        # vmNum = 1
+        # for vmFilename in vmFilenames:
+        #     if vmFilename.endswith(".ova"):
+        #         logging.debug("importActionEvent(): Importing " + str(vmFilename) + " into VirtualBox...")
+        #     logging.debug("Importing VM " + str(vmNum) + " of " + str(len(vmFilenames)))
+            
+        #     #Import the VM using a system call
+        #     self.importVMWorker(os.path.join(tmpPathVMs, vmFilename))           
+        #     #pd = ProcessDialog(VBOXMANAGE_DIRECTORY + " snapshot \"" + ova[:-4] + "\" take freshimport", granularity="char", capture="stderr")
+        #     vmNum = vmNum + 1
 
         self.writeStatus = PackageManage.PACKAGE_MANAGE_COMPLETE
+
+    def unzipWorker(self, resfilename, tmpOutPath):
+        logging.debug("unzipWorker() initiated " + str(resfilename))
+        zipPath = resfilename
+        block_size = 1048576
+        try:
+            z = zipfile.ZipFile(zipPath, 'r')
+            outputPath = os.path.join(tmpOutPath)
+            members_list = z.namelist()
+
+            currmem_num = 0
+            for entry_name in members_list:
+                if entry_name[-1] is '/':  # if entry is a directory
+                    continue
+                logging.debug("unzipWorker(): unzipping " + str(entry_name))
+                # increment our file progress counter
+                currmem_num = currmem_num + 1
+
+                entry_info = z.getinfo(entry_name)
+                i = z.open(entry_name)
+                if not os.path.exists(outputPath):
+                    os.makedirs(outputPath)
+
+                filename = os.path.join(outputPath, entry_name)
+                file_dirname = os.path.dirname(filename)
+                if not os.path.exists(file_dirname):
+                    os.makedirs(file_dirname)
+
+                o = open(filename, 'wb')
+                offset = 0
+                int_val = 0
+                while True:
+                    b = i.read(block_size)
+                    offset += len(b)
+                    logging.debug("unzipWorker(): file_size: " +str(float(entry_info.file_size)))
+                    logging.debug("unzipWorker(): Offset: " +str(offset))
+                    if entry_info.file_size > 0.1:
+                        status = float(offset) / float(entry_info.file_size) * 100.
+                    else:
+                        status = 0
+                    logging.debug("unzipWorker(): Status: " +str(status))
+                    
+                    if int(status) > int_val:
+                        int_val = int(status)
+                        logging.debug("unzipWorker(): Progress: " +str(float(int_val / 100.)))
+                        logging.debug("unzipWorker(): Processing file " + str(currmem_num) + "/" + str(
+                            len(members_list)) + ":\r\n" + entry_name + "\r\nExtracting: " + str(int_val) + " %")
+                    if b == b'':
+                        break
+                    logging.debug("unzipWorker(): Writing out file data for file: " + str(entry_name) + " data: " + str(b))
+                    o.write(b)
+                    time.sleep(0.1)
+                logging.debug("unzipWorker(): Finished processing file: " + str(entry_name))
+                i.close()
+                o.close()
+        except FileNotFoundError:
+            logging.error("Error in unzipWorker(): File not found: ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+        except Exception:
+            logging.error("Error in unzipWorker(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+
+    def importVMWorker(self, vmName):
+        logging.debug("importVMWorker(): instantiated")
+        # self.s.getConfig()["VBOX_PATH"]" import \"" + os.path.join(tempPath, ova) + "\" --options keepallmacs", granularity="char", capture="stderr"
 
     #abstractmethod
     def exportPackage(self, configfilename, exportfilename):
@@ -74,3 +155,15 @@ class PackageManageVBox(PackageManage):
     #abstractmethod
     def compressFileContents(self, dirtocompress, destinationfilename):
         logging.debug("compressFileContents(): instantiated")
+
+if __name__ == "__main__":
+    logging.getLogger().setLevel(logging.DEBUG)
+    logging.debug("Starting Program")
+
+    resfilename = "samples\sample.res"
+
+    logging.debug("Instantiating Experiment Config IO")
+    p = PackageManageVBox()
+    logging.info("Importing file")
+    p.importPackage(resfilename)
+    logging.info("Operation Complete")

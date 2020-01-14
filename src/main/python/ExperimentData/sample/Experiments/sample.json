@@ -5,31 +5,33 @@
         },
         "testbed-setup": {
             "network-config": {
-                "ip-address": "11.0.0.21"
+                "ip-address": "11.0.0.2"
             },
             "vm-set": {
                 "base-groupname": "sample",
-                "num-clones": "7",
+                "num-clones": "5",
                 "linked-clones": "true",
                 "clone-snapshots": "true",
-                "base-outname": "601",
-                "vrdp-baseport": "6011",
+                "base-outname": "true",
+                "vrdp-baseport": "1001",
                 "vm": [
                     {
-                        "name": "defaulta",
-                        "vrdp-enabled": "true",
+                        "name": "defaultc",
+                        "vrdp-enabled": "false",
                         "internalnet-basename": [
-                            "intneta"
+                            "intnet"
+                        ]
+                    },
+                    {
+                        "name": "defaulta",
+                        "vrdp-enabled": "false",
+                        "internalnet-basename": [
+                            "intnet"
                         ]
                     },
                     {
                         "name": "defaultb",
-                        "vrdp-enabled": "true",
-                        "internalnet-basename": []
-                    },
-                    {
-                        "name": "defaultc",
-                        "vrdp-enabled": "true",
+                        "vrdp-enabled": "false",
                         "internalnet-basename": [
                             "intnet"
                         ]
@@ -37,7 +39,10 @@
                 ],
                 "material": [
                     {
-                        "name": "materialfile.txt"
+                        "name": "sample.txt"
+                    },
+                    {
+                        "name": "sample2.txt"
                     }
                 ]
             }

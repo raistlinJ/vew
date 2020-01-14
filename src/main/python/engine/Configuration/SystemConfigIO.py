@@ -38,11 +38,12 @@ class SystemConfigIO():
         logging.debug("readConfig(): file was NOT found: " + self.filename)
 
         self.config['VBOX_WIN'] = {}
-        self.config['VBOX_WIN']['VBOX_PATH'] = "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe"
+        self.config['VBOX_WIN']['VBOX_PATH'] = "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"
         self.config['VBOX_LINUX'] = {}
         self.config['VBOX_LINUX']['VBOX_PATH'] = "VBoxManage"
         self.config['EXPERIMENTS'] = {}
         self.config['EXPERIMENTS']['EXPERIMENTS_PATH'] = "ExperimentData"
+        self.config['EXPERIMENTS']['TEMP_DATA_PATH'] = "tmp"
 
     def getConfig(self):
         return self.config
