@@ -322,16 +322,17 @@ class VBoxManageWin(VMManage):
                     try:
                         logging.debug("runCloneVM(): using linked clones")
                         # get the name of the newest snapshot
-                        getSnapCmd = [self.vbox_path, "snapshot", self.vms[vmName], "list", "--machinereadable"]
-                        snapList = subprocess.check_output(getSnapCmd)
+                        getSnapCmd = [self.vbox_path, "snapshot", self.vms[vmName].UUID, "list", "--machinereadable"]
+                        logging.error("runCloneVM(): getting snaps; executing: " + str(getSnapCmd))
+                        snapList = subprocess.check_output(getSnapCmd).decode('utf-8')
                         latestSnapUUID = snapList.split("CurrentSnapshotUUID=\"")[1].split("\"")[0]
                         cloneCmd.append("--snapshot")
                         cloneCmd.append(latestSnapUUID)
                         cloneCmd.append("--options")
                         cloneCmd.append("link")
                     except Exception:
-                        logging.error("runCloneVM(): Error in getExperimentXMLFileData(): An error occured ")
-                        logging.error("runCloneVM(): Using the link clone option requires that VMs contain a snapshot. No snapshot found for vm:" + vmName)
+                        logging.error("runCloneVM(): Error in runCloneVM(): An error occured ")
+                        logging.error("runCloneVM(): Using the link clone option requires that VMs contain a snapshot. No snapshot found for vm: " + vmName)
                         exc_type, exc_value, exc_traceback = sys.exc_info()
                         traceback.print_exception(exc_type, exc_value, exc_traceback)
                         self.writeStatus = VMManage.MANAGER_IDLE
@@ -418,11 +419,11 @@ if __name__ == "__main__":
     logging.info("Status without refresh: ")
     vbm.getManagerStatus()
     
-    logging.info("Refreshing VM Info - BEFORE")
+    logging.info("Refreshing VM Info")
     for vm in vbm.vms:
         logging.info("VM Info:\r\n" + str(vm.name))
-    vbm.refreshAllVMInfo()
-    
+    vbm.refreshAllVMInfo()   
+
     while vbm.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish query...")
         sleep(1)
@@ -444,20 +445,42 @@ if __name__ == "__main__":
     logging.info("Status for " + testvmname)
     logging.info(vbm.getVMStatus(testvmname))
 
-    #runConfigureVM(self, vmName, srcIPAddress, dstIPAddress, srcPort, dstPort, adaptorNum)
-    vbm.configureVM(testvmname, "", "127.0.0.1", 100, 100, 1)
+    logging.info("Testing clone -- creating 1 clone of " + str(testvmname))
+    vbm.cloneVM(testvmname, cloneName=str(testvmname + "1"), cloneSnapshots="true", linkedClones="true", groupName="Test Group")
+    while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+        logging.info("testing clone waiting for manager to finish query..." + str(vbm.getManagerStatus()["writeStatus"]))
+        sleep(1)
+    
+    logging.info("Refreshing after clone since we added a new VM")
+    vbm.refreshAllVMInfo()
+    while vbm.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:
+        logging.info("waiting for manager to finish query...")
+        sleep(1)
+    logging.info("Refreshing VMs Info - AFTER")
 
-    while vbm.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-        logging.info("waiting for manager to finish reading/writing...")
+    logging.info("Testing set interface 1 on clone -- " + str(testvmname + "1"))
+    vbm.configureVMNet(vmName=str(testvmname + "1"), netNum="1", netName="testintnet1")
+    while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+        logging.info("waiting for manager to finish query...")
         sleep(1)
-    
-    logging.info("Result: " + str(vbm.refreshVMInfo(testvmname)))
-    while vbm.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-        logging.info("waiting for manager to finish reading/writing...")
+
+    logging.info("Testing set interface 2 on clone -- " + str(testvmname + "1"))
+    vbm.configureVMNet(vmName=str(testvmname + "1"), netNum="2", netName="testintnet2")
+    while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+        logging.info("waiting for manager to finish query...")
         sleep(1)
-    
-    logging.info("Status for " + testvmname)
-    logging.info(vbm.getVMStatus(testvmname))
+
+    logging.info("Testing enable VRDP on clone -- " + str(testvmname + "1") + " port 1001")
+    vbm.enableVRDPVM(str(testvmname + "1"), "1001")
+    while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+        logging.info("waiting for manager to finish query...")
+        sleep(1)
+
+    logging.info("Testing snapshot after clone -- " + str(testvmname + "1"))
+    vbm.snapshotVM(str(testvmname + "1"))
+    while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+        logging.info("waiting for manager to finish query...")
+        sleep(1)
     
     logging.info("----Testing VM commands-------")
     logging.info("----Start-------")

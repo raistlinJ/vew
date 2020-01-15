@@ -54,7 +54,7 @@ if __name__ == "__main__":
     logging.info(vbm.getVMStatus(testvmname))
 
     logging.info("Testing clone -- creating 1 clone of " + str(testvmname))
-    vbm.cloneVM(testvmname, cloneName=str(testvmname + "1"), cloneSnapshots=True, linkedClones=True, groupName="Test Group")
+    vbm.cloneVM(testvmname, cloneName=str(testvmname + "1"), cloneSnapshots="true", linkedClones="true", groupName="Test Group")
     while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
         logging.info("testing clone waiting for manager to finish query..." + str(vbm.getManagerStatus()["writeStatus"]))
         sleep(1)
