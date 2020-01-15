@@ -36,6 +36,10 @@ class ExperimentManageVBox(ExperimentManage):
         logging.debug("runCreateExperiment(): instantiated")
         self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_CREATING
         #call vmManage to make clones as specified in config file; wait and query the vmManage status, and then set the complete status
+        self.vmManage.refreshAllVMInfo()
+        while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
+        #waiting for manager to finish query...
+            time.sleep(1)
         jsondata = self.eco.getExperimentXMLFileData(configname)
         vmSet = jsondata["xml"]["testbed-setup"]["vm-set"]
         pathToVirtualBox = jsondata["xml"]["vbox-setup"]["path-to-vboxmanage"]

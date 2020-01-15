@@ -105,16 +105,16 @@ if __name__ == "__main__":
         res = e.execute("packager status")
     logging.debug("Package export complete.")    
     
-    # #####---Create Experiment Test#####
-    # logging.info("Creating Experiment")
-    # e.execute("experiment create sample")
-    # res = e.execute("experiment status")
-    # logging.debug("Waiting for experiment create to complete...")
-    # while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-    #     sleep(1)
-    #     logging.debug("Waiting for experiment create to complete...")
-    #     res = e.execute("experiment status")
-    # logging.debug("Experiment create complete.")    
+    #####---Create Experiment Test#####
+    logging.info("Creating Experiment")
+    e.execute("experiment create sample")
+    res = e.execute("experiment status")
+    logging.debug("Waiting for experiment create to complete...")
+    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+        sleep(1)
+        logging.debug("Waiting for experiment create to complete...")
+        res = e.execute("experiment status")
+    logging.debug("Experiment create complete.")    
 
 #     #####---Start Experiment Test#####
 #     logging.info("Starting Experiment")
