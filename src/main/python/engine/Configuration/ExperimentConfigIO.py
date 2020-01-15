@@ -81,12 +81,15 @@ class ExperimentConfigIO:
                     for internalnet in internalnets:
                         cloneNets.append(str(internalnet) + str(myBaseOutname) + str(i))
                         cloneNetNum += 1
-                    # vrdp setup
+                    # vrdp setup, if enabled include the port in the returned json
                     vrdpEnabled = vm["vrdp-enabled"]
                     if vrdpEnabled != None and vrdpEnabled == 'true':
-                        vrdpBaseport = str(int(vrdpBaseport) + 1)                            
-                    
-                    vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpPort": vrdpBaseport, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones})
+                        vrdpBaseport = str(int(vrdpBaseport) + 1)                       
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones})
+                    #otherwise, don't include vrdp port
+                    else:
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones})
+
                     logging.debug("getExperimentVMRolledOut(): finished setting up clone: " + str(vmRolledOutList))
             return vmRolledOutList
 

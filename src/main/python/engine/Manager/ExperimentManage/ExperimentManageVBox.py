@@ -34,89 +34,86 @@ class ExperimentManageVBox(ExperimentManage):
 
     def runCreateExperiment(self, configname):
         logging.debug("runCreateExperiment(): instantiated")
-        self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_CREATING
-        #call vmManage to make clones as specified in config file; wait and query the vmManage status, and then set the complete status
-        self.vmManage.refreshAllVMInfo()
-        while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
-        #waiting for manager to finish query...
-            time.sleep(1)
-        jsondata = self.eco.getExperimentXMLFileData(configname)
-        vmSet = jsondata["xml"]["testbed-setup"]["vm-set"]
-        pathToVirtualBox = jsondata["xml"]["vbox-setup"]["path-to-vboxmanage"]
-        numClones = int(vmSet["num-clones"])
-        cloneSnapshots = vmSet["clone-snapshots"]
-        linkedClones = vmSet["linked-clones"]
-        baseGroupname = vmSet["base-groupname"]
-        baseOutname = vmSet["base-outname"]
-        vrdpBaseport = vmSet["vrdp-baseport"]
+        try:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_CREATING
+            #call vmManage to make clones as specified in config file; wait and query the vmManage status, and then set the complete status
+            self.vmManage.refreshAllVMInfo()
+            while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
+            #waiting for manager to finish query...
+                time.sleep(1)
+            clonevmjson = self.eco.getExperimentVMRolledOut(configname)
 
-        logging.debug("path: " + str(pathToVirtualBox) + " numClones: " + str(numClones) + " linked: " + str(linkedClones) + " baseGroup: " + str(baseGroupname) + " baseOut: " + str(baseOutname) + "vrdpBase: " + str(vrdpBaseport))
+            for vm in clonevmjson.keys(): 
+                vmName = vm
 
-        for vm in vmSet["vm"]: 
-            vmName = vm["name"]
-            internalnetNames = []
-            logging.debug("runCreateExperiment(): working with vm: " + str(vmName))
+                logging.debug("runCreateExperiment(): working with vm: " + str(vmName))
 
-            #Create clones as shown in the cit-gen create_workshop python script (preserving internal networks, etc.)
-            if self.vmManage.getVMStatus(vmName) == None:
-                logging.error("VM Name: " + str(vmName) + " does not exist; skipping...")
-                continue
-            #get names for clones
-            myBaseOutname = baseOutname
-            for i in range(1, numClones + 1):
-                cloneVMName = vmName + myBaseOutname + str(i)
-                cloneGroupName = "/" + baseGroupname + "/Unit" + str(i)
-                internalnets = vm["internalnet-basename"]
+                #Create clones as shown in the cit-gen create_workshop python script (preserving internal networks, etc.)
+                if self.vmManage.getVMStatus(vmName) == None:
+                    logging.error("VM Name: " + str(vmName) + " does not exist; skipping...")
+                    continue
+                #get names for clones
+                for cloneinfo in clonevmjson[vm]:
+                #for i in range(1, numClones + 1):
+                    cloneVMName = cloneinfo["name"]
+                    cloneGroupName = cloneinfo["group-name"]
+                    internalnets = cloneinfo["networks"]
+                    cloneSnapshots = cloneinfo["clone-snapshots"]
+                    linkedClones = cloneinfo["linked-clones"]
 
-                logging.debug("vmName: " + str(vmName) + " cloneVMName: " + str(cloneVMName) + " cloneSnaps: " + str(cloneSnapshots) + " linked: " + str(linkedClones) + " cloneGroupName: " + str(cloneGroupName))
-                self.vmManage.cloneVM(vmName, cloneVMName, cloneSnapshots, linkedClones, cloneGroupName)
-                while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                    #waiting for vmmanager start vm to finish reading/writing...
-                    logging.debug("runCreateExperiment(): waiting for vmmanager start vm to finish reading/writing...")
-                    time.sleep(1)
-                # We added a VM, so we have to call refresh
-                logging.info("Refreshing after clone since we added a new VM")
-                self.vmManage.refreshAllVMInfo()
-                while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
-                    logging.info("runCreateExperiment(): waiting for manager to finish query...")
-                    time.sleep(1)
-                logging.info("Refreshing VMs Info - AFTER")
-                
-                # intnet setup
-                cloneNetNum = 1
-                logging.debug("Internal net names: " + str(internalnets))
-                if isinstance(internalnets, list) == False:
-                    internalnets = [internalnets]
-                for internalnet in internalnets:
-                    cloneNetName = str(internalnet) + str(myBaseOutname) + str(i)
-                    self.vmManage.configureVMNet(cloneVMName, cloneNetNum, cloneNetName)
+                    logging.debug("vmName: " + str(vmName) + " cloneVMName: " + str(cloneVMName) + " cloneSnaps: " + str(cloneSnapshots) + " linked: " + str(linkedClones) + " cloneGroupName: " + str(cloneGroupName))
+                    self.vmManage.cloneVM(vmName, cloneVMName, cloneSnapshots, linkedClones, cloneGroupName)
+                    while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                        #waiting for vmmanager start vm to finish reading/writing...
+                        logging.debug("runCreateExperiment(): waiting for vmmanager start vm to finish reading/writing...")
+                        time.sleep(1)
+                    # We added a VM, so we have to call refresh
+                    logging.info("Refreshing after clone since we added a new VM")
+                    self.vmManage.refreshAllVMInfo()
                     while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
                         logging.info("runCreateExperiment(): waiting for manager to finish query...")
                         time.sleep(1)
-                    cloneNetNum += 1
+                    logging.info("Refreshing VMs Info - AFTER")
+                    
+                    # intnet setup
+                    cloneNetNum = 1
+                    logging.debug("Internal net names: " + str(internalnets))
+                    for internalnet in internalnets:
+                        self.vmManage.configureVMNet(cloneVMName, cloneNetNum, internalnet)
+                        while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
+                            logging.info("runCreateExperiment(): waiting for manager to finish query...")
+                            time.sleep(1)
+                        cloneNetNum += 1
 
-                while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                    #waiting for vmmanager start vm to finish reading/writing...
-                    logging.debug("runCreateExperiment(): waiting for vmmanager start vm to finish reading/writing...")
-                    time.sleep(1)
-                # vrdp setup
-                vrdpEnabled = vm["vrdp-enabled"]
-                if vrdpEnabled != None and vrdpEnabled == 'true':
-                    #set interface to vrde
-                    logging.debug("runCreateExperiment(): setting up vrdp for " + cloneVMName)
-                    self.vmManage.enableVRDPVM(cloneVMName, str(vrdpBaseport))
+                    while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                        #waiting for vmmanager start vm to finish reading/writing...
+                        logging.debug("runCreateExperiment(): waiting for vmmanager start vm to finish reading/writing...")
+                        time.sleep(1)
+                    # vrdp setup
+                    if "vrdpPort" in cloneinfo:
+                        #set interface to vrde
+                        logging.debug("runCreateExperiment(): setting up vrdp for " + cloneVMName)
+                        self.vmManage.enableVRDPVM(cloneVMName, str(cloneinfo["vrdpPort"]))
+                        while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                            #waiting for vmmanager start vm to finish reading/writing...
+                            time.sleep(1)
+
+                    # finally create a snapshot after the vm is setup
+                    self.vmManage.snapshotVM(cloneVMName)
                     while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                         #waiting for vmmanager start vm to finish reading/writing...
                         time.sleep(1)
-                    vrdpBaseport = str(int(vrdpBaseport) + 1)                            
-                # finally create a snapshot after the vm is setup
-                self.vmManage.snapshotVM(cloneVMName)
-                while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                    #waiting for vmmanager start vm to finish reading/writing...
-                    time.sleep(1)
-                logging.debug("runCreateExperiment(): finished setting up clone: " + cloneVMName)
-        self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE                
-        logging.debug("runCreateExperiment(): Complete...")
+                    logging.debug("runCreateExperiment(): finished setting up clone: " + cloneVMName)
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+            logging.debug("runCreateExperiment(): Complete...")
+        except Exception:
+            logging.error("runCloneVM(): Error in runCreateExperiment(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+            return
+        finally:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
     #abstractmethod
     def startExperiment(self, configname):
