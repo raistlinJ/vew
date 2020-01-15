@@ -156,16 +156,6 @@ class PackageManageVBox(PackageManage):
             logging.debug("Waiting for import vm to complete...")
             res = self.vmManage.getManagerStatus()
         logging.debug("Import complete...")
-        
-        logging.debug("Refreshing vmManager...")
-        self.vmManage.refreshAllVMInfo()
-        res = self.vmManage.getManagerStatus()
-        logging.debug("Waiting for refresh vms to complete...")
-        while res["readStatus"] != self.vmManage.MANAGER_IDLE:
-            time.sleep(1)
-            logging.debug("Waiting for refresh vms to complete...")
-            res = self.vmManage.getManagerStatus()
-        logging.debug("Refresh vmManager complete...")
         logging.debug("importVMWorker(): complete")
 
     def snapshotVMWorker(self, vmName):
@@ -259,7 +249,6 @@ class PackageManageVBox(PackageManage):
                         filepath   = os.path.join(dirpath, filename)
                         parentpath = os.path.relpath(filepath, pathToAdd)
                         arcname    = os.path.join(rootdir, parentpath)
-
                         outZipFile.write(filepath, arcname)
         except FileNotFoundError:
             logging.error("Error in zipWorker(): File not found")
