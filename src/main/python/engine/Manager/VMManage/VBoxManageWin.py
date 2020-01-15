@@ -189,7 +189,7 @@ class VBoxManageWin(VMManage):
             logging.error("runConfigureVMNet() Error: " + " cmd: " + vmConfigVMCmd)
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus = VMManage.MANAGER_IDLE
 
     def runVMCmd(self, cmd):
         logging.debug("runVMCmd(): instantiated")
