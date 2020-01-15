@@ -21,6 +21,7 @@ if __name__ == "__main__":
     p = PackageManageVBox(initializeVMManage=True)
     logging.info("Importing file")
     p.importPackage(resfilename)
+
     logging.info("Exporting file")
     p.exportPackage("sample", "tmp\export")
 

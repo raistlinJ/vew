@@ -92,19 +92,6 @@ if __name__ == "__main__":
         res = e.execute("packager status")
     logging.debug("Package export complete.")    
     
-# ###Connection tests
-#     # sleep(60)#alternative, check status until packager is complete and idle
-#     e.execute("conns status")
-#     e.execute("conns create sample")
-
-#     # sleep(10) #alternative, check status until connection manager is complete and idle
-#     e.execute("conns status")
-#     e.execute("conns remove sample")
-    
-#     # sleep(10) #alternative, check status until connection manager is complete and idle
-#     e.execute("conns status")
-#     e.execute("conns open sample 1 1")
-
 #     #####---Create Experiment Test#####
 #     logging.info("Starting Experiment")
 #     e.execute("experiment create sample")
@@ -139,6 +126,20 @@ if __name__ == "__main__":
 #         res = e.execute("experiment status")
 #     logging.debug("Experiment stop complete.")    
 
+# ###Connection tests
+#     # sleep(60)#alternative, check status until packager is complete and idle
+#     e.execute("conns status")
+#     e.execute("conns create sample")
+
+#     # sleep(10) #alternative, check status until connection manager is complete and idle
+#     e.execute("conns status")
+#     e.execute("conns remove sample")
+    
+#     # sleep(10) #alternative, check status until connection manager is complete and idle
+#     e.execute("conns status")
+#     e.execute("conns open sample 1 1")
+
+
 #     #####---Remove Experiment Test#####
 #     sleep(5)
 #     logging.info("Remove Experiment")
@@ -153,3 +154,4 @@ if __name__ == "__main__":
 
 #     sleep(3) #allow some time for observation
 #     #quit
+
