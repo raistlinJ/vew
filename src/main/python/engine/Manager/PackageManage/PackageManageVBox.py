@@ -65,6 +65,13 @@ class PackageManageVBox(PackageManage):
                 logging.debug("Importing VM " + str(vmNum) + " of " + str(len(vmFilenames)))
                 #Import the VM using a system call
                 self.importVMWorker(os.path.join(tmpPathVMs, vmFilename))
+                #since we added a new VM, we have to refresh
+                res = self.vmManage.refreshAllVMInfo()
+                logging.debug("Returned: " + str(res))
+                while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
+                    time.sleep(1)
+                    logging.debug("runImportPackageWaiting for vmrefresh to complete...")
+                #now take a snapshot
                 self.snapshotVMWorker(os.path.join(vmFilename[:-4]))
                 vmNum = vmNum + 1
 
@@ -89,6 +96,10 @@ class PackageManageVBox(PackageManage):
         zipPath = resfilename
         block_size = 1048576
         try:
+            if os.path.exists(zipPath) == False:
+                logging.error("unzipWorker(): path to zip not found... Skipping..." + str(zipPath))
+                return
+
             z = zipfile.ZipFile(zipPath, 'r')
             outputPath = os.path.join(tmpOutPath)
             members_list = z.namelist()
@@ -156,16 +167,6 @@ class PackageManageVBox(PackageManage):
             logging.debug("Waiting for import vm to complete...")
             res = self.vmManage.getManagerStatus()
         logging.debug("Import complete...")
-        
-        logging.debug("Refreshing vmManager...")
-        self.vmManage.refreshAllVMInfo()
-        res = self.vmManage.getManagerStatus()
-        logging.debug("Waiting for refresh vms to complete...")
-        while res["readStatus"] != self.vmManage.MANAGER_IDLE:
-            time.sleep(1)
-            logging.debug("Waiting for refresh vms to complete...")
-            res = self.vmManage.getManagerStatus()
-        logging.debug("Refresh vmManager complete...")
         logging.debug("importVMWorker(): complete")
 
     def snapshotVMWorker(self, vmName):
@@ -202,7 +203,13 @@ class PackageManageVBox(PackageManage):
             #copy all files to temp folder
             logging.debug("runExportPackage(): copying experiment files to temporary folder: " + str(tmpPathBase))
             if os.path.exists(tmpPathBase):
-                shutil.rmtree(tmpPathBase)
+                shutil.rmtree(tmpPathBase, ignore_errors=True)
+            #have to check again if path was removed or not...
+            if os.path.exists(tmpPathBase):
+                logging.error("runExportPackage(): Could not remove directory. Cancelling export: " + str(tmpPathBase))
+                self.writeStatus = PackageManage.PACKAGE_MANAGE_IDLE
+                return
+
             shutil.copytree(experimentDatapath, tmpPathBase)
             #create any folders that should exist but don't
             if os.path.exists(tmpPathVMs) == False:
@@ -259,7 +266,6 @@ class PackageManageVBox(PackageManage):
                         filepath   = os.path.join(dirpath, filename)
                         parentpath = os.path.relpath(filepath, pathToAdd)
                         arcname    = os.path.join(rootdir, parentpath)
-
                         outZipFile.write(filepath, arcname)
         except FileNotFoundError:
             logging.error("Error in zipWorker(): File not found")
@@ -276,12 +282,18 @@ class PackageManageVBox(PackageManage):
 
     def exportVMWorker(self, vmName, filepath):
         logging.debug("exportVMWorker(): instantiated")
+        self.vmManage.refreshAllVMInfo()
+        logging.debug("Waiting for export to complete...")
+        while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
+            time.sleep(1)
+            logging.debug("exportVMWorker(): Waiting for export vm to complete...")
+
         self.vmManage.exportVM(vmName, filepath)
         res = self.vmManage.getManagerStatus()
         logging.debug("Waiting for export to complete...")
         while res["writeStatus"] != self.vmManage.MANAGER_IDLE:
             time.sleep(1)
-            logging.debug("Waiting for export vm to complete...")
+            logging.debug("exportVMWorker(): Waiting for export vm to complete...")
             res = self.vmManage.getManagerStatus()
         logging.debug("Export complete...")
 

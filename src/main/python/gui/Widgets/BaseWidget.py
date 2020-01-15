@@ -179,7 +179,7 @@ class BaseWidget(QtWidgets.QWidget):
         self.cloneSnapshotComboBox.setCurrentIndex(self.cloneSnapshotComboBox.findText(basejsondata["testbed-setup"]["vm-set"]["clone-snapshots"]))
         ###
         if "base-outname" not in basejsondata["testbed-setup"]["vm-set"]:
-            basejsondata["testbed-setup"]["vm-set"]["base-outname"] = "true"
+            basejsondata["testbed-setup"]["vm-set"]["base-outname"] = "_set_"
         self.baseOutnameLineEdit.setText(basejsondata["testbed-setup"]["vm-set"]["base-outname"])
         ###
         if "vrdp-baseport" not in basejsondata["testbed-setup"]["vm-set"]:
