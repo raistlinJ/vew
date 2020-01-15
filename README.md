@@ -50,9 +50,9 @@ To run the tests, follow the steps in [Run Tests](#run-tests).
 ### Run Tests
 A driver program is included that will demonstrate several of the functions provided by RES.
 
-Download the Sample VMs from [here](http://bit.ly/2Pzdqnx) and save them into the following directory
+Download the Sample RES file from [here](http://bit.ly/2TtRLiX) and save it into the following directory
 ```
-res/src/main/python/ExperimentData/sample/VMs
+res/src/main/python/ExperimentData/samples/
 ```
 Activate the virtualenv container
 ```
