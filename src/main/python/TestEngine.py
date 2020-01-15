@@ -12,6 +12,7 @@ import threading
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
+    #logging.basicConfig(filename='example.log',level=logging.DEBUG)
     logging.debug("Starting Program")
 ###Base Engine tests
     logging.debug("Instantiating Engine")
@@ -81,9 +82,21 @@ if __name__ == "__main__":
         logging.debug("Returned: " + str(res))
     logging.debug("Package import complete.")
 
+    #Refresh
+    sleep(5)
+    res = e.execute("vm-manage refresh")    
+    res = e.execute("vm-manage mgrstatus")
+    logging.debug("Returned: " + str(res))
+    while res["readStatus"] != VMManage.MANAGER_IDLE:
+        sleep(1)
+        logging.debug("Waiting for vmrefresh to complete...")
+        res = e.execute("vm-manage mgrstatus")
+        logging.debug("Returned: " + str(res))
+    logging.debug("VM-Manage vmstatus complete.")
+
     ###export
     sleep(5)
-    logging.debug("Exporting experiment named: sample to " + "exportedtestwithspaces")
+    logging.debug("Exporting experiment named: sample to " + "\"exported\sample with space\"")
     e.execute("packager export sample \"exported\sample with space\"")
     res = e.execute("packager status")
     while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
@@ -92,16 +105,16 @@ if __name__ == "__main__":
         res = e.execute("packager status")
     logging.debug("Package export complete.")    
     
-#     #####---Create Experiment Test#####
-#     logging.info("Starting Experiment")
-#     e.execute("experiment create sample")
-#     res = e.execute("experiment status")
-#     logging.debug("Waiting for experiment create to complete...")
-#     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-#         sleep(1)
-#         logging.debug("Waiting for experiment create to complete...")
-#         res = e.execute("experiment status")
-#     logging.debug("Experiment create complete.")    
+    # #####---Create Experiment Test#####
+    # logging.info("Creating Experiment")
+    # e.execute("experiment create sample")
+    # res = e.execute("experiment status")
+    # logging.debug("Waiting for experiment create to complete...")
+    # while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+    #     sleep(1)
+    #     logging.debug("Waiting for experiment create to complete...")
+    #     res = e.execute("experiment status")
+    # logging.debug("Experiment create complete.")    
 
 #     #####---Start Experiment Test#####
 #     logging.info("Starting Experiment")

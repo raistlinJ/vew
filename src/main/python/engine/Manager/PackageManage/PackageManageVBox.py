@@ -65,6 +65,13 @@ class PackageManageVBox(PackageManage):
                 logging.debug("Importing VM " + str(vmNum) + " of " + str(len(vmFilenames)))
                 #Import the VM using a system call
                 self.importVMWorker(os.path.join(tmpPathVMs, vmFilename))
+                #since we added a new VM, we have to refresh
+                res = self.vmManage.refreshAllVMInfo()
+                logging.debug("Returned: " + str(res))
+                while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
+                    time.sleep(1)
+                    logging.debug("runImportPackageWaiting for vmrefresh to complete...")
+                #now take a snapshot
                 self.snapshotVMWorker(os.path.join(vmFilename[:-4]))
                 vmNum = vmNum + 1
 
