@@ -346,17 +346,19 @@ class VBoxManageWin(VMManage):
             cloneCmd.append(cloneName)
             logging.debug("runCloneVM(): executing: " + str(cloneCmd))
             result = subprocess.check_output(cloneCmd)
-            
+
+            #since we added a VM, now we have to refresh the VM status            
+
+            groupCmd = [self.vbox_path, "modifyvm", cloneName, "--groups", groupName]
             logging.debug("runCloneVM(): placing into group: " + str(groupName))
-            groupCmd = [self.vbox_path, "modifyvm", cloneName, "--groups", "/" + groupName]
+            logging.error("runCloneVM(): executing: " + str(groupCmd))
             result = subprocess.check_output(groupCmd)
 
             logging.debug("runCloneVM(): Clone Created: " + str(cloneName) + " and placed into group: " + groupName)
             self.writeStatus = VMManage.MANAGER_IDLE
             self.readStatus = VMManage.MANAGER_IDLE
         except Exception:
-            logging.error("runCloneVM(): Error in getExperimentXMLFileData(): An error occured ")
-            logging.error("runCloneVM(): Using the link clone option requires that VMs contain a snapshot. No snapshot found for vm:" + vmName)
+            logging.error("runCloneVM(): Error in runCloneVM(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             self.writeStatus = VMManage.MANAGER_IDLE
@@ -396,8 +398,7 @@ class VBoxManageWin(VMManage):
             self.writeStatus = VMManage.MANAGER_IDLE
             self.readStatus = VMManage.MANAGER_IDLE
         except Exception:
-                logging.error("runCloneVM(): Error in getExperimentXMLFileData(): An error occured ")
-                logging.error("runCloneVM(): Using the link clone option requires that VMs contain a snapshot. No snapshot found for vm:" + vmName)
+                logging.error("runCloneVM(): Error in runEnableVRDP(): An error occured ")
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 traceback.print_exception(exc_type, exc_value, exc_traceback)
                 self.writeStatus = VMManage.MANAGER_IDLE
