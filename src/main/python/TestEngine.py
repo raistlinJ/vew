@@ -11,7 +11,7 @@ from engine.Engine import Engine
 import threading
 
 if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.ERROR)
     #logging.basicConfig(filename='example.log',level=logging.DEBUG)
     logging.debug("Starting Program")
 ###Base Engine tests

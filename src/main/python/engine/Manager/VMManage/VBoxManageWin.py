@@ -253,6 +253,9 @@ class VBoxManageWin(VMManage):
     def exportVM(self, vmName, filepath):
         logging.debug("importVM(): instantiated")
         #first remove any quotes that may have been entered before (because we will add some after we add the file and extension)
+        if vmName not in self.vms:
+            logging.error("exportVM(): vmName does not exist. Skipping... " + vmName)
+            return None
         filepath = filepath.replace("\"","")
         exportfilename = os.path.join(filepath,vmName+".ova")
         cmd = "export " + self.vms[vmName].UUID + " -o \"" + exportfilename + "\" --iso"

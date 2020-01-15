@@ -96,6 +96,10 @@ class PackageManageVBox(PackageManage):
         zipPath = resfilename
         block_size = 1048576
         try:
+            if os.path.exists(zipPath) == False:
+                logging.error("unzipWorker(): path to zip not found... Skipping..." + str(zipPath))
+                return
+
             z = zipfile.ZipFile(zipPath, 'r')
             outputPath = os.path.join(tmpOutPath)
             members_list = z.namelist()
@@ -199,7 +203,13 @@ class PackageManageVBox(PackageManage):
             #copy all files to temp folder
             logging.debug("runExportPackage(): copying experiment files to temporary folder: " + str(tmpPathBase))
             if os.path.exists(tmpPathBase):
-                shutil.rmtree(tmpPathBase)
+                shutil.rmtree(tmpPathBase, ignore_errors=True)
+            #have to check again if path was removed or not...
+            if os.path.exists(tmpPathBase):
+                logging.error("runExportPackage(): Could not remove directory. Cancelling export: " + str(tmpPathBase))
+                self.writeStatus = PackageManage.PACKAGE_MANAGE_IDLE
+                return
+
             shutil.copytree(experimentDatapath, tmpPathBase)
             #create any folders that should exist but don't
             if os.path.exists(tmpPathVMs) == False:
@@ -272,12 +282,18 @@ class PackageManageVBox(PackageManage):
 
     def exportVMWorker(self, vmName, filepath):
         logging.debug("exportVMWorker(): instantiated")
+        self.vmManage.refreshAllVMInfo()
+        logging.debug("Waiting for export to complete...")
+        while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
+            time.sleep(1)
+            logging.debug("exportVMWorker(): Waiting for export vm to complete...")
+
         self.vmManage.exportVM(vmName, filepath)
         res = self.vmManage.getManagerStatus()
         logging.debug("Waiting for export to complete...")
         while res["writeStatus"] != self.vmManage.MANAGER_IDLE:
             time.sleep(1)
-            logging.debug("Waiting for export vm to complete...")
+            logging.debug("exportVMWorker(): Waiting for export vm to complete...")
             res = self.vmManage.getManagerStatus()
         logging.debug("Export complete...")
 
