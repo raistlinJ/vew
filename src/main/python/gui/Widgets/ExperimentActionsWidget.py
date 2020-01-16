@@ -65,7 +65,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
             logging.error("removeExperimentItem(): Item does not exist in tree: " + str(configname))
             return
         configTreeWidgetItem = self.experimentItemNames[configname]
-        self.experimentTree.invisibleRootItem().removeChild(configTreeWidgetItem)
+        self.treeWidget.invisibleRootItem().removeChild(configTreeWidgetItem)
         del self.experimentItemNames[configname]
         logging.debug("removeExperimentItem(): Completed")
 
