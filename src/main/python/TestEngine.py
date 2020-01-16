@@ -23,10 +23,6 @@ if __name__ == "__main__":
     e = Engine.getInstance()
     logging.debug("engine object: " + str(e))
 
-    logging.debug("Calling Engine.getInstance()")
-    e = Engine.getInstance()
-    logging.debug("engine object: " + str(e))
-
 ###Engine tests
     res = e.execute("engine status ")
 
@@ -116,28 +112,28 @@ if __name__ == "__main__":
         res = e.execute("experiment status")
     logging.debug("Experiment create complete.")    
 
-#     #####---Start Experiment Test#####
-#     logging.info("Starting Experiment")
-#     e.execute("experiment start sample")
-#     res = e.execute("experiment status")
-#     logging.debug("Waiting for experiment start to complete...")
-#     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-#         sleep(1)
-#         logging.debug("Waiting for experiment start to complete...")
-#         res = e.execute("experiment status")
-#     logging.debug("Experiment start complete.")    
+    #####---Start Experiment Test#####
+    logging.info("Starting Experiment")
+    e.execute("experiment start sample")
+    res = e.execute("experiment status")
+    logging.debug("Waiting for experiment start to complete...")
+    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+        sleep(1)
+        logging.debug("Waiting for experiment start to complete...")
+        res = e.execute("experiment status")
+    logging.debug("Experiment start complete.")    
 
-#     #####---Stop Experiment Test#####
-#     sleep(5)
-#     logging.info("Stopping Experiment")
-#     e.execute("experiment stop sample")
-#     res = e.execute("experiment status")
-#     logging.debug("Waiting for experiment stop to complete...")
-#     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-#         sleep(1)
-#         logging.debug("Waiting for experiment stop to complete...")
-#         res = e.execute("experiment status")
-#     logging.debug("Experiment stop complete.")    
+    #####---Stop Experiment Test#####
+    sleep(5)
+    logging.info("Stopping Experiment")
+    e.execute("experiment stop sample")
+    res = e.execute("experiment status")
+    logging.debug("Waiting for experiment stop to complete...")
+    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+        sleep(1)
+        logging.debug("Waiting for experiment stop to complete...")
+        res = e.execute("experiment status")
+    logging.debug("Experiment stop complete.")    
 
 # ###Connection tests
 #     # sleep(60)#alternative, check status until packager is complete and idle
@@ -153,18 +149,18 @@ if __name__ == "__main__":
 #     e.execute("conns open sample 1 1")
 
 
-#     #####---Remove Experiment Test#####
-#     sleep(5)
-#     logging.info("Remove Experiment")
-#     e.execute("experiment remove sample")
-#     res = e.execute("experiment status")
-#     logging.debug("Waiting for experiment remove to complete...")
-#     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-#         sleep(1)
-#         logging.debug("Waiting for experiment remove to complete...")
-#         res = e.execute("experiment status")
-#     logging.debug("Experiment remove complete.")    
+    #####---Remove Experiment Test#####
+    sleep(5)
+    logging.info("Remove Experiment")
+    e.execute("experiment remove sample")
+    res = e.execute("experiment status")
+    logging.debug("Waiting for experiment remove to complete...")
+    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+        sleep(1)
+        logging.debug("Waiting for experiment remove to complete...")
+        res = e.execute("experiment status")
+    logging.debug("Experiment remove complete.")    
 
-#     sleep(3) #allow some time for observation
-#     #quit
+    sleep(3) #allow some time for observation
+    #quit
 
