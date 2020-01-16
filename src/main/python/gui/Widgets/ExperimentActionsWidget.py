@@ -5,7 +5,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         logging.debug("ExperimentActionsWidget instantiated")
         QtWidgets.QWidget.__init__(self, parent=None)
-
+        self.experimentItemNames = {}
         self.outerVertBox = QtWidgets.QVBoxLayout()
         self.outerVertBox.setObjectName("outerVertBox")
 
@@ -15,7 +15,6 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.treeWidget.header().resizeSection(0, 150)
         self.treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.treeWidget.customContextMenuRequested.connect(self.showContextMenu)
-        item_0 = QtWidgets.QTreeWidgetItem(self.treeWidget)
         self.outerVertBox.addWidget(self.treeWidget)
 
         # Context menu for blank space
@@ -41,14 +40,34 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
 
     def retranslateUi(self):
         logging.debug("ExperimentActionsWidget: retranslateUi(): instantiated")
-        # self.setWindowTitle("ExperimentActionsWidget")
-        # self.treeWidget.headerItem().setText(0, "Experiment")
-        # self.treeWidget.headerItem().setText(1, "Status")
-        # sortingEnabled = self.treeWidget.isSortingEnabled()
-        # self.treeWidget.setSortingEnabled(False)
+        self.setWindowTitle("ExperimentActionsWidget")
+        self.treeWidget.headerItem().setText(0, "Experiment Name")
+        self.treeWidget.headerItem().setText(1, "Status")
+        self.treeWidget.setSortingEnabled(False)
         # self.treeWidget.topLevelItem(0).setText(0, "Experiment 1")
         # self.treeWidget.topLevelItem(0).setText(1, "Clones Not Created")
         # self.treeWidget.setSortingEnabled(sortingEnabled)
+    
+    def addExperimentItem(self, configname):
+        logging.debug("addExperimentItem(): retranslateUi(): instantiated")
+        if configname in self.experimentItemNames:
+            logging.error("addExperimentItem(): Item already exists in tree: " + str(configname))
+            return
+        configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.treeWidget)
+        configTreeWidgetItem.setText(0,configname)
+        configTreeWidgetItem.setText(1,"Unknown")
+        self.experimentItemNames[configname] = configTreeWidgetItem
+        logging.debug("addExperimentItem(): retranslateUi(): Completed")
+
+    def removeExperimentItem(self, configname):
+        logging.debug("removeExperimentItem(): retranslateUi(): instantiated")
+        if configname not in self.experimentItemNames:
+            logging.error("removeExperimentItem(): Item does not exist in tree: " + str(configname))
+            return
+        configTreeWidgetItem = self.experimentItemNames[configname]
+        self.experimentTree.invisibleRootItem().removeChild(configTreeWidgetItem)
+        del self.experimentItemNames[configname]
+        logging.debug("removeExperimentItem(): Completed")
 
     def showContextMenu(self, position):
         self.experimentMenu.popup(self.treeWidget.mapToGlobal(position))

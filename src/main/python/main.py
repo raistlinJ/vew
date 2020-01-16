@@ -184,6 +184,7 @@ class MainApp(QMainWindow):
 
             configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
             configTreeWidgetItem.setText(0,configname)
+            self.experimentActionsWidget.addExperimentItem(configname)
             basejsondata = jsondata["xml"]
             # Base Config Widget 
             self.baseWidget = BaseWidget(self, configname, configname, basejsondata)
@@ -284,6 +285,7 @@ class MainApp(QMainWindow):
         ##Now add the item to the tree widget and create the baseWidget
         configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
         configTreeWidgetItem.setText(0,configname)
+        self.experimentActionsWidget.addExperimentItem(configname)
         # Base Config Widget 
         self.baseWidget = BaseWidget(self, configname, configname)
         self.baseWidgets[configname] = {"BaseWidget": {}, "VMWidgets": {}, "MaterialWidgets": {} }
@@ -386,6 +388,7 @@ class MainApp(QMainWindow):
             self.experimentTree.invisibleRootItem().removeChild(selectedItem)
             self.basedataStackedWidget.removeWidget(self.baseWidgets[selectedItemName]["BaseWidget"])
             del self.baseWidgets[selectedItemName]
+            self.experimentActionsWidget.removeExperimentItem(selectedItemName)
             self.statusBar.showMessage("Removed experiment: " + str(selectedItemName))
         else:
             #Check if it's the case that a VM Name was selected

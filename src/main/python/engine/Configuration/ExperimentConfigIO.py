@@ -3,7 +3,7 @@ import xmltodict
 import logging
 import json
 import sys, traceback
-from gui.Configuration.SystemConfigIO import SystemConfigIO
+from engine.Configuration.SystemConfigIO import SystemConfigIO
 import os
 
 class ExperimentConfigIO:
