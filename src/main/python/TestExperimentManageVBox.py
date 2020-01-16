@@ -21,9 +21,12 @@ if __name__ == "__main__":
         time.sleep(1)
         logging.debug("Waiting for experiment create to complete...")
 
-    # logging.info("Starting Experiment")
-    # e.startExperiment("sample")
-    # logging.debug("Experiment start complete.")    
+    logging.info("Starting Experiment")
+    e.startExperiment("sample")
+    while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
+        time.sleep(1)
+        logging.debug("Waiting for experiment start to complete...")
+    logging.debug("Experiment start complete.")    
 
     # #####---Stop Experiment Test#####
     # time.sleep(30)

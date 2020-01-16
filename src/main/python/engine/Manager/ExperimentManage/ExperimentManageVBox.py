@@ -124,17 +124,35 @@ class ExperimentManageVBox(ExperimentManage):
 
     def runStartExperiment(self, configname):
         logging.debug("runStartExperiment(): instantiated")
-        self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_STARTING
-        #call vmManage to start clones as specified in config file; wait and query the vmManage status, and then set the complete status
-        jsondata = self.eco.getExperimentXMLFileData(configname)
-        vms = jsondata["xml"]["testbed-setup"]["vm-set"]
-        for name in vms["vm"]:    
-            self.vmManage.startVM(name["name"])
-            while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                #waiting for vmmanager start vm to finish reading/writing...
-                time.sleep(1)
-        logging.debug("vmmanager start experiment complete...")
-        self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+        try:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_STARTING
+            #call vmManage to start clones as specified in config file; wait and query the vmManage status, and then set the complete status
+            clonevmjson = self.eco.getExperimentVMRolledOut(configname)
+            for vm in clonevmjson.keys(): 
+                vmName = vm
+                logging.debug("runStartExperiment(): working with vm: " + str(vmName))
+                #get names for clones and start them
+                for cloneinfo in clonevmjson[vm]:
+                    cloneVMName = cloneinfo["name"]
+                    #Check if clone exists and then run it if it does
+                    if self.vmManage.getVMStatus(vmName) == None:
+                        logging.error("runStartExperiment(): VM Name: " + str(vmName) + " does not exist; skipping...")
+                        continue
+                    logging.error("runStartExperiment(): Starting: " + str(vmName))
+                    self.vmManage.startVM(cloneVMName)
+                    while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                        #waiting for vmmanager start vm to finish reading/writing...
+                        time.sleep(1)
+            logging.debug("runStartExperiment(): Complete...")
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+        except Exception:
+            logging.error("runStartExperiment(): Error in runStartExperiment(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+            return
+        finally:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
     #abstractmethod
     def stopExperiment(self, configname):
@@ -145,17 +163,26 @@ class ExperimentManageVBox(ExperimentManage):
 
     def runStopExperiment(self, configname):
         logging.debug("runStopExperiment(): instantiated")
-        self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_STOPPING
-        #call vmManage to stop clones as specified in config file; wait and query the vmManage status, and then set the complete status
-        jsondata = self.eco.getExperimentXMLFileData(configname)
-        vms = jsondata["xml"]["testbed-setup"]["vm-set"]
-        for name in vms["vm"]:    
-            self.vmManage.stopVM(name["name"])
-            while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                #waiting for manager to finish reading/writing...
-                time.sleep(1)
-        logging.debug("vmmanager stop experiment complete...")
-        self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+        try:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_STOPPING
+            #call vmManage to stop clones as specified in config file; wait and query the vmManage status, and then set the complete status
+            jsondata = self.eco.getExperimentXMLFileData(configname)
+            vms = jsondata["xml"]["testbed-setup"]["vm-set"]
+            for name in vms["vm"]:    
+                self.vmManage.stopVM(name["name"])
+                while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                    #waiting for manager to finish reading/writing...
+                    time.sleep(1)
+            logging.debug("runStopExperiment(): Complete...")
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+        except Exception:
+            logging.error("runStopExperiment(): Error in runStopExperiment(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+            return
+        finally:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
     #abstractmethod
     def removeExperiment(self, configname):
@@ -166,20 +193,22 @@ class ExperimentManageVBox(ExperimentManage):
         
     def runRemoveExperiment(self, configname):
         logging.debug("runRemoveExperiment(): instantiated")
-        self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_REMOVING
-        #call vmManage to remove clones as specified in config file; wait and query the vmManage status, and then set the complete status
-        #TODO: 
-        # jsondata = self.eco.getExperimentXMLFileData(configname)
-        # vms = jsondata["xml"]["testbed-setup"]["vm-set"]
-        # for name in vms["vm"]:  
-        #     #only remove the clones, not the original vms!  
-        #     self.vmManage.removeVM(name["name"])
-
-        while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-            #waiting for manager to finish reading/writing...
-            time.sleep(1)
-        logging.debug("vmmanager remove experiment complete...")
-        self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+        try:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_REMOVING
+            #TODO: Implement here
+            while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                #waiting for manager to finish reading/writing...
+                time.sleep(1)
+            logging.debug("runRemoveExperiment(): Complete...")
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+        except Exception:
+            logging.error("runRemoveExperiment(): Error in runStopExperiment(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+            return
+        finally:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
     def getExperimentManageStatus(self):
         logging.debug("getExperimentManageStatus(): instantiated")
