@@ -138,7 +138,7 @@ class ExperimentManageVBox(ExperimentManage):
                     if self.vmManage.getVMStatus(vmName) == None:
                         logging.error("runStartExperiment(): VM Name: " + str(vmName) + " does not exist; skipping...")
                         continue
-                    logging.error("runStartExperiment(): Starting: " + str(vmName))
+                    logging.debug("runStartExperiment(): Starting: " + str(vmName))
                     self.vmManage.startVM(cloneVMName)
                     while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                         #waiting for vmmanager start vm to finish reading/writing...
