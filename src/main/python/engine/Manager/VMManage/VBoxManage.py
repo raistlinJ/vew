@@ -86,8 +86,8 @@ class VBoxManage(VMManage):
                 if out == '' and p.poll() != None:
                     break
                 if out != '':
-                    logging.debug("runVMSInfo(): stdout Line: " + out)
-                    logging.debug("runVMSInfo(): split Line: " + str(out.split("{")))
+                    # logging.debug("runVMSInfo(): stdout Line: " + out)
+                    # logging.debug("runVMSInfo(): split Line: " + str(out.split("{")))
                     splitOut = out.split("{")
                     vm = VM()
                     tmpname = splitOut[0].strip()
@@ -97,11 +97,11 @@ class VBoxManage(VMManage):
                     else: 
                         break
                     vm.UUID = splitOut[1].split("}")[0].strip()
-                    logging.debug("UUID: " + vm.UUID)
+                    # logging.debug("UUID: " + vm.UUID)
                     self.vms[vm.name] = vm
             p.wait()
-            logging.info("runVMSInfo(): Thread 1 completed: " + vmListCmd)
-            logging.info("Found # VMS: " + str(len(self.vms)))
+            logging.debug("runVMSInfo(): Thread 1 completed: " + vmListCmd)
+            logging.debug("Found # VMS: " + str(len(self.vms)))
 
             #for each vm, get the machine readable info
             logging.debug("runVMSInfo(): collecting VM extended info")
@@ -122,18 +122,18 @@ class VBoxManage(VMManage):
                         #match example: nic1="none"
                         res = re.match("nic[0-9]+=", out)
                         if res:
-                            logging.debug("Found nic: " + out + " added to " + self.vms[aVM].name)
+                            # logging.debug("Found nic: " + out + " added to " + self.vms[aVM].name)
                             out = out.strip()
                             nicNum = out.split("=")[0][3:]
                             nicType = out.split("=")[1]
                             self.vms[aVM].adaptorInfo[nicNum] = nicType
                         res = re.match("groups=", out)
                         if res:
-                            logging.debug("Found groups: " + out + " added to " + self.vms[aVM].name)
+                            # logging.debug("Found groups: " + out + " added to " + self.vms[aVM].name)
                             self.vms[aVM].groups = out.strip()
                         res = re.match("VMState=", out)
                         if res:
-                            logging.debug("Found vmState: " + out + " added to " + self.vms[aVM].name)
+                            # logging.debug("Found vmState: " + out + " added to " + self.vms[aVM].name)
                             state = out.strip().split("\"")[1].split("\"")[0]
                             if state == "running":
                                 self.vms[aVM].state = VM.VM_STATE_RUNNING
@@ -174,18 +174,18 @@ class VBoxManage(VMManage):
                 #match example: nic1="none"
                 res = re.match("nic[0-9]+=", out)
                 if res:
-                    logging.debug("Found nic: " + out + " added to " + self.vms[aVM].name)
+                    # logging.debug("Found nic: " + out + " added to " + self.vms[aVM].name)
                     out = out.strip()
                     nicNum = out.split("=")[0][3:]
                     nicType = out.split("=")[1]
                     self.vms[aVM].adaptorInfo[nicNum] = nicType
                 res = re.match("groups=", out)
                 if res:
-                    logging.debug("Found groups: " + out + " added to " + self.vms[aVM].name)
+                    # logging.debug("Found groups: " + out + " added to " + self.vms[aVM].name)
                     self.vms[aVM].groups = out.strip()
                 res = re.match("VMState=", out)
                 if res:
-                    logging.debug("Found vmState: " + out + " added to " + self.vms[aVM].name)
+                    # logging.debug("Found vmState: " + out + " added to " + self.vms[aVM].name)
                     state = out.strip().split("\"")[1].split("\"")[0].strip()
                     if state == "running":
                         self.vms[aVM].state = VM.VM_STATE_RUNNING
