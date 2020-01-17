@@ -54,7 +54,6 @@ class ExperimentManageVBox(ExperimentManage):
                     continue
                 #get names for clones
                 for cloneinfo in clonevmjson[vm]:
-                #for i in range(1, numClones + 1):
                     cloneVMName = cloneinfo["name"]
                     cloneGroupName = cloneinfo["group-name"]
                     internalnets = cloneinfo["networks"]
@@ -64,8 +63,8 @@ class ExperimentManageVBox(ExperimentManage):
                     logging.debug("vmName: " + str(vmName) + " cloneVMName: " + str(cloneVMName) + " cloneSnaps: " + str(cloneSnapshots) + " linked: " + str(linkedClones) + " cloneGroupName: " + str(cloneGroupName))
                     self.vmManage.cloneVM(vmName, cloneVMName, cloneSnapshots, linkedClones, cloneGroupName)
                     while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                        #waiting for vmmanager start vm to finish reading/writing...
-                        logging.debug("runCreateExperiment(): waiting for vmmanager start vm to finish reading/writing...")
+                        #waiting for vmmanager clone vm to finish reading/writing...
+                        logging.debug("runCreateExperiment(): waiting for vmmanager clone vm to finish reading/writing...")
                         time.sleep(1)
                     # We added a VM, so we have to call refresh
                     logging.info("Refreshing after clone since we added a new VM")
@@ -86,7 +85,7 @@ class ExperimentManageVBox(ExperimentManage):
                         cloneNetNum += 1
 
                     while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                        #waiting for vmmanager start vm to finish reading/writing...
+                        #waiting for vmmanager configureVM vm to finish reading/writing...
                         logging.debug("runCreateExperiment(): waiting for vmmanager to finish reading/writing...")
                         time.sleep(1)
                     # vrdp setup
@@ -95,13 +94,13 @@ class ExperimentManageVBox(ExperimentManage):
                         logging.debug("runCreateExperiment(): setting up vrdp for " + cloneVMName)
                         self.vmManage.enableVRDPVM(cloneVMName, str(cloneinfo["vrdpPort"]))
                         while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                            #waiting for vmmanager start vm to finish reading/writing...
+                            #waiting for vmmanager enableVRDP vm to finish reading/writing...
                             time.sleep(1)
 
                     # finally create a snapshot after the vm is setup
                     self.vmManage.snapshotVM(cloneVMName)
                     while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                        #waiting for vmmanager start vm to finish reading/writing...
+                        #waiting for vmmanager snapsthotVM vm to finish reading/writing...
                         time.sleep(1)
                     logging.debug("runCreateExperiment(): finished setting up clone: " + cloneVMName)
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
