@@ -232,6 +232,45 @@ class ExperimentManageVBox(ExperimentManage):
         finally:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
+    #abstractmethod
+    def restoreExperiment(self, configname):
+        logging.debug("restoreExperimentStates(): instantiated")
+        t = threading.Thread(target=self.runRestoreExperiment, args=(configname,))
+        t.start()
+        return 0    
+
+    def runRestoreExperiment(self, configname):
+        logging.debug("runRestoreExperiment(): instantiated")
+        try:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_RESTORING
+            #call vmManage to remove clones as specified in config file; wait and query the vmManage status, and then set the complete status
+            clonevmjson = self.eco.getExperimentVMRolledOut(configname)
+            for vm in clonevmjson.keys(): 
+                vmName = vm
+                logging.debug("runRestoreExperiment(): working with vm: " + str(vmName))
+                #get names for clones and remove them
+                for cloneinfo in clonevmjson[vm]:
+                    cloneVMName = cloneinfo["name"]
+                    #Check if clone exists and then run it if it does
+                    if self.vmManage.getVMStatus(vmName) == None:
+                        logging.error("runRestoreExperiment(): VM Name: " + str(vmName) + " does not exist; skipping...")
+                        continue
+                    logging.error("runRestoreExperiment(): Removing: " + str(vmName))
+                    self.vmManage.restoreLatestSnapVM(cloneVMName)
+                    while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                        #waiting for vmmanager stop vm to finish reading/writing...
+                        time.sleep(1)
+            logging.debug("runRestoreExperiment(): Complete...")
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+        except Exception:
+            logging.error("runRestoreExperiment(): Error in runRestoreExperiment(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+            return
+        finally:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+
     def getExperimentManageStatus(self):
         logging.debug("getExperimentManageStatus(): instantiated")
         return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus}
@@ -241,7 +280,9 @@ class ExperimentManageVBox(ExperimentManage):
         jsondata = self.eco.getExperimentXMLFileData(experimentname)
         vms = jsondata["xml"]["testbed-setup"]["vm-set"]
         vmNames = []
-        #TODO: may have to check if this is a list or a single item
+        
+        if isinstance(vms["vm"], list) == False:
+            vms["vm"] = [vms["vm"]]
         for name in vms["vm"]:    
             vmNames.append(name["name"])
         return vmNames
@@ -280,6 +321,14 @@ if __name__ == "__main__":
         logging.debug("Waiting for experiment stop to complete...")
     logging.debug("Experiment stop complete.")    
    
+    #####---Restore Experiment Test#####
+    logging.info("Stopping Experiment")
+    e.restoreExperiment("sample")
+    while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
+        time.sleep(1)
+        logging.debug("Waiting for experiment stop to complete...")
+    logging.debug("Experiment stop complete.")
+
     #####---Remove Experiment Test#####
     logging.info("Creating Experiment")
     e.removeExperiment("sample")

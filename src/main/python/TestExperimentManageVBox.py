@@ -39,6 +39,14 @@ if __name__ == "__main__":
         logging.debug("Waiting for experiment stop to complete...")
     logging.debug("Experiment stop complete.")    
    
+    #####---Restore Experiment Test#####
+    logging.info("Stopping Experiment")
+    e.restoreExperiment("sample")
+    while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
+        time.sleep(1)
+        logging.debug("Waiting for experiment stop to complete...")
+    logging.debug("Experiment stop complete.")
+
     #####---Remove Experiment Test#####
     logging.info("Creating Experiment")
     e.removeExperiment("sample")

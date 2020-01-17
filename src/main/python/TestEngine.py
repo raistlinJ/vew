@@ -148,6 +148,17 @@ if __name__ == "__main__":
 #     e.execute("conns status")
 #     e.execute("conns open sample 1 1")
 
+    #####---Restore Experiment Test#####
+    sleep(5)
+    logging.info("Restore Experiment")
+    e.execute("experiment restore sample")
+    res = e.execute("experiment status")
+    logging.debug("Waiting for experiment restore to complete...")
+    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+        sleep(1)
+        logging.debug("Waiting for experiment restore to complete...")
+        res = e.execute("experiment status")
+    logging.debug("Experiment restore complete.")    
 
     #####---Remove Experiment Test#####
     sleep(5)

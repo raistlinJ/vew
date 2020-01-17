@@ -151,6 +151,13 @@ class Engine:
         configfilename = args.configfilename
 
         return self.experimentManage.removeExperiment(configfilename)
+
+    def experimentRestoreCmd(self, args):
+        logging.debug("experimentRestoreCmd(): instantiated")
+        #will restore state of the experiment (latest snapshots of vms) as specified in configfile
+        configfilename = args.configfilename
+
+        return self.experimentManage.restoreExperiment(configfilename)
   
     def vmConfigCmd(self, args):
         logging.debug("vmConfigCmd(): instantiated")
@@ -273,6 +280,11 @@ class Engine:
         self.experimentManageStopParser.add_argument('configfilename', metavar='<config filename>', action="store",
                                           help='path to config file')                                          
         self.experimentManageStopParser.set_defaults(func=self.experimentStopCmd)
+
+        self.experimentManageRestoreParser = self.experimentManageSubParser.add_parser('restore', help='restore experiment to latest snapshot')
+        self.experimentManageRestoreParser.add_argument('configfilename', metavar='<config filename>', action="store",
+                                          help='path to config file')                                          
+        self.experimentManageRestoreParser.set_defaults(func=self.experimentRestoreCmd)
 
         self.experimentManageRemoveParser = self.experimentManageSubParser.add_parser('remove', help='remove clones aka instances of experiment')
         self.experimentManageRemoveParser.add_argument('configfilename', metavar='<config filename>', action="store",
