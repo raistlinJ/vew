@@ -45,7 +45,8 @@ class MainApp(QMainWindow):
         self.materialWidgets = {}
         self.cf = SystemConfigIO()
         self.ec = ExperimentConfigIO()
-
+        self.statusBar = self.statusBar()
+        
         self.setFixedSize(670,565)
         quit = QAction("Quit", self)
         quit.triggered.connect(self.closeEvent)
@@ -83,14 +84,12 @@ class MainApp(QMainWindow):
         self.tabWidget.addTab(self.windowWidget, "Configuration")
 
         # VBox Actions Tab
-        self.experimentActionsWidget = ExperimentActionsWidget()
+        self.experimentActionsWidget = ExperimentActionsWidget(statusBar=self.statusBar)
         self.experimentActionsWidget.setObjectName("experimentActionsWidget")
         self.tabWidget.addTab(self.experimentActionsWidget, "Experiment Actions")      
 
         ##Create the bottom layout so that we can access the status bar
         self.bottomLayout = QHBoxLayout()
-        self.statusBar = QtWidgets.QStatusBar()
-        self.setStatusBar(self.statusBar)
         self.statusBar.showMessage("Loading GUI...")
         self.bottomLayout.addWidget(self.statusBar)
         self.saveButton = QtWidgets.QPushButton("Save Current")
@@ -255,12 +254,11 @@ class MainApp(QMainWindow):
         else:
             #Check if it's the case that a VM Name was selected
             if(selectedItem.text(0)[0] == "V"):
-                #print("Setting right widget: " + str(self.vmWidgets[(parentSelectedItem.text(0), selectedItem.text(0))]))
-                print("Setting right widget: " + str(self.baseWidgets[parentSelectedItem.text(0)]["VMWidgets"][selectedItem.text(0)]))
+                logging.debug("Setting right widget: " + str(self.baseWidgets[parentSelectedItem.text(0)]["VMWidgets"][selectedItem.text(0)]))
                 self.basedataStackedWidget.setCurrentWidget(self.baseWidgets[parentSelectedItem.text(0)]["VMWidgets"][selectedItem.text(0)])
             #Check if it's the case that a Material Name was selected
             elif(selectedItem.text(0)[0] == "M"):
-                print("Setting right widget: " + str(self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)]))
+                logging.debug("Setting right widget: " + str(self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)]))
                 self.basedataStackedWidget.setCurrentWidget(self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)])
 
     def showContextMenu(self, position):
