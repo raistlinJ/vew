@@ -44,9 +44,6 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.treeWidget.headerItem().setText(0, "Experiment Name")
         self.treeWidget.headerItem().setText(1, "Status")
         self.treeWidget.setSortingEnabled(False)
-        # self.treeWidget.topLevelItem(0).setText(0, "Experiment 1")
-        # self.treeWidget.topLevelItem(0).setText(1, "Clones Not Created")
-        # self.treeWidget.setSortingEnabled(sortingEnabled)
     
     def addExperimentItem(self, configname):
         logging.debug("addExperimentItem(): retranslateUi(): instantiated")
