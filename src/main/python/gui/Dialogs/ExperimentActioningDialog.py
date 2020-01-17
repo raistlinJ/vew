@@ -4,10 +4,13 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
         QVBoxLayout, QWidget, QMessageBox)
+from engine.Engine import Engine
+from engine.Manager.ExperimentManage.ExperimentManage import ExperimentManage
 import sys, traceback
 import logging
 import shutil
 import os
+import time
 
 class ExperimentActionThread(QThread):
     watchsignal = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
@@ -19,6 +22,7 @@ class ExperimentActionThread(QThread):
         self.configname = configname
         self.actionname = actionname
         self.outputstr = []
+        self.status = -1
 
     # run method gets called when we start the thread
     def run(self):
@@ -26,34 +30,33 @@ class ExperimentActionThread(QThread):
         self.watchsignal.emit("Running " + str(self.actionname) + "...", None, None)
         try:
             e = Engine.getInstance()
-            if self.action == "Create Experiment":
+            if self.actionname == "Create Experiment":
                 e.execute("experiment create " + str(self.configname))
-            elif self.action == "Start Experiment":
+            elif self.actionname == "Start Experiment":
                 e.execute("experiment start " + str(self.configname))
-            elif self.action == "Stop Experiment":
+            elif self.actionname == "Stop Experiment":
                 e.execute("experiment stop " + str(self.configname))
-            elif self.action == "Restore Experiment":
+            elif self.actionname == "Restore Experiment":
                 e.execute("experiment restore " + str(self.configname))
-            elif self.action == "Remove Experiment":
+            elif self.actionname == "Remove Experiment":
                 e.execute("experiment remove " + str(self.configname))
             #will check status every 0.5 second and will either display stopped or ongoing or connected
             dots = 1
             while(True):
-                logging.debug("ExperimentActionThread(): running: vm-manage refresh")
-                logging.debug("ExperimentActionThread(): running: vm-manage refresh")
-                self.status = e.execute("vm-manage mgrstatus")
+                logging.debug("ExperimentActionThread(): running: experiment status")
+                self.status = e.execute("experiment status")
                 logging.debug("ExperimentActionThread(): result: " + str(self.status))
-                if self.status["readStatus"] != VMManage.MANAGER_IDLE or (self.status["writeStatus"] != VMManage.MANAGER_IDLE and self.status["writeStatus"] != VMManage.MANAGER_UNKNOWN):
+                if self.status["writeStatus"] != ExperimentManage.EXPERIMENT_MANAGE_COMPLETE:
                     dotstring = ""
                     for i in range(1,dots):
                         dotstring = dotstring + "."
-                    self.watchsignal.emit(" Running " + str(self.actionname) + "..." +dotstring, self.status, None)
+                    self.watchsignal.emit(" Running " + str(self.actionname) + dotstring, self.status, None)
                     dots = dots+1
                     if dots > 4:
                         dots = 1
                 else:
                     break
-                sleep(0.5)
+                time.sleep(0.5)
             logging.debug("WatchRetrieveThread(): thread ending")
             self.watchsignal.emit("Action " + str(self.actionname) + " Complete", self.status, True)
             return
@@ -61,15 +64,20 @@ class ExperimentActionThread(QThread):
             logging.error("Error in ExperimentActionThread(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.watchsignal.emit("Error executing action: " + str(self.actionname), None, True)
+            #self.watchsignal.emit("Error executing action: " + str(self.actionname), None, True)
+            self.watchsignal.emit("Error executing action: " + str(exc_value), None, True)
+            self.status = -1
+            exit()
             return None
         finally:
             return None
 
 class ExperimentActioningDialog(QDialog):
-    def __init__(self, parent, configname, actionName):
+    def __init__(self, parent, configname, actionname):
         logging.debug("ExperimentActioningDialog(): instantiated")
         super(ExperimentActioningDialog, self).__init__(parent)
+        self.configname = configname
+        self.actionname = actionname
         self.setWindowFlag(Qt.WindowCloseButtonHint, False)
 
         self.buttons = QDialogButtonBox()
@@ -94,7 +102,7 @@ class ExperimentActioningDialog(QDialog):
         self.status = -1
         
     def exec_(self):
-        t = ExperimentActionThread(self.filenames, self.destinationPath)
+        t = ExperimentActionThread(self.configname, self.actionname)
         t.watchsignal.connect(self.setStatus)
         t.start()
         result = super(ExperimentActioningDialog, self).exec_()

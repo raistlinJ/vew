@@ -35,16 +35,16 @@ class Engine:
         ##These are defaults and will be based on the SystemConfigIO values, for now make assumptions
         #Create the ConnectionManage
         if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
-            self.vmManage = VBoxManage()
+            self.vmManage = VBoxManage(True)
         else:
-            self.vmManage = VBoxManageWin()
+            self.vmManage = VBoxManageWin(True)
 
         #Create the ConnectionManage
         self.connectionManage = ConnectionManageGuacRDP()
         #Create the PackageManage
-        self.packageManage = PackageManageVBox()
+        self.packageManage = PackageManageVBox(True)
         #Create the ExperimentManage
-        self.experimentManage = ExperimentManageVBox()        
+        self.experimentManage = ExperimentManageVBox(True)
         #build the parser
         self.buildParser()
 

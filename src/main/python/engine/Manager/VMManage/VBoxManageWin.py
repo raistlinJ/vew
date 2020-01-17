@@ -193,24 +193,34 @@ class VBoxManageWin(VMManage):
 
     def runVMCmd(self, cmd):
         logging.debug("runVMCmd(): instantiated")
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        self.writeStatus = VMManage.MANAGER_WRITING
-        self.readStatus = VMManage.MANAGER_READING
-        vmCmd = self.vbox_path + " " + cmd
-        logging.debug("runVMCmd(): Running " + vmCmd)
-        p = Popen(vmCmd, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo, encoding="utf-8")
-        while True:
-            out = p.stdout.readline()
-            if out == '' and p.poll() != None:
-                break
-            if out != '':
-                logging.debug("output line: " + out)
-        p.wait()
-        
-        self.readStatus = VMManage.MANAGER_IDLE
-        self.writeStatus = VMManage.MANAGER_IDLE
-        logging.debug("runVMCmd(): Thread completed")
+        try:
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            self.writeStatus = VMManage.MANAGER_WRITING
+            self.readStatus = VMManage.MANAGER_READING
+            vmCmd = self.vbox_path + " " + cmd
+            logging.debug("runVMCmd(): Running " + vmCmd)
+            p = Popen(vmCmd, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo, encoding="utf-8")
+            while True:
+                out = p.stdout.readline()
+                if out == '' and p.poll() != None:
+                    break
+                if out != '':
+                    logging.debug("output line: " + out)
+            p.wait()
+            
+            self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus = VMManage.MANAGER_IDLE
+            logging.debug("runVMCmd(): Thread completed")
+        except Exception:
+            logging.error("runVMCmd() Error: " + " cmd: " + cmd)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus = VMManage.MANAGER_IDLE
+        finally:
+            self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus = VMManage.MANAGER_IDLE
 
     def getVMStatus(self, vmName):
         logging.debug("getVMStatus(): instantiated " + vmName)
@@ -338,8 +348,10 @@ class VBoxManageWin(VMManage):
                         # get the name of the newest snapshot
                         getSnapCmd = [self.vbox_path, "snapshot", self.vms[vmName].UUID, "list", "--machinereadable"]
                         logging.error("runCloneVM(): getting snaps; executing: " + str(getSnapCmd))
-                        snapList = subprocess.check_output(getSnapCmd).decode('utf-8')
-                        latestSnapUUID = snapList.split("CurrentSnapshotUUID=\"")[1].split("\"")[0]
+                        #snapList = subprocess.check_output(getSnapCmd).decode('utf-8')
+                        p = Popen(getSnapCmd, stdout=PIPE, stderr=PIPE)
+                        snapList, stderr = p.communicate()
+                        latestSnapUUID = snapList.decode('utf-8').split("CurrentSnapshotUUID=\"")[1].split("\"")[0]
                         cloneCmd.append("--snapshot")
                         cloneCmd.append(latestSnapUUID)
                         cloneCmd.append("--options")

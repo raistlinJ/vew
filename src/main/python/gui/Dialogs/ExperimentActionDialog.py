@@ -5,13 +5,13 @@ import os
 import logging
 
 class ExperimentActionDialog:
-    def ExperimentActionDialog(self, configname, actionname):       
-        logging.debug("ExperimentActionDialog(): Instantiated")
+    def experimentActionDialog(self, configname, actionname):       
+        logging.debug("experimentActionDialog(): Instantiated")
         self.configname = configname
         self.s = SystemConfigIO()
         self.destinationPath = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'])
         ouputstr = self.experimentAction(actionname)
-        logging.debug("ExperimentActionDialog(): Completed")
+        logging.debug("experimentActionDialog(): Completed")
         return ouputstr
 
     def experimentAction(self, actionname):

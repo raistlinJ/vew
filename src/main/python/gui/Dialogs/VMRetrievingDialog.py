@@ -49,12 +49,14 @@ class WatchRetrieveThread(QThread):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             self.watchsignal.emit("Error retrieving VMs. Check your paths and permissions.", None, True)
+            self.status = -1
             return None
         except:
             logging.error("Error in ExperimentRemoveThread(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             self.watchsignal.emit("Error retrieving VMs. Check your paths and permissions.", None, True)
+            self.status = -1
             return None
         finally:
             return None

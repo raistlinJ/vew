@@ -527,7 +527,7 @@ class MainApp(QMainWindow):
         self.statusBar.showMessage("Succesfully saved experiment file for " + str(configname), 2000)
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.ERROR)
     appctxt = ApplicationContext()
     app = MainApp()
     QApplication.setStyle(QStyleFactory.create('Fusion')) 

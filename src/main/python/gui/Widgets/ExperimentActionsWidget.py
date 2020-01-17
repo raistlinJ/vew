@@ -85,20 +85,20 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
     def cloneExperimentActionEvent(self):
         logging.debug("cloneExperimentActionEvent(): showContextMenu(): instantiated")
         #Now allow the user to choose the VM:
-        (status, outstr) = ExperimentActionDialog(self.treeWidget.currentItem.text(0), "Create Experiment")
+        ExperimentActionDialog().experimentActionDialog(self.treeWidget.currentItem().text(0), "Create Experiment")
 
     def startVMsActionEvent(self):
         logging.debug("startVMsActionEvent(): showContextMenu(): instantiated")
-        (status, outstr) = ExperimentActionDialog(self.treeWidget.currentItem.text(0), "Start Experiment")
+        ExperimentActionDialog().experimentActionDialog(self.treeWidget.currentItem().text(0), "Start Experiment")
 
     def poweroffVMsActionEvent(self):
         logging.debug("poweroffVMsActionEvent(): showContextMenu(): instantiated")
-        (status, outstr) = ExperimentActionDialog(self.treeWidget.currentItem.text(0), "Stop Experiment")
+        ExperimentActionDialog().experimentActionDialog(self.treeWidget.currentItem().text(0), "Stop Experiment")
 
     def restoreSnapshotsActionEvent(self):
         logging.debug("restoreSnapshotsActionEvent(): showContextMenu(): instantiated")
-        (status, outstr) = ExperimentActionDialog(self.treeWidget.currentItem.text(0), "Restore Experiment")
+        ExperimentActionDialog().experimentActionDialog(self.treeWidget.currentItem().text(0), "Restore Experiment")
 
     def deleteClonesActionEvent(self):
         logging.debug("deleteClonesActionEvent(): showContextMenu(): instantiated")
-        (status, outstr) = ExperimentActionDialog(self.treeWidget.currentItem.text(0), "Remove Experiment")
+        ExperimentActionDialog().experimentActionDialog(self.treeWidget.currentItem().text(0), "Remove Experiment")
