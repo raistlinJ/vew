@@ -72,3 +72,5 @@ src/main/icons/linux/
 src/main/icons/mac/
 
 .vscode/
+
+src/main/python/
