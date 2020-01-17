@@ -45,7 +45,8 @@ class MainApp(QMainWindow):
         self.materialWidgets = {}
         self.cf = SystemConfigIO()
         self.ec = ExperimentConfigIO()
-
+        self.statusBar = self.statusBar()
+        
         self.setFixedSize(670,565)
         quit = QAction("Quit", self)
         quit.triggered.connect(self.closeEvent)
@@ -83,14 +84,12 @@ class MainApp(QMainWindow):
         self.tabWidget.addTab(self.windowWidget, "Configuration")
 
         # VBox Actions Tab
-        self.experimentActionsWidget = ExperimentActionsWidget()
+        self.experimentActionsWidget = ExperimentActionsWidget(statusBar=self.statusBar)
         self.experimentActionsWidget.setObjectName("experimentActionsWidget")
         self.tabWidget.addTab(self.experimentActionsWidget, "Experiment Actions")      
 
         ##Create the bottom layout so that we can access the status bar
         self.bottomLayout = QHBoxLayout()
-        self.statusBar = QtWidgets.QStatusBar()
-        self.setStatusBar(self.statusBar)
         self.statusBar.showMessage("Loading GUI...")
         self.bottomLayout.addWidget(self.statusBar)
         self.saveButton = QtWidgets.QPushButton("Save Current")

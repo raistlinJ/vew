@@ -85,7 +85,7 @@ class ExperimentActioningDialog(QDialog):
         self.ok_button.setEnabled(False)
         
         self.buttons.accepted.connect( self.accept )
-        self.setWindowTitle("Experiment Action")
+        self.setWindowTitle("Action")
         #self.setFixedSize(225, 75)
                 
         self.box_main_layout = QGridLayout()
