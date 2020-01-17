@@ -272,7 +272,7 @@ class VBoxManage(VMManage):
             if vmName not in self.vms:
                 logging.error("startVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
                 return -1
-            cmd = "startvm " + str(self.vms[vmName].UUID)
+            cmd = "startvm " + str(self.vms[vmName].UUID) + " --type headless"
             t = threading.Thread(target=self.runVMCmd, args=(cmd,))
             t.start()
             return 0

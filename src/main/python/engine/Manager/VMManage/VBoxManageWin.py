@@ -269,7 +269,7 @@ class VBoxManageWin(VMManage):
         if vmName not in self.vms:
             logging.error("startVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
             return -1
-        cmd = "startvm " + str(self.vms[vmName].UUID)
+        cmd = "startvm " + str(self.vms[vmName].UUID) + " --type headless"
         t = threading.Thread(target=self.runVMCmd, args=(cmd,))
         t.start()
         return 0
@@ -421,6 +421,19 @@ class VBoxManageWin(VMManage):
         finally:
                 self.writeStatus = VMManage.MANAGER_IDLE
                 self.readStatus = VMManage.MANAGER_IDLE
+
+    def restoreLatestSnapVM(self, vmName):
+        logging.debug("restoreLatestSnapVM(): instantiated")
+        #check to make sure the vm is known, if not should refresh or check name:
+        if vmName not in self.vms:
+            logging.error("restoreLatestSnapVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+            return -1
+
+        cmd = "snapshot " + str(self.vms[vmName].UUID) + " restorecurrent"
+        t = threading.Thread(target=self.runVMCmd, args=(cmd,))
+        t.start()
+        return 0
+
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
