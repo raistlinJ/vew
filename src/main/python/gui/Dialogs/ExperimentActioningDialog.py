@@ -5,36 +5,49 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
         QVBoxLayout, QWidget, QMessageBox)
 import sys, traceback
-from engine.Engine import Engine
-from time import sleep
-from engine.Manager.VMManage.VMManage import VMManage
 import logging
+import shutil
+import os
 
-class WatchRetrieveThread(QThread):
+class ExperimentActionThread(QThread):
     watchsignal = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
 
-    def __init__(self):
+    def __init__(self, configname, actionname):
         QThread.__init__(self)
+        logging.debug("ExperimentActionThread(): instantiated")
+
+        self.configname = configname
+        self.actionname = actionname
+        self.outputstr = []
 
     # run method gets called when we start the thread
     def run(self):
-        logging.debug("WatchRetrieveThread(): instantiated")
-        self.watchsignal.emit("Querying VirtualBox Service...", None, None)
+        logging.debug("ExperimentActionThread(): instantiated")
+        self.watchsignal.emit("Running " + str(self.actionname) + "...", None, None)
         try:
             e = Engine.getInstance()
-            logging.debug("watchRetrieveStatus(): running: vm-manage refresh")
-            e.execute("vm-manage refresh")
+            if self.action == "Create Experiment":
+                e.execute("experiment create " + str(self.configname))
+            elif self.action == "Start Experiment":
+                e.execute("experiment start " + str(self.configname))
+            elif self.action == "Stop Experiment":
+                e.execute("experiment stop " + str(self.configname))
+            elif self.action == "Restore Experiment":
+                e.execute("experiment restore " + str(self.configname))
+            elif self.action == "Remove Experiment":
+                e.execute("experiment remove " + str(self.configname))
             #will check status every 0.5 second and will either display stopped or ongoing or connected
             dots = 1
             while(True):
-                logging.debug("watchRetrieveStatus(): running: vm-manage refresh")
+                logging.debug("ExperimentActionThread(): running: vm-manage refresh")
+                logging.debug("ExperimentActionThread(): running: vm-manage refresh")
                 self.status = e.execute("vm-manage mgrstatus")
-                logging.debug("watchRetrieveStatus(): result: " + str(self.status))
+                logging.debug("ExperimentActionThread(): result: " + str(self.status))
                 if self.status["readStatus"] != VMManage.MANAGER_IDLE or (self.status["writeStatus"] != VMManage.MANAGER_IDLE and self.status["writeStatus"] != VMManage.MANAGER_UNKNOWN):
                     dotstring = ""
                     for i in range(1,dots):
                         dotstring = dotstring + "."
-                    self.watchsignal.emit( "Reading VM Status"+dotstring, self.status, None)
+                    self.watchsignal.emit(" Running " + str(self.actionname) + "..." +dotstring, self.status, None)
                     dots = dots+1
                     if dots > 4:
                         dots = 1
@@ -42,38 +55,31 @@ class WatchRetrieveThread(QThread):
                     break
                 sleep(0.5)
             logging.debug("WatchRetrieveThread(): thread ending")
-            self.watchsignal.emit("Retrieval Complete", self.status, True)
+            self.watchsignal.emit("Action " + str(self.actionname) + " Complete", self.status, True)
             return
-        except FileNotFoundError:
-            logging.error("Error in ExperimentRemoveThread(): File not found")
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.watchsignal.emit("Error retrieving VMs. Check your paths and permissions.", None, True)
-            return None
         except:
-            logging.error("Error in ExperimentRemoveThread(): An error occured ")
+            logging.error("Error in ExperimentActionThread(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.watchsignal.emit("Error retrieving VMs. Check your paths and permissions.", None, True)
+            self.watchsignal.emit("Error executing action: " + str(self.actionname), None, True)
             return None
         finally:
             return None
 
-class VMRetrievingDialog(QDialog):
-    def __init__(self, parent):
-        logging.debug("VMRetrievingDialog(): instantiated")
-        super(VMRetrievingDialog, self).__init__(parent)     
-        
+class ExperimentActioningDialog(QDialog):
+    def __init__(self, parent, configname, actionName):
+        logging.debug("ExperimentActioningDialog(): instantiated")
+        super(ExperimentActioningDialog, self).__init__(parent)
         self.setWindowFlag(Qt.WindowCloseButtonHint, False)
-        
+
         self.buttons = QDialogButtonBox()
         self.ok_button = self.buttons.addButton( self.buttons.Ok )
         self.ok_button.setEnabled(False)
         
         self.buttons.accepted.connect( self.accept )
-        self.setWindowTitle("Retrieving")
+        self.setWindowTitle("Experiment Action")
         #self.setFixedSize(225, 75)
-                       
+                
         self.box_main_layout = QGridLayout()
         self.box_main = QWidget()
         self.box_main.setLayout(self.box_main_layout)
@@ -86,25 +92,26 @@ class VMRetrievingDialog(QDialog):
         
         self.setLayout(self.box_main_layout)
         self.status = -1
-            
+        
     def exec_(self):
-        t = WatchRetrieveThread()
+        t = ExperimentActionThread(self.filenames, self.destinationPath)
         t.watchsignal.connect(self.setStatus)
         t.start()
-        result = super(VMRetrievingDialog, self).exec_()
+        result = super(ExperimentActioningDialog, self).exec_()
         logging.debug("exec_(): initiated")
         logging.debug("exec_: self.status: " + str(self.status))
-        return self.status
-            
+        return (self.status, t.outputstr)
+
     def setStatus(self, msg, status, buttonEnabled):
         if status != None:
             self.status = status
-          
+            
         self.statusLabel.setText(msg)
+        self.statusLabel.adjustSize()
+        self.adjustSize()
 
         if buttonEnabled != None:
             if buttonEnabled == True:
                 self.ok_button.setEnabled(True)
             else:
                 self.ok_button.setEnabled(False)
-

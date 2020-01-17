@@ -1,5 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import logging
+from gui.Dialogs.ExperimentActionDialog import ExperimentActionDialog
 
 class ExperimentActionsWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -67,19 +68,37 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         logging.debug("removeExperimentItem(): Completed")
 
     def showContextMenu(self, position):
+        logging.debug("removeExperimentItem(): showContextMenu(): instantiated")
         self.experimentMenu.popup(self.treeWidget.mapToGlobal(position))
 
+            # if self.action == "Create Experiment":
+            #     e.execute("experiment create " + str(self.configname))
+            # elif self.action == "Start Experiment":
+            #     e.execute("experiment start " + str(self.configname))
+            # elif self.action == "Stop Experiment":
+            #     e.execute("experiment stop " + str(self.configname))
+            # elif self.action == "Restore Experiment":
+            #     e.execute("experiment restore " + str(self.configname))
+            # elif self.action == "Remove Experiment":
+            #     e.execute("experiment remove " + str(self.configname))
+
     def cloneExperimentActionEvent(self):
-        pass
+        logging.debug("cloneExperimentActionEvent(): showContextMenu(): instantiated")
+        #Now allow the user to choose the VM:
+        (status, outstr) = ExperimentActionDialog(self.treeWidget.currentItem.text(0), "Create Experiment")
 
     def startVMsActionEvent(self):
-        pass
+        logging.debug("startVMsActionEvent(): showContextMenu(): instantiated")
+        (status, outstr) = ExperimentActionDialog(self.treeWidget.currentItem.text(0), "Start Experiment")
 
     def poweroffVMsActionEvent(self):
-        pass
+        logging.debug("poweroffVMsActionEvent(): showContextMenu(): instantiated")
+        (status, outstr) = ExperimentActionDialog(self.treeWidget.currentItem.text(0), "Stop Experiment")
 
     def restoreSnapshotsActionEvent(self):
-        pass
+        logging.debug("restoreSnapshotsActionEvent(): showContextMenu(): instantiated")
+        (status, outstr) = ExperimentActionDialog(self.treeWidget.currentItem.text(0), "Restore Experiment")
 
     def deleteClonesActionEvent(self):
-        pass
+        logging.debug("deleteClonesActionEvent(): showContextMenu(): instantiated")
+        (status, outstr) = ExperimentActionDialog(self.treeWidget.currentItem.text(0), "Remove Experiment")
