@@ -113,9 +113,9 @@ class VMWidget(QtWidgets.QWidget):
         logging.debug("VMWidget: sender info: " + str(self.sender()))
         if self.sender() in self.netAdaptors:
             widgetToRemove = self.netAdaptors[self.sender()]
-            print("adaptors before: "  + str(self.netAdaptors))
+            logging.debug("adaptors before: "  + str(self.netAdaptors))
             del self.netAdaptors[self.sender()]
-            print("adaptors after: "  + str(self.netAdaptors))
+            logging.debug("adaptors after: "  + str(self.netAdaptors))
             self.iNetVertBox.removeWidget(widgetToRemove)
             widgetToRemove.deleteLater()
             widgetToRemove = None
