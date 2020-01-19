@@ -25,15 +25,15 @@ class ConnectionManage:
         self.writeStatus = ConnectionManage.CONNECTION_MANAGE_UNKNOWN
 
     #abstractmethod
-    def createConnections(self, configfilename):
+    def createConnections(self, configname):
         raise NotImplementedError()
 
     #abstractmethod
-    def removeConnections(self, configfilename):
+    def removeConnections(self, configname):
         raise NotImplementedError()
 
     #abstractmethod
-    def openConnection(self, configfilename, experimentid, vmid):
+    def openConnection(self, configname, experimentid, vmid):
         raise NotImplementedError()
 
     #abstractmethod
