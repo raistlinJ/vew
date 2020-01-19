@@ -100,25 +100,25 @@ class Engine:
     def connectionCreateCmd(self, args):
         logging.debug("connectionCreateCmd(): instantiated")
         #will create connections as specified in configfile
-        configfilename = args.configfilename
+        configname = args.configname
 
-        return self.connectionManage.createConnections(configfilename)
+        return self.connectionManage.createConnections(configname)
 
     def connectionRemoveCmd(self, args):
         logging.debug("connectionRemoveCmd(): instantiated")
         #will remove connections as specified in configfile
-        configfilename = args.configfilename
+        configname = args.configname
 
-        return self.connectionManage.createConnections(configfilename)
+        return self.connectionManage.createConnections(configname)
 
     def connectionOpenCmd(self, args):
         logging.debug("connectionOpenCmd(): instantiated")
         #open a display to the current connection
-        configfilename = args.configfilename
+        configname = args.configname
         experimentid = args.experimentid
         vmid = args.vmid
 
-        return self.connectionManage.openConnection(configfilename, experimentid, vmid)
+        return self.connectionManage.openConnection(configname, experimentid, vmid)
 
     def experimentStatusCmd(self, args):
         #query connection manager status and then return it here
@@ -127,37 +127,37 @@ class Engine:
     def experimentCreateCmd(self, args):
         logging.debug("experimentCreateCmd(): instantiated")
         #will create instances of the experiment (clones of vms) as specified in configfile
-        configfilename = args.configfilename
+        configname = args.configname
 
-        return self.experimentManage.createExperiment(configfilename)
+        return self.experimentManage.createExperiment(configname)
 
     def experimentStartCmd(self, args):
         logging.debug("experimentStartCmd(): instantiated")
         #will start instances of the experiment (clones of vms) as specified in configfile
-        configfilename = args.configfilename
+        configname = args.configname
 
-        return self.experimentManage.startExperiment(configfilename)
+        return self.experimentManage.startExperiment(configname)
 
     def experimentStopCmd(self, args):
         logging.debug("experimentStopCmd(): instantiated")
         #will start instances of the experiment (clones of vms) as specified in configfile
-        configfilename = args.configfilename
+        configname = args.configname
 
-        return self.experimentManage.stopExperiment(configfilename)
+        return self.experimentManage.stopExperiment(configname)
 
     def experimentRemoveCmd(self, args):
         logging.debug("experimentRemoveCmd(): instantiated")
         #will remove instances of the experiment (clones of vms) as specified in configfile
-        configfilename = args.configfilename
+        configname = args.configname
 
-        return self.experimentManage.removeExperiment(configfilename)
+        return self.experimentManage.removeExperiment(configname)
 
     def experimentRestoreCmd(self, args):
         logging.debug("experimentRestoreCmd(): instantiated")
         #will restore state of the experiment (latest snapshots of vms) as specified in configfile
-        configfilename = args.configfilename
+        configname = args.configname
 
-        return self.experimentManage.restoreExperiment(configfilename)
+        return self.experimentManage.restoreExperiment(configname)
   
     def vmConfigCmd(self, args):
         logging.debug("vmConfigCmd(): instantiated")
@@ -241,17 +241,17 @@ class Engine:
         self.connectionManageStatusParser.set_defaults(func=self.connectionStatusCmd)
 
         self.connectionManageCreateParser = self.connectionManageSubParser.add_parser('create', help='create conns as specified in config file')
-        self.connectionManageCreateParser.add_argument('configfilename', metavar='<config filename>', action="store",
+        self.connectionManageCreateParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
         self.connectionManageCreateParser.set_defaults(func=self.connectionCreateCmd)
         
         self.connectionManageRemoveParser = self.connectionManageSubParser.add_parser('remove', help='remove conns as specified in config file')
-        self.connectionManageRemoveParser.add_argument('configfilename', metavar='<config filename>', action="store",
+        self.connectionManageRemoveParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
         self.connectionManageRemoveParser.set_defaults(func=self.connectionCreateCmd)
 
         self.connectionManageOpenParser = self.connectionManageSubParser.add_parser('open', help='start connection to specified experiment instance and vrdp-enabled vm as specified in config file')
-        self.connectionManageOpenParser.add_argument('configfilename', metavar='<config filename>', action="store",
+        self.connectionManageOpenParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
         self.connectionManageOpenParser.add_argument('experimentid', metavar='<experiment id>', action="store",
                                           help='experiment instance number')
@@ -267,27 +267,27 @@ class Engine:
         self.experimentManageStatusParser.set_defaults(func=self.experimentStatusCmd)
 
         self.experimentManageCreateParser = self.experimentManageSubParser.add_parser('create', help='create clones aka instances of experiment')
-        self.experimentManageCreateParser.add_argument('configfilename', metavar='<config filename>', action="store",
+        self.experimentManageCreateParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
         self.experimentManageCreateParser.set_defaults(func=self.experimentCreateCmd)
 
         self.experimentManageStartParser = self.experimentManageSubParser.add_parser('start', help='start (headless) clones aka instances of experiment')
-        self.experimentManageStartParser.add_argument('configfilename', metavar='<config filename>', action="store",
+        self.experimentManageStartParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')                                          
         self.experimentManageStartParser.set_defaults(func=self.experimentStartCmd)
 
         self.experimentManageStopParser = self.experimentManageSubParser.add_parser('stop', help='stop clones aka instances of experiment')
-        self.experimentManageStopParser.add_argument('configfilename', metavar='<config filename>', action="store",
+        self.experimentManageStopParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')                                          
         self.experimentManageStopParser.set_defaults(func=self.experimentStopCmd)
 
         self.experimentManageRestoreParser = self.experimentManageSubParser.add_parser('restore', help='restore experiment to latest snapshot')
-        self.experimentManageRestoreParser.add_argument('configfilename', metavar='<config filename>', action="store",
+        self.experimentManageRestoreParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')                                          
         self.experimentManageRestoreParser.set_defaults(func=self.experimentRestoreCmd)
 
         self.experimentManageRemoveParser = self.experimentManageSubParser.add_parser('remove', help='remove clones aka instances of experiment')
-        self.experimentManageRemoveParser.add_argument('configfilename', metavar='<config filename>', action="store",
+        self.experimentManageRemoveParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')                                          
         self.experimentManageRemoveParser.set_defaults(func=self.experimentRemoveCmd)
 
