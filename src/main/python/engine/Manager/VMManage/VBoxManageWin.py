@@ -24,7 +24,7 @@ class VBoxManageWin(VMManage):
             self.refreshAllVMInfo()
             while self.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:
                 #waiting for manager to finish query...
-                time.sleep(1)
+                time.sleep(.1)
 
     def configureVMNet(self, vmName, netNum, netName):
         logging.info("VBoxManageWin: configureVM(): instantiated")

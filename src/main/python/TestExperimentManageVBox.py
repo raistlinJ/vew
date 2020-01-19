@@ -20,14 +20,14 @@ if __name__ == "__main__":
     logging.info("Creating Experiment")
     e.createExperiment("sample")
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
-        time.sleep(1)
+        time.sleep(.1)
         logging.debug("Waiting for experiment create to complete...")
     
     #####---Start Experiment Test#####
     logging.info("Starting Experiment")
     e.startExperiment("sample")
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
-        time.sleep(1)
+        time.sleep(.1)
         logging.debug("Waiting for experiment start to complete...")
     logging.debug("Experiment start complete.")    
 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     logging.info("Stopping Experiment")
     e.stopExperiment("sample")
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
-        time.sleep(1)
+        time.sleep(.1)
         logging.debug("Waiting for experiment stop to complete...")
     logging.debug("Experiment stop complete.")    
    
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     logging.info("Stopping Experiment")
     e.restoreExperiment("sample")
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
-        time.sleep(1)
+        time.sleep(.1)
         logging.debug("Waiting for experiment stop to complete...")
     logging.debug("Experiment stop complete.")
 
@@ -51,5 +51,5 @@ if __name__ == "__main__":
     logging.info("Creating Experiment")
     e.removeExperiment("sample")
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
-        time.sleep(1)
+        time.sleep(.1)
         logging.debug("Waiting for experiment create to complete...")

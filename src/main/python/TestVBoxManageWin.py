@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     while vbm.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish query...")
-        sleep(1)
+        sleep(.1)
     logging.info("Refreshing VMs Info - AFTER")
 
     #get vm info from objects
@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     while vbm.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish query...")
-        sleep(1)
+        sleep(.1)
     
     logging.info("Status for " + testvmname)
     logging.info(vbm.getVMStatus(testvmname))
@@ -57,70 +57,70 @@ if __name__ == "__main__":
     vbm.cloneVM(testvmname, cloneName=str(testvmname + "1"), cloneSnapshots="true", linkedClones="true", groupName="/abc/def Group")
     while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
         logging.info("testing clone waiting for manager to finish query..." + str(vbm.getManagerStatus()["writeStatus"]))
-        sleep(1)
+        sleep(.1)
     
     logging.info("Refreshing after clone since we added a new VM")
     vbm.refreshAllVMInfo()
     while vbm.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish query...")
-        sleep(1)
+        sleep(.1)
     logging.info("Refreshing VMs Info - AFTER")
 
     logging.info("Testing set interface 1 on clone -- " + str(testvmname + "1"))
     vbm.configureVMNet(vmName=str(testvmname + "1"), netNum="1", netName="testintnet1")
     while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish query...")
-        sleep(1)
+        sleep(.1)
 
     logging.info("Testing set interface 2 on clone -- " + str(testvmname + "1"))
     vbm.configureVMNet(vmName=str(testvmname + "1"), netNum="2", netName="testintnet2")
     while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish query...")
-        sleep(1)
+        sleep(.1)
 
     logging.info("Testing enable VRDP on clone -- " + str(testvmname + "1") + " port 1001")
     vbm.enableVRDPVM(str(testvmname + "1"), "1001")
     while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish query...")
-        sleep(1)
+        sleep(.1)
 
     logging.info("Testing snapshot after clone -- " + str(testvmname + "1"))
     vbm.snapshotVM(str(testvmname + "1"))
     while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish query...")
-        sleep(1)
+        sleep(.1)
     
     logging.info("----Testing VM commands-------")
     logging.info("----Start-------")
     vbm.startVM(testvmname)
     while vbm.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish reading/writing...")
-        sleep(1)
+        sleep(.1)
     logging.info("----Waiting 5 seconds to save state-------")
     sleep(5)
 
     vbm.suspendVM(testvmname)
     while vbm.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish reading/writing...")
-        sleep(1)
+        sleep(.1)
     logging.info("----Waiting 5 seconds to resume -------")
     sleep(5)
     
     vbm.startVM(testvmname)
     while vbm.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish reading/writing...")
-        sleep(1)
+        sleep(.1)
     logging.info("----Waiting 5 seconds to stop-------")
     sleep(5)
 
     vbm.stopVM(testvmname)
     while vbm.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish reading/writing...")
-        sleep(1)
+        sleep(.1)
 
     while vbm.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish reading/writing...")
-        sleep(1)
+        sleep(.1)
 
     sleep(10)
     logging.info("Final Manager Status: " + str(vbm.getManagerStatus()))

@@ -22,7 +22,7 @@ class ExperimentManageVBox(ExperimentManage):
             self.vmManage.refreshAllVMInfo()
             while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
             #waiting for manager to finish query...
-                time.sleep(1)
+                time.sleep(.1)
         self.eco = ExperimentConfigIO()
 
     #abstractmethod
@@ -40,7 +40,7 @@ class ExperimentManageVBox(ExperimentManage):
             self.vmManage.refreshAllVMInfo()
             while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
             #waiting for manager to finish query...
-                time.sleep(1)
+                time.sleep(.1)
             clonevmjson = self.eco.getExperimentVMRolledOut(configname)
 
             for vm in clonevmjson.keys(): 
@@ -65,13 +65,13 @@ class ExperimentManageVBox(ExperimentManage):
                     while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                         #waiting for vmmanager clone vm to finish reading/writing...
                         logging.debug("runCreateExperiment(): waiting for vmmanager clone vm to finish reading/writing...")
-                        time.sleep(1)
+                        time.sleep(.1)
                     # We added a VM, so we have to call refresh
                     logging.info("Refreshing after clone since we added a new VM")
                     self.vmManage.refreshAllVMInfo()
                     while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
                         logging.info("runCreateExperiment(): waiting for manager to finish query...")
-                        time.sleep(1)
+                        time.sleep(.1)
                     logging.info("Refreshing VMs Info - AFTER")
                     
                     # intnet setup
@@ -81,13 +81,13 @@ class ExperimentManageVBox(ExperimentManage):
                         self.vmManage.configureVMNet(cloneVMName, cloneNetNum, internalnet)
                         while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
                             logging.info("runCreateExperiment(): waiting for vmmanager to finish query...")
-                            time.sleep(1)
+                            time.sleep(.1)
                         cloneNetNum += 1
 
                     while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                         #waiting for vmmanager configureVM vm to finish reading/writing...
                         logging.debug("runCreateExperiment(): waiting for vmmanager to finish reading/writing...")
-                        time.sleep(1)
+                        time.sleep(.1)
                     # vrdp setup
                     if "vrdpPort" in cloneinfo:
                         #set interface to vrde
@@ -95,13 +95,13 @@ class ExperimentManageVBox(ExperimentManage):
                         self.vmManage.enableVRDPVM(cloneVMName, str(cloneinfo["vrdpPort"]))
                         while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                             #waiting for vmmanager enableVRDP vm to finish reading/writing...
-                            time.sleep(1)
+                            time.sleep(.1)
 
                     # finally create a snapshot after the vm is setup
                     self.vmManage.snapshotVM(cloneVMName)
                     while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                         #waiting for vmmanager snapsthotVM vm to finish reading/writing...
-                        time.sleep(1)
+                        time.sleep(.1)
                     logging.debug("runCreateExperiment(): finished setting up clone: " + cloneVMName)
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
             logging.debug("runCreateExperiment(): Complete...")
@@ -141,7 +141,7 @@ class ExperimentManageVBox(ExperimentManage):
                     self.vmManage.startVM(cloneVMName)
                     while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                         #waiting for vmmanager start vm to finish reading/writing...
-                        time.sleep(1)
+                        time.sleep(.1)
             logging.debug("runStartExperiment(): Complete...")
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
         except Exception:
@@ -180,7 +180,7 @@ class ExperimentManageVBox(ExperimentManage):
                     self.vmManage.stopVM(cloneVMName)
                     while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                         #waiting for vmmanager stop vm to finish reading/writing...
-                        time.sleep(1)
+                        time.sleep(.1)
             logging.debug("runStopExperiment(): Complete...")
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
         except Exception:
@@ -219,7 +219,7 @@ class ExperimentManageVBox(ExperimentManage):
                     self.vmManage.removeVM(cloneVMName)
                     while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                         #waiting for vmmanager stop vm to finish reading/writing...
-                        time.sleep(1)
+                        time.sleep(.1)
             logging.debug("runRemoveExperiment(): Complete...")
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
         except Exception:
@@ -258,7 +258,7 @@ class ExperimentManageVBox(ExperimentManage):
                     self.vmManage.restoreLatestSnapVM(cloneVMName)
                     while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                         #waiting for vmmanager stop vm to finish reading/writing...
-                        time.sleep(1)
+                        time.sleep(.1)
             logging.debug("runRestoreExperiment(): Complete...")
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
         except Exception:
@@ -301,14 +301,14 @@ if __name__ == "__main__":
     logging.info("Creating Experiment")
     e.createExperiment("sample")
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
-        time.sleep(1)
+        time.sleep(.1)
         logging.debug("Waiting for experiment create to complete...")
     
     #####---Start Experiment Test#####
     logging.info("Starting Experiment")
     e.startExperiment("sample")
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
-        time.sleep(1)
+        time.sleep(.1)
         logging.debug("Waiting for experiment start to complete...")
     logging.debug("Experiment start complete.")    
 
@@ -316,7 +316,7 @@ if __name__ == "__main__":
     logging.info("Stopping Experiment")
     e.stopExperiment("sample")
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
-        time.sleep(1)
+        time.sleep(.1)
         logging.debug("Waiting for experiment stop to complete...")
     logging.debug("Experiment stop complete.")    
    
@@ -324,7 +324,7 @@ if __name__ == "__main__":
     logging.info("Stopping Experiment")
     e.restoreExperiment("sample")
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
-        time.sleep(1)
+        time.sleep(.1)
         logging.debug("Waiting for experiment stop to complete...")
     logging.debug("Experiment stop complete.")
 
@@ -332,5 +332,5 @@ if __name__ == "__main__":
     logging.info("Creating Experiment")
     e.removeExperiment("sample")
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
-        time.sleep(1)
+        time.sleep(.1)
         logging.debug("Waiting for experiment create to complete...")

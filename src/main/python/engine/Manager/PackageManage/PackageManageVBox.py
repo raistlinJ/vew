@@ -25,7 +25,7 @@ class PackageManageVBox(PackageManage):
             self.vmManage.refreshAllVMInfo()
             while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
             #waiting for manager to finish query...
-                time.sleep(1)
+                time.sleep(.1)
         self.em = ExperimentManageVBox()
         self.s = SystemConfigIO()
         self.s.readConfig()
@@ -69,7 +69,7 @@ class PackageManageVBox(PackageManage):
                 res = self.vmManage.refreshAllVMInfo()
                 logging.debug("Returned: " + str(res))
                 while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
-                    time.sleep(1)
+                    time.sleep(.1)
                     logging.debug("runImportPackageWaiting for vmrefresh to complete...")
                 #now take a snapshot
                 self.snapshotVMWorker(os.path.join(vmFilename[:-4]))
@@ -163,7 +163,7 @@ class PackageManageVBox(PackageManage):
         res = self.vmManage.getManagerStatus()
         logging.debug("Waiting for import to complete...")
         while res["writeStatus"] != self.vmManage.MANAGER_IDLE:
-            time.sleep(1)
+            time.sleep(.1)
             logging.debug("Waiting for import vm to complete...")
             res = self.vmManage.getManagerStatus()
         logging.debug("Import complete...")
@@ -175,7 +175,7 @@ class PackageManageVBox(PackageManage):
         res = self.vmManage.getManagerStatus()
         logging.debug("Waiting for snapshot create to complete...")
         while res["writeStatus"] != self.vmManage.MANAGER_IDLE:
-            time.sleep(1)
+            time.sleep(.1)
             logging.debug("Waiting for snapshot vm to complete...")
             res = self.vmManage.getManagerStatus()
         logging.debug("snapshotVMWorker(): complete")
@@ -285,14 +285,14 @@ class PackageManageVBox(PackageManage):
         self.vmManage.refreshAllVMInfo()
         logging.debug("Waiting for export to complete...")
         while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
-            time.sleep(1)
+            time.sleep(.1)
             logging.debug("exportVMWorker(): Waiting for export vm to complete...")
 
         self.vmManage.exportVM(vmName, filepath)
         res = self.vmManage.getManagerStatus()
         logging.debug("Waiting for export to complete...")
         while res["writeStatus"] != self.vmManage.MANAGER_IDLE:
-            time.sleep(1)
+            time.sleep(.1)
             logging.debug("exportVMWorker(): Waiting for export vm to complete...")
             res = self.vmManage.getManagerStatus()
         logging.debug("Export complete...")

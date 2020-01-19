@@ -331,7 +331,7 @@ if __name__ == "__main__":
     res = e.execute("vm-manage mgrstatus")
     logging.debug("Returned: " + str(res))
     while res["readStatus"] != VMManage.MANAGER_IDLE and res["readStatus"] != VMManage.MANAGER_UNKNOWN:
-        sleep(1)
+        sleep(.1)
         logging.debug("Waiting for vmstatus to complete...")
         res = e.execute("vm-manage mgrstatus")
         logging.debug("Returned: " + str(res))
@@ -343,7 +343,7 @@ if __name__ == "__main__":
     res = e.execute("vm-manage mgrstatus")
     logging.debug("Returned: " + str(res))
     while res["readStatus"] != VMManage.MANAGER_IDLE:
-        sleep(1)
+        sleep(.1)
         logging.debug("Waiting for vmrefresh to complete...")
         res = e.execute("vm-manage mgrstatus")
         logging.debug("Returned: " + str(res))
@@ -356,7 +356,7 @@ if __name__ == "__main__":
     res = e.execute("vm-manage mgrstatus")
     logging.debug("Returned: " + str(res))
     while res["readStatus"] != VMManage.MANAGER_IDLE:
-        sleep(1)
+        sleep(.1)
         logging.debug("Waiting for vmstatus to complete...")
         res = e.execute("vm-manage mgrstatus")
         logging.debug("Returned: " + str(res))
@@ -370,7 +370,7 @@ if __name__ == "__main__":
     res = e.execute("packager status")
     logging.debug("Returned: " + str(res))
     while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
-        sleep(1)
+        sleep(.1)
         logging.debug("Waiting for package import to complete...")
         res = e.execute("packager status")
         logging.debug("Returned: " + str(res))
@@ -382,7 +382,7 @@ if __name__ == "__main__":
     e.execute("packager export sample \"exported\sample with space\"")
     res = e.execute("packager status")
     while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
-        sleep(1)
+        sleep(.1)
         logging.debug("Waiting for package export to complete...")
         res = e.execute("packager status")
     logging.debug("Package export complete.")    
@@ -393,7 +393,7 @@ if __name__ == "__main__":
 #     res = e.execute("experiment status")
 #     logging.debug("Waiting for experiment create to complete...")
 #     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-#         sleep(1)
+#         sleep(.1)
 #         logging.debug("Waiting for experiment create to complete...")
 #         res = e.execute("experiment status")
 #     logging.debug("Experiment create complete.")    
@@ -404,7 +404,7 @@ if __name__ == "__main__":
 #     res = e.execute("experiment status")
 #     logging.debug("Waiting for experiment start to complete...")
 #     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-#         sleep(1)
+#         sleep(.1)
 #         logging.debug("Waiting for experiment start to complete...")
 #         res = e.execute("experiment status")
 #     logging.debug("Experiment start complete.")    
@@ -416,7 +416,7 @@ if __name__ == "__main__":
 #     res = e.execute("experiment status")
 #     logging.debug("Waiting for experiment stop to complete...")
 #     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-#         sleep(1)
+#         sleep(.1)
 #         logging.debug("Waiting for experiment stop to complete...")
 #         res = e.execute("experiment status")
 #     logging.debug("Experiment stop complete.")    
@@ -426,11 +426,11 @@ if __name__ == "__main__":
 #     e.execute("conns status")
 #     e.execute("conns create sample")
 
-#     # sleep(10) #alternative, check status until connection manager is complete and idle
+#     # sleep(.1)0) #alternative, check status until connection manager is complete and idle
 #     e.execute("conns status")
 #     e.execute("conns remove sample")
     
-#     # sleep(10) #alternative, check status until connection manager is complete and idle
+#     # sleep(.1)0) #alternative, check status until connection manager is complete and idle
 #     e.execute("conns status")
 #     e.execute("conns open sample 1 1")
 
@@ -442,7 +442,7 @@ if __name__ == "__main__":
 #     res = e.execute("experiment status")
 #     logging.debug("Waiting for experiment remove to complete...")
 #     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-#         sleep(1)
+#         sleep(.1)
 #         logging.debug("Waiting for experiment remove to complete...")
 #         res = e.execute("experiment status")
 #     logging.debug("Experiment remove complete.")    
