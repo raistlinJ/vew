@@ -426,11 +426,11 @@ if __name__ == "__main__":
 #     e.execute("conns status")
 #     e.execute("conns create sample")
 
-#     # sleep(.1)0) #alternative, check status until connection manager is complete and idle
+#     # sleep(10) #alternative, check status until connection manager is complete and idle
 #     e.execute("conns status")
 #     e.execute("conns remove sample")
     
-#     # sleep(.1)0) #alternative, check status until connection manager is complete and idle
+#     # sleep(10) #alternative, check status until connection manager is complete and idle
 #     e.execute("conns status")
 #     e.execute("conns open sample 1 1")
 

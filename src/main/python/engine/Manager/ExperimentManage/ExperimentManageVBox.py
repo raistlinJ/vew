@@ -56,9 +56,6 @@ class ExperimentManageVBox(ExperimentManage):
                 for cloneinfo in clonevmjson[vm]:
                     cloneVMName = cloneinfo["name"]
                     cloneGroupName = cloneinfo["group-name"]
-                    internalnets = cloneinfo["networks"]
-                    cloneSnapshots = cloneinfo["clone-snapshots"]
-                    linkedClones = cloneinfo["linked-clones"]
 
                     logging.debug("vmName: " + str(vmName) + " cloneVMName: " + str(cloneVMName) + " cloneSnaps: " + str(cloneSnapshots) + " linked: " + str(linkedClones) + " cloneGroupName: " + str(cloneGroupName))
                     self.vmManage.cloneVM(vmName, cloneVMName, cloneSnapshots, linkedClones, cloneGroupName)

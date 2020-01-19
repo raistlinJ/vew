@@ -15,35 +15,44 @@ class ConnectionManageGuacRDP(ConnectionManage):
         self.eco = ExperimentConfigIO()
 
     #abstractmethod
-    def createConnections(self, configname):
+    def createConnections(self, configname, guacHostname, username, password, url_path, method):
         logging.debug("createConnections(): instantiated")
-        t = threading.Thread(target=self.runCreateConnections, args=(configname,))
+        t = threading.Thread(target=self.runCreateConnections, args=(configname, guacHostname, username, password, url_path, method))
         t.start()
         return 0
 
-    def runCreateConnections(self, configname, guacHostname,username,password,url_path, method):
+    def runCreateConnections(self, configname, guacHostname, username, password,url_path, method):
         logging.debug("runCreateConnections(): instantiated")
         #call guac backend API to make connections as specified in config file and then set the complete status
         #self.guacifx.createGuacEntries(inputFilename, guacHostname, guacUsername, guacPass, guacURLPath, guacConnMethod)
         try:
             self.writeStatus = ConnectionManage.CONNECTION_MANAGE_CREATING
+            #sample guacConn = Guacamole(192.168.99.102',username='guacadmin',password='guacadmin',url_path='/guacamole',method='http')
+            logging.debug("runCreateConnection(): guacHostname: " + str(guacHostname) + " username/pass: " + username + " url_path: " + url_path + " method: " + str(method))
+            guacConn = Guacamole(guacHostname,username=username,password=password,url_path=url_path,method=method)
+            if guacConn == None:
+                logging.error("Error with guac connection... skipping: " + str(guacHostname) + " " + str(username))
+                self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
+                return -1
+
             #call vmManage to remove clones as specified in config file; wait and query the vmManage status, and then set the complete status
             clonevmjson = self.eco.getExperimentVMRolledOut(configname)
             for vm in clonevmjson.keys(): 
                 vmName = vm
+                ipAddress = vm["ip-address"]
                 logging.debug("runCreateConnections(): working with vm: " + str(vmName))
                 #get names for clones and remove them
                 for cloneinfo in clonevmjson[vm]:
-                    cloneVMName = cloneinfo["name"]
-                    ##### send command here
-                    #######Guac connection##########
-                    #guacConn = Guacamole('192.168.99.102',username='guacadmin',password='guacadmin',url_path='/guacamole',method='http')
-                    #guacConn = Guacamole(guacHostname,username=guacUsername,password=guacPass,url_path=guacURLPath, method=guacConnMethod)
-                    guacConn = Guacamole(guacHostname,username,password,url_path, method)
-                    if guacConn == None:
-                        logging.error("Error with guac connection... skipping: " + str(guacHostname) + " " + str(username))
-                        exit()
-
+                    # if vrdpPort exists, then we know it's enabled for this vm; let's set it up
+                    if "vrdpPort" in cloneinfo:
+                        cloneVMName = cloneinfo["name"]
+                        username = cloneinfo["baseGroupName"]
+                        username = ''.join(e for e in username if e.isalnum())
+                        logging.info( "Creating Username: " + username)
+                        self.createUser(guacConn, username, username)
+                        logging.info( "Creating Connection: " + username)
+                        self.createConnAssociation(guacConn, cloneVMName, username, ipAddress, vrdpBaseport)
+                        vrdpBaseport = str(int(vrdpBaseport) + 1)
             logging.debug("runCreateConnections(): Complete...")
             self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
         except Exception:

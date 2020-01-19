@@ -49,6 +49,7 @@ class ExperimentConfigIO:
         try:
             vmRolledOutList = {}
             jsondata = self.getExperimentXMLFileData(configname)
+            ipAddress = jsondata["xml"]["testbed-setup"]["network-config"]["ip-address"]
             vmSet = jsondata["xml"]["testbed-setup"]["vm-set"]
             pathToVirtualBox = jsondata["xml"]["vbox-setup"]["path-to-vboxmanage"]
             numClones = int(vmSet["num-clones"])
@@ -85,11 +86,11 @@ class ExperimentConfigIO:
                     vrdpEnabled = vm["vrdp-enabled"]
                     if vrdpEnabled != None and vrdpEnabled == 'true':
                         vrdpBaseport = str(int(vrdpBaseport))                       
-                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones})
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "ip-address": ipAddress, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones})
                         vrdpBaseport = int(vrdpBaseport) + 1
                     #otherwise, don't include vrdp port
                     else:
-                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones})
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "ip-address": ipAddress, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones})
 
                     logging.debug("getExperimentVMRolledOut(): finished setting up clone: " + str(vmRolledOutList))
             return vmRolledOutList
