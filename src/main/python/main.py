@@ -29,6 +29,7 @@ from gui.Dialogs.MaterialRemoveFileDialog import MaterialRemoveFileDialog
 from gui.Dialogs.ExperimentRemoveFileDialog import ExperimentRemoveFileDialog
 from gui.Dialogs.VMRetreiveDialog import VMRetrieveDialog
 from gui.Dialogs.ExperimentAddDialog import ExperimentAddDialog
+from gui.Dialogs.ConnectionActionDialog import ConnectionActionDialog
 
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -143,6 +144,9 @@ class MainApp(QMainWindow):
         self.createGuac.triggered.connect(self.createGuacActionEvent)
         self.removeGuac = self.guacContextSubMenu.addAction("Remove Users")
         self.removeGuac.triggered.connect(self.removeGuacActionEvent)
+        self.clearGuac = self.guacContextSubMenu.addAction("Clear All Entries")
+        self.clearGuac.triggered.connect(self.clearGuacActionEvent)
+
         # Add line separator here
         self.removeExperiment = self.experimentContextMenu.addAction("Remove Experiment")
         self.removeExperiment.triggered.connect(self.removeExperimentItemActionEvent)
@@ -361,9 +365,33 @@ class MainApp(QMainWindow):
 
     def createGuacActionEvent(self):
         logging.debug("MainApp:addMaterialActionEvent() instantiated")
+        selectedItem = self.experimentTree.currentItem()
+        if selectedItem == None:
+            logging.debug("MainApp:createGuacActionEvent no configuration selected")
+            self.statusBar.showMessage("Could complete connection action. No configuration items selected or available.")
+            return
+        selectedItemName = selectedItem.text(0)
+        connResult = ConnectionActionDialog(self, selectedItemName, "Add").exec_()
 
     def removeGuacActionEvent(self):
         logging.debug("MainApp:removeGuacActionEvent() instantiated")
+        selectedItem = self.experimentTree.currentItem()
+        if selectedItem == None:
+            logging.debug("MainApp:removeGuacActionEvent no configuration selected")
+            self.statusBar.showMessage("Could complete connection action. No configuration items selected or available.")
+            return
+        selectedItemName = selectedItem.text(0)
+        connResult = ConnectionActionDialog(self, selectedItemName, "Remove").exec_()
+
+    def clearGuacActionEvent(self):
+        logging.debug("MainApp:clearGuacActionEvent() instantiated")
+        selectedItem = self.experimentTree.currentItem()
+        if selectedItem == None:
+            logging.debug("MainApp:clearGuacActionEvent no configuration selected")
+            self.statusBar.showMessage("Could complete connection action. No configuration items selected or available.")
+            return
+        selectedItemName = selectedItem.text(0)
+        connResult = ConnectionActionDialog(self, selectedItemName, "Clear").exec_()
 
     def removeExperimentItemActionEvent(self):
         logging.debug("MainApp:removeExperimentItemActionEvent() instantiated")
@@ -525,7 +553,7 @@ class MainApp(QMainWindow):
         self.statusBar.showMessage("Succesfully saved experiment file for " + str(configname), 2000)
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.ERROR)
+    logging.basicConfig(level=logging.DEBUG)
     appctxt = ApplicationContext()
     app = MainApp()
     QApplication.setStyle(QStyleFactory.create('Fusion')) 
