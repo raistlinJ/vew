@@ -33,7 +33,7 @@ class Engine:
         #    raise Exception("Use the getInstance method to obtain an instance of this class")
         
         ##These are defaults and will be based on the SystemConfigIO values, for now make assumptions
-        #Create the ConnectionManage
+        #Create the VMManage
         if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
             self.vmManage = VBoxManage(True)
         else:
@@ -53,7 +53,6 @@ class Engine:
         #should have status for all managers
         #query all of the managers status and then return them here
 
-        #return "\r\nConnections: \r\n" + str(connsStatus) + "\r\nVMs:\r\n" + str(vmsStatus)
         return {"VMMgr" : self.vmManage.getManagerStatus,
                     "PackageMgr" : self.packageManage.getPackageManageStatus(),
                     "ConnectionMgr" : self.connectionManage.getConnectionManageStatus(),
@@ -101,15 +100,37 @@ class Engine:
         logging.debug("connectionCreateCmd(): instantiated")
         #will create connections as specified in configfile
         configname = args.configname
+        hostname = args.hostname
+        username = args.username
+        password = args.password
+        url_path = args.url_path
+        method = args.method
 
-        return self.connectionManage.createConnections(configname)
+        return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method)
 
     def connectionRemoveCmd(self, args):
         logging.debug("connectionRemoveCmd(): instantiated")
         #will remove connections as specified in configfile
         configname = args.configname
+        configname = args.configname
+        hostname = args.hostname
+        username = args.username
+        password = args.password
+        url_path = args.url_path
+        method = args.method
 
-        return self.connectionManage.createConnections(configname)
+        return self.connectionManage.removeConnections(configname, hostname, username, password, url_path, method)
+
+    def connectionClearAllCmd(self, args):
+        logging.debug("connectionClearAllCmd(): instantiated")
+        #will remove connections as specified in configfile
+        hostname = args.hostname
+        username = args.username
+        password = args.password
+        url_path = args.url_path
+        method = args.method
+        
+        return self.connectionManage.clearAllConnections(hostname, username, password, url_path, method)
 
     def connectionOpenCmd(self, args):
         logging.debug("connectionOpenCmd(): instantiated")
@@ -243,12 +264,45 @@ class Engine:
         self.connectionManageCreateParser = self.connectionManageSubParser.add_parser('create', help='create conns as specified in config file')
         self.connectionManageCreateParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
+        self.connectionManageCreateParser.add_argument('hostname', metavar='<host address>', action="store",
+                                          help='Name or IP address where Connection host resides')
+        self.connectionManageCreateParser.add_argument('username', metavar='<username>', action="store",
+                                          help='Username for connecting to host')
+        self.connectionManageCreateParser.add_argument('password', metavar='<password>', action="store",
+                                          help='Password for connecting to host')
+        self.connectionManageCreateParser.add_argument('url_path', metavar='<url_path>', action="store",
+                                          help='URL path to broker service')
+        self.connectionManageCreateParser.add_argument('method', metavar='<method>', action="store",
+                                          help='Either HTTP or HTTPS, depending on the server\'s configuration')
         self.connectionManageCreateParser.set_defaults(func=self.connectionCreateCmd)
         
         self.connectionManageRemoveParser = self.connectionManageSubParser.add_parser('remove', help='remove conns as specified in config file')
         self.connectionManageRemoveParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
-        self.connectionManageRemoveParser.set_defaults(func=self.connectionCreateCmd)
+        self.connectionManageRemoveParser.add_argument('hostname', metavar='<host address>', action="store",
+                                          help='Name or IP address where Connection host resides')
+        self.connectionManageRemoveParser.add_argument('username', metavar='<username>', action="store",
+                                          help='Username for connecting to host')
+        self.connectionManageRemoveParser.add_argument('password', metavar='<password>', action="store",
+                                          help='Password for connecting to host')
+        self.connectionManageRemoveParser.add_argument('url_path', metavar='<url_path>', action="store",
+                                          help='URL path to broker service')
+        self.connectionManageRemoveParser.add_argument('method', metavar='<method>', action="store",
+                                          help='Either HTTP or HTTPS, depending on the server\'s configuration')
+        self.connectionManageRemoveParser.set_defaults(func=self.connectionRemoveCmd)
+
+        self.connectionManageClearAllParser = self.connectionManageSubParser.add_parser('clear', help='Clear all connections in database')
+        self.connectionManageClearAllParser.add_argument('hostname', metavar='<host address>', action="store",
+                                          help='Name or IP address where Connection host resides')
+        self.connectionManageClearAllParser.add_argument('username', metavar='<username>', action="store",
+                                          help='Username for connecting to host')
+        self.connectionManageClearAllParser.add_argument('password', metavar='<password>', action="store",
+                                          help='Password for connecting to host')
+        self.connectionManageClearAllParser.add_argument('url_path', metavar='<url_path>', action="store",
+                                          help='URL path to broker service')
+        self.connectionManageClearAllParser.add_argument('method', metavar='<method>', action="store",
+                                          help='Either HTTP or HTTPS, depending on the server\'s configuration')
+        self.connectionManageClearAllParser.set_defaults(func=self.connectionClearAllCmd)
 
         self.connectionManageOpenParser = self.connectionManageSubParser.add_parser('open', help='start connection to specified experiment instance and vrdp-enabled vm as specified in config file')
         self.connectionManageOpenParser.add_argument('configname', metavar='<config filename>', action="store",
@@ -304,148 +358,3 @@ class Engine:
             logging.error(err.message, '\n', err.argument_name)	
         # except SystemExit:
             # return
-
-if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.DEBUG)
-    logging.debug("Starting Program")
-###Base Engine tests
-    logging.debug("Instantiating Engine")
-    e = Engine()
-    logging.debug("engine object: " + str(e))
-
-    logging.debug("Calling Engine.getInstance()")
-    e = Engine.getInstance()
-    logging.debug("engine object: " + str(e))
-
-    logging.debug("Calling Engine.getInstance()")
-    e = Engine.getInstance()
-    logging.debug("engine object: " + str(e))
-
-###Engine tests
-    res = e.execute("engine status ")
-
-###VMManage tests
-    #Check status without refresh
-    logging.debug("VM-Manage Status of defaulta without refresh" + str(res))
-    res = e.execute("vm-manage vmstatus defaulta")
-    res = e.execute("vm-manage mgrstatus")
-    logging.debug("Returned: " + str(res))
-    while res["readStatus"] != VMManage.MANAGER_IDLE and res["readStatus"] != VMManage.MANAGER_UNKNOWN:
-        sleep(.1)
-        logging.debug("Waiting for vmstatus to complete...")
-        res = e.execute("vm-manage mgrstatus")
-        logging.debug("Returned: " + str(res))
-    logging.debug("VM-Manage vmstatus complete.")
-    
-    #Refresh
-    sleep(5)
-    res = e.execute("vm-manage refresh")    
-    res = e.execute("vm-manage mgrstatus")
-    logging.debug("Returned: " + str(res))
-    while res["readStatus"] != VMManage.MANAGER_IDLE:
-        sleep(.1)
-        logging.debug("Waiting for vmrefresh to complete...")
-        res = e.execute("vm-manage mgrstatus")
-        logging.debug("Returned: " + str(res))
-    logging.debug("VM-Manage vmstatus complete.")
-
-    #Check status after refresh
-    sleep(5)
-    res = e.execute("vm-manage vmstatus defaulta")
-    logging.debug("VM-Manage Status of defaulta: " + str(res))
-    res = e.execute("vm-manage mgrstatus")
-    logging.debug("Returned: " + str(res))
-    while res["readStatus"] != VMManage.MANAGER_IDLE:
-        sleep(.1)
-        logging.debug("Waiting for vmstatus to complete...")
-        res = e.execute("vm-manage mgrstatus")
-        logging.debug("Returned: " + str(res))
-    logging.debug("VM-Manage vmstatus complete.")
-
-###Packager tests
-    ###import
-    sleep(5)
-    logging.debug("Importing RES file: " + str("samples\sample.res"))
-    e.execute("packager import \"samples\sample.res\"")
-    res = e.execute("packager status")
-    logging.debug("Returned: " + str(res))
-    while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
-        sleep(.1)
-        logging.debug("Waiting for package import to complete...")
-        res = e.execute("packager status")
-        logging.debug("Returned: " + str(res))
-    logging.debug("Package import complete.")
-
-    ###export
-    sleep(5)
-    logging.debug("Exporting experiment named: sample to " + "exportedtestwithspaces")
-    e.execute("packager export sample \"exported\sample with space\"")
-    res = e.execute("packager status")
-    while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
-        sleep(.1)
-        logging.debug("Waiting for package export to complete...")
-        res = e.execute("packager status")
-    logging.debug("Package export complete.")    
-    
-#     #####---Create Experiment Test#####
-#     logging.info("Starting Experiment")
-#     e.execute("experiment create sample")
-#     res = e.execute("experiment status")
-#     logging.debug("Waiting for experiment create to complete...")
-#     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-#         sleep(.1)
-#         logging.debug("Waiting for experiment create to complete...")
-#         res = e.execute("experiment status")
-#     logging.debug("Experiment create complete.")    
-
-#     #####---Start Experiment Test#####
-#     logging.info("Starting Experiment")
-#     e.execute("experiment start sample")
-#     res = e.execute("experiment status")
-#     logging.debug("Waiting for experiment start to complete...")
-#     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-#         sleep(.1)
-#         logging.debug("Waiting for experiment start to complete...")
-#         res = e.execute("experiment status")
-#     logging.debug("Experiment start complete.")    
-
-#     #####---Stop Experiment Test#####
-#     sleep(5)
-#     logging.info("Stopping Experiment")
-#     e.execute("experiment stop sample")
-#     res = e.execute("experiment status")
-#     logging.debug("Waiting for experiment stop to complete...")
-#     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-#         sleep(.1)
-#         logging.debug("Waiting for experiment stop to complete...")
-#         res = e.execute("experiment status")
-#     logging.debug("Experiment stop complete.")    
-
-# ###Connection tests
-#     # sleep(60)#alternative, check status until packager is complete and idle
-#     e.execute("conns status")
-#     e.execute("conns create sample")
-
-#     # sleep(10) #alternative, check status until connection manager is complete and idle
-#     e.execute("conns status")
-#     e.execute("conns remove sample")
-    
-#     # sleep(10) #alternative, check status until connection manager is complete and idle
-#     e.execute("conns status")
-#     e.execute("conns open sample 1 1")
-
-
-#     #####---Remove Experiment Test#####
-#     sleep(5)
-#     logging.info("Remove Experiment")
-#     e.execute("experiment remove sample")
-#     res = e.execute("experiment status")
-#     logging.debug("Waiting for experiment remove to complete...")
-#     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-#         sleep(.1)
-#         logging.debug("Waiting for experiment remove to complete...")
-#         res = e.execute("experiment status")
-#     logging.debug("Experiment remove complete.")    
-
-#     sleep(3) #allow some time for observation
-#     #quit

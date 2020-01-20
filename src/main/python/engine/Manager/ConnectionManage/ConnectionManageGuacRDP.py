@@ -88,7 +88,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
 
     #abstractmethod
     def clearAllConnections(self, guacHostname, username, password, url_path, method):
-        logging.debug("removeConnections(): instantiated")
+        logging.debug("clearAllConnections(): instantiated")
         t = threading.Thread(target=self.runClearAllConnections, args=(guacHostname, username, password, url_path, method))
         t.start()
         return 0
@@ -220,7 +220,6 @@ class ConnectionManageGuacRDP(ConnectionManage):
             trace_back = traceback.extract_tb(exc_traceback)
             #traceback.print_exception(exc_type, exc_value, exc_traceback)
             return None
-
 
     def createConnAssociation(self, guacConn, connName, username, ip, port):
         logging.debug("createConnAssociation(): Instantiated")
