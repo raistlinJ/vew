@@ -47,6 +47,9 @@ class PackageManageVBox(PackageManage):
             tmpPathBase = os.path.join(self.s.getConfig()['EXPERIMENTS']['TEMP_DATA_PATH'], "import")
             assumedExperimentName = os.path.basename(resfilename)
             assumedExperimentName = os.path.splitext(assumedExperimentName)[0]
+            tmpPathBaseImportedExperiment = os.path.join(tmpPathBase, assumedExperimentName)
+            targetPathBase = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], assumedExperimentName)
+
             self.unzipWorker(resfilename, tmpPathBase)
             logging.debug("runImportPackage(): completed unzipping contents")
             tmpPathVMs = os.path.join(tmpPathBase, assumedExperimentName, "VMs")
@@ -70,12 +73,32 @@ class PackageManageVBox(PackageManage):
                 logging.debug("Returned: " + str(res))
                 while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
                     time.sleep(.1)
-                    logging.debug("runImportPackageWaiting for vmrefresh to complete...")
+                    logging.debug("runImportPackage(): Waiting for vmrefresh to complete...")
                 #now take a snapshot
                 self.snapshotVMWorker(os.path.join(vmFilename[:-4]))
                 vmNum = vmNum + 1
 
             #TODO: move all unzipped files (except ovas) to experiment path)
+            #remove experiment from experiment folder if it already exists
+            if os.path.exists(tmpPathBaseImportedExperiment) == False:
+                logging.error("Experiment folder not found after decompressing files... Skipping: " + str(tmpPathBaseImportedExperiment))
+                self.writeStatus = PackageManage.PACKAGE_MANAGE_COMPLETE
+                return None
+            logging.debug("runImportPackage(): copying experiment files to experiment folder: " + str(targetPathBase))
+            if os.path.exists(targetPathBase):
+                logging.error("Experiment path already exists. Removing and copying anyway..." + str(targetPathBase))
+                shutil.rmtree(targetPathBase, ignore_errors=True)
+            #copy all files to experiment folder
+            shutil.copytree(tmpPathBaseImportedExperiment, targetPathBase, ignore=shutil.ignore_patterns("*.ova"))
+
+            #now remove the temporary data folder
+            logging.debug("runExportPackage(): removing temporary folder: " + str(tmpPathBaseImportedExperiment))
+            if os.path.exists(tmpPathBaseImportedExperiment):
+                shutil.rmtree(tmpPathBaseImportedExperiment, ignore_errors=True)
+            #double check to see if path was removed or not...
+            if os.path.exists(tmpPathBaseImportedExperiment):
+                logging.error("runExportPackage(): Could not remove temporary directory: " + str(tmpPathBaseImportedExperiment))
+
             self.writeStatus = PackageManage.PACKAGE_MANAGE_COMPLETE
         except FileNotFoundError:
             logging.error("Error in runImportPackage(): File not found")
@@ -231,7 +254,13 @@ class PackageManageVBox(PackageManage):
             logging.debug("runExportPackage(): zipping files")
             self.zipWorker(tmpPathBase, exportfilename)
             logging.debug("runExportPackage(): completed zipping files")
-
+            #now remove the temporary data folder
+            logging.debug("runExportPackage(): removing temporary folder: " + str(tmpPathBase))
+            if os.path.exists(tmpPathBase):
+                shutil.rmtree(tmpPathBase, ignore_errors=True)
+            #double check to see if path was removed or not...
+            if os.path.exists(tmpPathBase):
+                logging.error("runExportPackage(): Could not remove temporary directory: " + str(tmpPathBase))
             self.writeStatus = PackageManage.PACKAGE_MANAGE_COMPLETE
         except FileNotFoundError:
             logging.error("Error in runExportPackage(): File not found")

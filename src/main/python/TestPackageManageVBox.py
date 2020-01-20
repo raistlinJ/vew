@@ -23,6 +23,6 @@ if __name__ == "__main__":
     p.importPackage(resfilename)
 
     logging.info("Exporting file")
-    p.exportPackage("sample", "tmp\export")
+    p.exportPackage("sample", "sample with space\export")
 
     logging.info("Operation Complete")

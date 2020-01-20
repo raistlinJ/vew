@@ -30,6 +30,8 @@ from gui.Dialogs.ExperimentRemoveFileDialog import ExperimentRemoveFileDialog
 from gui.Dialogs.VMRetreiveDialog import VMRetrieveDialog
 from gui.Dialogs.ExperimentAddDialog import ExperimentAddDialog
 from gui.Dialogs.ConnectionActionDialog import ConnectionActionDialog
+from gui.Dialogs.PackageImportDialog import PackageImportDialog
+from gui.Dialogs.PackageExportDialog import PackageExportDialog
 
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -151,7 +153,7 @@ class MainApp(QMainWindow):
         self.removeExperiment = self.experimentContextMenu.addAction("Remove Experiment")
         self.removeExperiment.triggered.connect(self.removeExperimentItemActionEvent)
         self.exportExperiment = self.experimentContextMenu.addAction("Export Experiment")
-        self.exportExperiment.triggered.connect(self.exportExperimentActionEvent)
+        self.exportExperiment.triggered.connect(self.exportActionEvent)
 
     # VM/Material context menu
         self.itemContextMenu = QtWidgets.QMenu()
@@ -297,6 +299,18 @@ class MainApp(QMainWindow):
 
     def importActionEvent(self):
         logging.debug("MainApp:importActionEvent() instantiated")
+        #Check if it's the case that an experiment name was selected
+        filesChosen = PackageImportDialog().packageImportDialog(self, self.baseWidgets.keys())
+        if filesChosen == []:
+            logging.debug("importActionEvent(): Canceled or a file could not be imported. make sure file exists.")
+            return
+        #for fileChosen in filesChosen:
+        filesChosen = os.path.basename(filesChosen)
+        logging.debug("MainApp: importActionEvent(): File choosen: " + filesChosen)
+        #Add the items to the tree
+
+        self.statusBar.showMessage("Imported " + filesChosen)
+
 
     def addVMActionEvent(self):
         logging.debug("MainApp:addVMActionEvent() instantiated")
@@ -435,8 +449,26 @@ class MainApp(QMainWindow):
                 del self.baseWidgets[parentSelectedItem.text(0)]["MaterialWidgets"][selectedItem.text(0)]
                 self.statusBar.showMessage("Removed Material: " + str(materialName) + " from experiment: " + str(parentSelectedItem.text(0)))
         
-    def exportExperimentActionEvent(self):
-        logging.debug("MainApp:exportExperimentActionEvent() instantiated")
+    def exportActionEvent(self):
+        logging.debug("MainApp:exportActionEvent() instantiated")
+        #Check if it's the case that an experiment name was selected
+        selectedItem = self.experimentTree.currentItem()
+        if selectedItem == None:
+            logging.debug("MainApp:exportActionEvent no configurations left")
+            self.statusBar.showMessage("Could not export experiment. No configuration items selected or available.")
+            return
+        selectedItemName = selectedItem.text(0)
+
+        folderChosen = PackageExportDialog().packageExportDialog(self, selectedItemName)
+        if folderChosen == []:
+            logging.debug("exportActionEvent(): Canceled or the experiment could not be exported. Check folder permissions.")
+            return
+        folderChosen = os.path.basename(folderChosen[0])
+        
+        logging.debug("MainApp: exportActionEvent(): File choosen: " + folderChosen)
+        #Add the items to the tree
+
+        self.statusBar.showMessage("Exported to " + folderChosen)
 
     def closeEvent(self, event):
         logging.debug("MainApp:closeEvent(): instantiated")
