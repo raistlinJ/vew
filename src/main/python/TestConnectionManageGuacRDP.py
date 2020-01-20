@@ -16,6 +16,9 @@ if __name__ == "__main__":
 
     c = ConnectionManageGuacRDP()
     logging.info("Creating connection")
-    c.createConnections("sample", "127.0.0.1", "guacadmin", "guacadmin", "/guacamole", "http")
+    c.createConnections("sample", "192.168.99.100:8080", "guacadmin", "guacadmin", "/guacamole", "http")
+    time.sleep(10)
+    logging.info("Removing connection")
+    c.removeConnections("sample", "192.168.99.100:8080", "guacadmin", "guacadmin", "/guacamole", "http")
 
     logging.info("Operation Complete")
