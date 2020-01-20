@@ -4,49 +4,45 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
         QVBoxLayout, QWidget, QMessageBox)
+from engine.Manager.PackageManage.PackageManage import PackageManage
 from engine.Engine import Engine
-from engine.Manager.ExperimentManage.ExperimentManage import ExperimentManage
 import sys, traceback
+import time
 import logging
 import shutil
 import os
-import time
 
-class ExperimentActionThread(QThread):
+class PackageActioningThread(QThread):
     watchsignal = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
 
-    def __init__(self, configname, actionname):
+    def __init__(self, filenames, actionname, args):
         QThread.__init__(self)
-        logging.debug("ExperimentActionThread(): instantiated")
-
-        self.configname = configname
+        logging.debug("PackageActioningThread(): instantiated")
+        
+        self.filenames = filenames
         self.actionname = actionname
-        self.outputstr = []
-        self.status = -1
+        self.args = args
+        self.successfilenames = []
 
     # run method gets called when we start the thread
     def run(self):
-        logging.debug("ExperimentActionThread(): instantiated")
-        self.watchsignal.emit("Running " + str(self.actionname) + "...", None, None)
+        logging.debug("PackageActioningThread(): instantiated")
+        stringExec = "Processing " + str(self.actionname)
+        self.watchsignal.emit(stringExec, None, None)
         try:
+            logging.debug("PackageActioningThread(): Processing for " + str(self.filenames) + " " + str(self.actionname) )
             e = Engine.getInstance()
-            if self.actionname == "Create Experiment":
-                e.execute("experiment create " + str(self.configname))
-            elif self.actionname == "Start Experiment":
-                e.execute("experiment start " + str(self.configname))
-            elif self.actionname == "Stop Experiment":
-                e.execute("experiment stop " + str(self.configname))
-            elif self.actionname == "Restore Experiment":
-                e.execute("experiment restore " + str(self.configname))
-            elif self.actionname == "Remove Experiment":
-                e.execute("experiment remove " + str(self.configname))
+            if self.actionname == "import":
+                e.execute("packager import " + str(self.filenames))
+            elif self.actionname == "export":
+                e.execute("packager export " + self.args[0] + " " + str(self.filenames))
             #will check status every 0.5 second and will either display stopped or ongoing or connected
             dots = 1
             while(True):
-                logging.debug("ExperimentActionThread(): running: experiment status")
-                self.status = e.execute("experiment status")
-                logging.debug("ExperimentActionThread(): result: " + str(self.status))
-                if self.status["writeStatus"] != ExperimentManage.EXPERIMENT_MANAGE_COMPLETE:
+                logging.debug("PackageActioningThread(): running: package status")
+                self.status = e.execute("packager status")
+                logging.debug("PackageActioningThread(): result: " + str(self.status))
+                if self.status["writeStatus"] != PackageManage.PACKAGE_MANAGE_COMPLETE:
                     dotstring = ""
                     for i in range(1,dots):
                         dotstring = dotstring + "."
@@ -57,11 +53,12 @@ class ExperimentActionThread(QThread):
                 else:
                     break
                 time.sleep(0.5)
-            logging.debug("WatchRetrieveThread(): thread ending")
+            self.successfilenames.append(self.filenames)
+            logging.debug("PackageActioningThread(): thread ending")
             self.watchsignal.emit("Action " + str(self.actionname) + " Complete", self.status, True)
             return
         except:
-            logging.error("Error in ExperimentActionThread(): An error occured ")
+            logging.error("Error in PackageActioningThread(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             #self.watchsignal.emit("Error executing action: " + str(self.actionname), None, True)
@@ -71,20 +68,22 @@ class ExperimentActionThread(QThread):
         finally:
             return None
 
-class ExperimentActioningDialog(QDialog):
-    def __init__(self, parent, configname, actionname):
-        logging.debug("ExperimentActioningDialog(): instantiated")
-        super(ExperimentActioningDialog, self).__init__(parent)
-        self.configname = configname
-        self.actionname = actionname
+class PackageActioningDialog(QDialog):
+    def __init__(self, parent, filename, actionname, args):
+        logging.debug("PackageActioningDialog(): instantiated")
+        super(PackageActioningDialog, self).__init__(parent)
         self.setWindowFlag(Qt.WindowCloseButtonHint, False)
+              
+        self.filename = filename
+        self.actionname = actionname
+        self.args = args
 
         self.buttons = QDialogButtonBox()
         self.ok_button = self.buttons.addButton( self.buttons.Ok )
         self.ok_button.setEnabled(False)
         
         self.buttons.accepted.connect( self.accept )
-        self.setWindowTitle("Action")
+        self.setWindowTitle("Package Operation")
         #self.setFixedSize(225, 75)
                 
         self.box_main_layout = QGridLayout()
@@ -101,13 +100,13 @@ class ExperimentActioningDialog(QDialog):
         self.status = -1
         
     def exec_(self):
-        t = ExperimentActionThread(self.configname, self.actionname)
+        t = PackageActioningThread(self.filename, self.actionname, self.args)
         t.watchsignal.connect(self.setStatus)
         t.start()
-        result = super(ExperimentActioningDialog, self).exec_()
+        result = super(PackageActioningDialog, self).exec_()
         logging.debug("exec_(): initiated")
         logging.debug("exec_: self.status: " + str(self.status))
-        return (self.status, t.outputstr)
+        return (self.status, t.successfilenames)
 
     def setStatus(self, msg, status, buttonEnabled):
         if status != None:
