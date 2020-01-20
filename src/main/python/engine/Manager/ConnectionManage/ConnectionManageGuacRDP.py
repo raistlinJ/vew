@@ -87,6 +87,47 @@ class ConnectionManageGuacRDP(ConnectionManage):
             self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
 
     #abstractmethod
+    def clearAllConnections(self, guacHostname, username, password, url_path, method):
+        logging.debug("removeConnections(): instantiated")
+        t = threading.Thread(target=self.runClearAllConnections, args=(guacHostname, username, password, url_path, method))
+        t.start()
+        return 0
+
+    def runClearAllConnections(self, guacHostname, username, password, url_path, method):
+        self.writeStatus = ConnectionManage.CONNECTION_MANAGE_REMOVING
+        #sample guacConn = Guacamole(192.168.99.102',username='guacadmin',password='guacadmin',url_path='/guacamole',method='http')
+        logging.debug("runClearAllConnections(): guacHostname: " + str(guacHostname) + " username/pass: " + username + " url_path: " + url_path + " method: " + str(method))
+        guacConn = Guacamole(guacHostname,username=username,password=password,url_path=url_path,method=method)
+        if guacConn == None:
+            logging.error("Error with guac connection... skipping: " + str(guacHostname) + " " + str(username))
+            self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
+            return -1
+
+        # Get list of all users
+        usernames = guacConn.get_users()
+        for username in usernames:
+            logging.debug( "Removing Username: " + username)
+            try:
+                guacConn.delete_user(username)
+            except Exception:
+                logging.error("runClearAllConnections(): Error in runClearAllConnections(): when trying to remove user.")
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                #traceback.print_exception(exc_type, exc_value, exc_traceback)
+        # Remove All Connections
+        connections = guacConn.get_connections()
+        logging.debug( "Retrieved Connections: " + str(connections))
+        if "childConnections" in connections:
+            for connection in connections["childConnections"]:
+                logging.debug( "Removing Connection: " + str(connection))
+                try:
+                    guacConn.delete_connection(connection["identifier"])
+                except Exception:
+                        logging.error("runClearAllConnections(): Error in runClearAllConnections(): when trying to remove connection.")
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        #traceback.print_exception(exc_type, exc_value, exc_traceback)
+        self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
+
+    #abstractmethod
     def removeConnections(self, configname, guacHostname, username, password, url_path, method):
         logging.debug("removeConnections(): instantiated")
         t = threading.Thread(target=self.runRemoveConnections, args=(configname,guacHostname, username, password, url_path, method))
@@ -128,7 +169,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
                             logging.error("runRemoveConnections(): Error in runRemoveConnections(): when trying to remove user.")
                             exc_type, exc_value, exc_traceback = sys.exc_info()
                             #traceback.print_exception(exc_type, exc_value, exc_traceback)
-                    # Associate a User and Connection
+                    # Remove Connection Associated with VM
                     logging.debug( "Remove Connection to VM: " + cloneVMName)
                     try:
                         self.removeConnAssociation(guacConn, cloneVMName)
