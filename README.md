@@ -1,13 +1,13 @@
 # The Reproducible Experimentation System (RES)
 ## Table of Contents
 - [The Reproducible Experimentation System (RES)](#the-reproducible-experimentation-system-res)
-  - [Table of Contents](#table-of-contents)
     - [Description](#description)
     - [Limitations](#limitations)
     - [Installation](#installation)
         - [Requirements](#requirements)
         - [Windows](#windows)
-    - [Run Tests](#run-tests)
+    - [Run The GUI](#run-the-gui)
+    - [Run Engine Tests](#run-engine-tests)
     - [Troubleshooting](#troubleshooting)
 
 ### Description
@@ -16,9 +16,7 @@ RES is a wrapper system that enables analysts and researchers to easily create, 
 The current version of RES supports VirtualBox machines. 
 
 ### Limitations
-* Currently the system only consists of a few working functions; it is in very early stages. 
-
-The project is actively and intensively being developed.
+* The system currently does not allow entry of custom VM commands. This feature is forthcoming.
 
 ### Installation
 RES has been tested on:
@@ -45,9 +43,24 @@ Install the res python dependencies
 pip install -r requirements.txt
 ```
 
-To run the tests, follow the steps in [Run Tests](#run-tests).
+To run the GUI, follow the steps in [Run the GUI](#run-the-gui).
+To run the engine tests, follow the steps in [Run Engine Tests](#run-engine-tests).
 
-### Run Tests
+
+### Run the GUI
+Navigate to the folder where you downloaded res and activate the virtualenv container
+```
+cd res
+python -m venv venv
+venv\Scripts\activate
+```
+Start the GUI
+```
+fbs run
+```
+A sample RES file can be downloaded [here](http://bit.ly/2TtRLiX). After downloading the file, right-click and select to Import the file.
+
+### Run Engine Tests
 A driver program is included that will demonstrate several of the functions provided by RES.
 
 Download the Sample RES file from [here](http://bit.ly/2TtRLiX) and save it into the following directory
