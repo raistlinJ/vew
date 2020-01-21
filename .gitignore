@@ -9,7 +9,6 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-build/
 develop-eggs/
 dist/
 downloads/
@@ -64,12 +63,6 @@ venv/bin/
 venv/
 
 *.ova
-
-src/main/icons/base/
-
-src/main/icons/linux/
-
-src/main/icons/mac/
 
 .vscode/
 
