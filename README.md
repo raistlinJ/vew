@@ -20,8 +20,8 @@ The current version of RES supports VirtualBox machines.
 
 ### Installation
 RES has been tested on:
-* Ubuntu 16.04 LTE (64-bit)
 * Windows 10 (64-bit)
+* Ubuntu 16.04 LTE (64-bit)
 
 ##### Requirements
 * [Python 3.7.3 (64-bit) ](https://www.python.org/downloads/release/python-373/)
@@ -51,7 +51,6 @@ To run the engine tests, follow the steps in [Run Engine Tests](#run-engine-test
 Navigate to the folder where you downloaded res and activate the virtualenv container
 ```
 cd res
-python -m venv venv
 venv\Scripts\activate
 ```
 Start the GUI
