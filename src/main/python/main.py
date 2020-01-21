@@ -173,73 +173,78 @@ class MainApp(QMainWindow):
         #For all experiment files found
         for configname in xmlExperimentNames:
         ####Read Experiment Config Data and Populate Tree
-            logging.info("Reading XML data for " + str(configname))
-            jsondata = self.ec.getExperimentXMLFileData(configname)
-            self.statusBar.showMessage("Finished reading experiment config")
+            self.loadConfigname(configname)
+        self.statusBar.showMessage("Completed populating the User Interface from " + str(len(xmlExperimentNames)) + " config files read", 6000)
+    ###############################
 
-        ##########testbed-setup data######
-            if jsondata == None:
-                jsondata = {}
-            if "xml" not in jsondata or jsondata["xml"] == None or str(jsondata["xml"]).strip() == "":
-                jsondata["xml"] = {}
-            if "testbed-setup" not in jsondata["xml"]:
-                jsondata["xml"]["testbed-setup"] = {}
-            if "vm-set" not in jsondata["xml"]["testbed-setup"]:
-                jsondata["xml"]["testbed-setup"]["vm-set"] = {}
+    def loadConfigname(self, configname):
+        logging.debug("MainApp(): loadConfigname instantiated")
+        logging.info("Reading XML data for " + str(configname))
+        jsondata = self.ec.getExperimentXMLFileData(configname)
+        self.statusBar.showMessage("Finished reading experiment config")
 
-            configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
-            configTreeWidgetItem.setText(0,configname)
-            self.experimentActionsWidget.addExperimentItem(configname)
-            basejsondata = jsondata["xml"]
-            # Base Config Widget 
-            self.baseWidget = BaseWidget(self, configname, configname, basejsondata)
-            self.baseWidgets[configname] = {"BaseWidget": {}, "VMWidgets": {}, "MaterialWidgets": {} }
-            self.baseWidgets[configname]["BaseWidget"] = self.baseWidget
-            self.basedataStackedWidget.addWidget(self.baseWidget)
+    ##########testbed-setup data######
+        if jsondata == None:
+            jsondata = {}
+        if "xml" not in jsondata or jsondata["xml"] == None or str(jsondata["xml"]).strip() == "":
+            jsondata["xml"] = {}
+        if "testbed-setup" not in jsondata["xml"]:
+            jsondata["xml"]["testbed-setup"] = {}
+        if "vm-set" not in jsondata["xml"]["testbed-setup"]:
+            jsondata["xml"]["testbed-setup"]["vm-set"] = {}
 
-        ##########vm data######
-            if "vm" in jsondata["xml"]["testbed-setup"]["vm-set"]:
-                vmsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["vm"]
-                if isinstance(vmsjsondata, list):
-                    for vm in vmsjsondata:
-                        vm_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
-                        vmlabel = "V: " + vm["name"]
-                        vm_item.setText(0,vmlabel)
-                        # VM Config Widget
-                        vmWidget = VMWidget(self, configname, vm["name"], vm)
-                        self.baseWidgets[configname]["VMWidgets"][vmlabel] = vmWidget
-                        self.basedataStackedWidget.addWidget(vmWidget)
-                else:
+        configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
+        configTreeWidgetItem.setText(0,configname)
+        self.experimentActionsWidget.addExperimentItem(configname)
+        basejsondata = jsondata["xml"]
+        # Base Config Widget 
+        self.baseWidget = BaseWidget(self, configname, configname, basejsondata)
+        self.baseWidgets[configname] = {"BaseWidget": {}, "VMWidgets": {}, "MaterialWidgets": {} }
+        self.baseWidgets[configname]["BaseWidget"] = self.baseWidget
+        self.basedataStackedWidget.addWidget(self.baseWidget)
+
+    ##########vm data######
+        if "vm" in jsondata["xml"]["testbed-setup"]["vm-set"]:
+            vmsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["vm"]
+            if isinstance(vmsjsondata, list):
+                for vm in vmsjsondata:
                     vm_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
-                    vmlabel = "V: " + vmsjsondata["name"]
+                    vmlabel = "V: " + vm["name"]
                     vm_item.setText(0,vmlabel)
                     # VM Config Widget
-                    vmWidget = VMWidget(self, configname, vmsjsondata["name"], vmsjsondata)
+                    vmWidget = VMWidget(self, configname, vm["name"], vm)
                     self.baseWidgets[configname]["VMWidgets"][vmlabel] = vmWidget
                     self.basedataStackedWidget.addWidget(vmWidget)
+            else:
+                vm_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
+                vmlabel = "V: " + vmsjsondata["name"]
+                vm_item.setText(0,vmlabel)
+                # VM Config Widget
+                vmWidget = VMWidget(self, configname, vmsjsondata["name"], vmsjsondata)
+                self.baseWidgets[configname]["VMWidgets"][vmlabel] = vmWidget
+                self.basedataStackedWidget.addWidget(vmWidget)
 
-        ##########material data######
-            if "material" in jsondata["xml"]["testbed-setup"]["vm-set"]:
-                materialsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["material"]
-                if isinstance(materialsjsondata, list):
-                    for material in materialsjsondata:
-                        material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
-                        materiallabel = "M: " + material["name"]
-                        material_item.setText(0,materiallabel)
-                        # Material Config Widget
-                        materialWidget = MaterialWidget(self, configname, material["name"], material)
-                        self.baseWidgets[configname]["MaterialWidgets"][materiallabel] = materialWidget
-                        self.basedataStackedWidget.addWidget(materialWidget)
-                else:
+    ##########material data######
+        if "material" in jsondata["xml"]["testbed-setup"]["vm-set"]:
+            materialsjsondata = jsondata["xml"]["testbed-setup"]["vm-set"]["material"]
+            if isinstance(materialsjsondata, list):
+                for material in materialsjsondata:
                     material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
-                    materiallabel = "M: " + materialsjsondata["name"]
+                    materiallabel = "M: " + material["name"]
                     material_item.setText(0,materiallabel)
                     # Material Config Widget
-                    materialWidget = MaterialWidget(self, configname, materialsjsondata["name"], materialsjsondata)
+                    materialWidget = MaterialWidget(self, configname, material["name"], material)
                     self.baseWidgets[configname]["MaterialWidgets"][materiallabel] = materialWidget
                     self.basedataStackedWidget.addWidget(materialWidget)
-            self.statusBar.showMessage("Completed populating the User Interface from " + str(len(xmlExperimentNames)) + " config files read", 6000)
-    ###############################
+            else:
+                material_item = QtWidgets.QTreeWidgetItem(configTreeWidgetItem)
+                materiallabel = "M: " + materialsjsondata["name"]
+                material_item.setText(0,materiallabel)
+                # Material Config Widget
+                materialWidget = MaterialWidget(self, configname, materialsjsondata["name"], materialsjsondata)
+                self.baseWidgets[configname]["MaterialWidgets"][materiallabel] = materialWidget
+                self.basedataStackedWidget.addWidget(materialWidget)
+        logging.debug("MainApp(): Finished loading configname: " + str(configname))
 
     def onItemSelected(self):
         logging.debug("MainApp:onItemSelected instantiated")
@@ -300,17 +305,16 @@ class MainApp(QMainWindow):
     def importActionEvent(self):
         logging.debug("MainApp:importActionEvent() instantiated")
         #Check if it's the case that an experiment name was selected
-        filesChosen = PackageImportDialog().packageImportDialog(self, self.baseWidgets.keys())
-        if filesChosen == []:
+        confignamesChosen = PackageImportDialog().packageImportDialog(self, self.baseWidgets.keys())
+        if confignamesChosen == []:
             logging.debug("importActionEvent(): Canceled or a file could not be imported. make sure file exists.")
             return
         #for fileChosen in filesChosen:
-        filesChosen = os.path.basename(filesChosen)
-        logging.debug("MainApp: importActionEvent(): File choosen: " + filesChosen)
+        logging.debug("MainApp: importActionEvent(): Files choosen (getting only first): " + confignamesChosen)
+        firstConfignameChosen = confignamesChosen
+        self.loadConfigname(firstConfignameChosen)
         #Add the items to the tree
-
-        self.statusBar.showMessage("Imported " + filesChosen)
-
+        self.statusBar.showMessage("Imported " + firstConfignameChosen)
 
     def addVMActionEvent(self):
         logging.debug("MainApp:addVMActionEvent() instantiated")

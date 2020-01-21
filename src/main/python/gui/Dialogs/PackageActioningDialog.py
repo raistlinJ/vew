@@ -83,7 +83,7 @@ class PackageActioningDialog(QDialog):
         self.ok_button.setEnabled(False)
         
         self.buttons.accepted.connect( self.accept )
-        self.setWindowTitle("Package Operation")
+        self.setWindowTitle("Packager")
         #self.setFixedSize(225, 75)
                 
         self.box_main_layout = QGridLayout()
