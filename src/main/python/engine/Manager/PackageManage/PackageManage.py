@@ -3,7 +3,7 @@ from sys import argv, platform
 import logging
 import shlex
 import threading
-from time import sleep
+import time
 
 class PackageManage:
     PACKAGE_MANAGE_COMPLETE = 0

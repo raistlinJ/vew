@@ -6,7 +6,7 @@ import logging
 import shlex
 import threading
 import sys
-from time import sleep
+import time
 from engine.Manager.VMManage.VMManage import VMManage
 from engine.Manager.VMManage.VM import VM
 import re

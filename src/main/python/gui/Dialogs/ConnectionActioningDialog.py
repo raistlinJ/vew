@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QVBoxLayout, QWidget, QMessageBox)
 import sys, traceback
 from engine.Engine import Engine
-from time import sleep
+import time
 from engine.Manager.ConnectionManage.ConnectionManage import ConnectionManage
 import logging
 
@@ -65,7 +65,7 @@ class WatchActioningThread(QThread):
                         dots = 1
                 else:
                     break
-                sleep(0.5)
+                time.sleep(0.5)
             logging.debug("WatchActioningThread(): thread ending")
             self.watchsignal.emit(str(self.actionname) + " Complete", self.status, True)
             return

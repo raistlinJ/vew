@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import (QApplication, qApp, QAction, QCheckBox, QComboBox, 
         QVBoxLayout, QWidget, QStackedWidget)
 
 from engine.Engine import Engine
-from time import sleep
+import time
 
 from gui.Widgets.BaseWidget import BaseWidget
 from gui.Widgets.VMWidget import VMWidget

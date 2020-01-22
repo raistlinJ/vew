@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QVBoxLayout, QWidget, QMessageBox)
 
 from engine.Engine import Engine
-from time import sleep
+import time
 from engine.Manager.ConnectionManage.ConnectionManage import ConnectionManage
 from gui.Dialogs.ConnectionActioningDialog import ConnectionActioningDialog
 import logging
