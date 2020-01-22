@@ -60,8 +60,10 @@ class ExperimentConfigIO:
             vrdpBaseport = vmSet["vrdp-baseport"]
 
             logging.debug("getExperimentVMRolledOut(): path: " + str(pathToVirtualBox) + " numClones: " + str(numClones) + " linked: " + str(linkedClones) + " baseGroup: " + str(baseGroupname) + " baseOut: " + str(baseOutname) + "vrdpBase: " + str(vrdpBaseport))
-
-            for vm in vmSet["vm"]: 
+            if isinstance(vmSet["vm"], list) == False:
+                logging.debug("getExperimentVMRolledOut(): vmSet only has a single VM; placing into list for compatibility")
+                vmSet["vm"] = [vmSet["vm"]]
+            for vm in vmSet["vm"]:
                 vmName = vm["name"]
                 vmRolledOutList[vmName] = []
                 logging.debug("getExperimentVMRolledOut(): adding data for vm: " + str(vmName))
