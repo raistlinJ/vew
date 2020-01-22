@@ -421,7 +421,7 @@ class VBoxManage(VMManage):
             groupCmd = self.vbox_path + " modifyvm " + str(cloneName) + " --groups " + str(groupName)
             logging.debug("runCloneVM(): placing into group: " + str(groupName))
             logging.error("runCloneVM(): executing: " + str(groupCmd))
-            result = subprocess.check_output(groupCmd, encoding='utf-8')
+            result = subprocess.check_output(shlex.split(groupCmd, posix=self.POSIX), encoding='utf-8')
 
             logging.debug("runCloneVM(): Clone Created: " + str(cloneName) + " and placed into group: " + groupName)
             self.writeStatus = VMManage.MANAGER_IDLE
