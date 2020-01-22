@@ -418,7 +418,7 @@ class VBoxManage(VMManage):
             #since we added a VM, now we have to refresh the VM status            
 
             #groupCmd = [self.vbox_path, "modifyvm", cloneName, "--groups", groupName]
-            groupCmd = self.vbox_path + " modifyvm " + str(cloneName) + " --groups " + str(groupName)
+            groupCmd = self.vbox_path + " modifyvm " + str(cloneName) + " --groups \"" + str(groupName)+"\""
             logging.debug("runCloneVM(): placing into group: " + str(groupName))
             logging.error("runCloneVM(): executing: " + str(groupCmd))
             result = subprocess.check_output(shlex.split(groupCmd, posix=self.POSIX), encoding='utf-8')
