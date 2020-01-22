@@ -6,6 +6,7 @@
     - [Installation](#installation)
         - [Requirements](#requirements)
         - [Windows](#windows)
+        - [Linux](#linux)
     - [Run The GUI](#run-the-gui)
     - [Run Engine Tests](#run-engine-tests)
     - [Troubleshooting](#troubleshooting)
@@ -24,7 +25,7 @@ RES has been tested on:
 * Ubuntu 16.04 LTE (64-bit)
 
 ##### Requirements
-* [Python 3.7.3 (64-bit) ](https://www.python.org/downloads/release/python-373/)
+* [Python 3.6 (64-bit) ](https://www.python.org/downloads/release/python-360/)
 * [VirtualBox 6.x](https://www.virtualbox.org/wiki/Downloads)
 * [Several Other Python packages] (see requirements.txt)
 ##### Windows
@@ -40,6 +41,33 @@ venv\Scripts\activate
 ```
 Install the res python dependencies
 ```
+pip install -r requirements.txt
+```
+
+##### Linux
+Install Python > 3.5 (if you already have it, skip this step):
+```
+sudo apt-get install libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev
+
+wget https://www.python.org/ftp/python/3.6.9/Python-3.6.9.tgz
+tar zxvf Python-3.6.9.tgz
+cd Python-3.6.9
+./configure
+make
+sudo make install
+```
+Setup and activate the virtualenv container
+```
+pyvenv-3.6 venv
+```
+Clone RES repo 
+```  
+git clone https://github.com/raistlinJ/res
+cd res
+```
+Activate the venv and install python dependencides
+```
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
