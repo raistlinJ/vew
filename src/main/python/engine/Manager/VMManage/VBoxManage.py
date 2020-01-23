@@ -19,7 +19,7 @@ class VBoxManage(VMManage):
         logging.info("VBoxManage.__init__(): instantiated")
         VMManage.__init__(self)
         self.cf = SystemConfigIO()
-        self.vbox_path = self.cf.getConfig()['VBOX_LINUX']['VBOX_PATH']
+        self.vbox_path = self.cf.getConfig()['VBOX']['VBOX_PATH']
         if initializeVMManage:
             self.refreshAllVMInfo()
             while self.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:

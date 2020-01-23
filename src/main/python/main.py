@@ -116,7 +116,7 @@ class MainApp(QMainWindow):
 
     def readSystemConfig(self):
         logging.debug("MainApp:readSystemConfig() instantiated")
-        self.vboxPath = self.cf.getConfig()['VBOX_LINUX']['VBOX_PATH']
+        self.vboxPath = self.cf.getConfig()['VBOX']['VBOX_PATH']
         self.experimentPath = self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH']
         self.statusBar.showMessage("Finished reading system config")
     

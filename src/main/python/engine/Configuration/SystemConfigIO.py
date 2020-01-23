@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QStandardPaths
-
+import sys
 import configparser
 import os
 import logging
@@ -8,12 +8,17 @@ class SystemConfigIO():
 
     def __init__(self):
         logging.debug("SystemConfigIO(): instantiated")
-        if os.path.exists("config") and os.path.exists(os.path.join("config","resconfig.ini")):
+        self.configfilename = "resconfig.ini"
+        if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
+            self.configfilename = "resconfig_posix.ini"
+        else:
+            self.configfilename = "resconfig_win.ini"
+        if os.path.exists("config") and os.path.exists(os.path.join("config", self.configfilename)):
             self.path = "config"
-            self.filename = os.path.join("config","resconfig.ini")
+            self.filename = os.path.join("config",self.configfilename)
         else:
             self.path = self.writablePath()
-            self.filename = os.path.join(self.path,"resconfig.ini")
+            self.filename = os.path.join(self.path,self.configfilename)
         self.config = configparser.ConfigParser()
         self.readConfig()
 
@@ -37,10 +42,12 @@ class SystemConfigIO():
             
         logging.debug("readConfig(): file was NOT found: " + self.filename)
 
-        self.config['VBOX_WIN'] = {}
-        self.config['VBOX_WIN']['VBOX_PATH'] = "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"
-        self.config['VBOX_LINUX'] = {}
-        self.config['VBOX_LINUX']['VBOX_PATH'] = "VBoxManage"
+        if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
+            self.config['VBOX'] = {}
+            self.config['VBOX']['VBOX_PATH'] = "VBoxManage"
+        else:
+            self.config['VBOX'] = {}
+            self.config['VBOX']['VBOX_PATH'] = "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"
         self.config['EXPERIMENTS'] = {}
         self.config['EXPERIMENTS']['EXPERIMENTS_PATH'] = "ExperimentData"
         self.config['EXPERIMENTS']['TEMP_DATA_PATH'] = "tmp"
