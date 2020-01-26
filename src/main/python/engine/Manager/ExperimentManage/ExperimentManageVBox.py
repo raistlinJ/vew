@@ -48,7 +48,7 @@ class ExperimentManageVBox(ExperimentManage):
 
                 logging.debug("runCreateExperiment(): working with vm: " + str(vmName))
 
-                #Create clones as shown in the cit-gen create_workshop python script (preserving internal networks, etc.)
+                #Create clones preserving internal networks, etc.
                 if self.vmManage.getVMStatus(vmName) == None:
                     logging.error("VM Name: " + str(vmName) + " does not exist; skipping...")
                     continue
@@ -79,7 +79,7 @@ class ExperimentManageVBox(ExperimentManage):
                     logging.debug("Internal net names: " + str(internalnets))
                     for internalnet in internalnets:
                         self.vmManage.configureVMNet(cloneVMName, cloneNetNum, internalnet)
-                        while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
+                        while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
                             logging.info("runCreateExperiment(): waiting for vmmanager to finish query...")
                             time.sleep(.1)
                         cloneNetNum += 1
