@@ -285,7 +285,7 @@ class PackageManageVBox(PackageManage):
                 logging.debug("zipWorker(): destination path does not exist; attempting to create it: " + str(zipBasePath))
                 os.makedirs(zipBasePath)
             if os.path.exists(pathToAdd):
-                outZipFile = zipfile.ZipFile(zipfilename, 'w', zipfile.ZIP_DEFLATED)
+                outZipFile = zipfile.ZipFile(zipfilename, 'w', zipfile.ZIP_STORED)
                 # The root directory within the ZIP file.
                 rootdir = os.path.basename(pathToAdd)
                 for dirpath, dirnames, filenames in os.walk(pathToAdd):
