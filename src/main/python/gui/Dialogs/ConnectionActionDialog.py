@@ -39,7 +39,7 @@ class ConnectionActionDialog(QDialog):
     def createFormGroupBox(self):
         self.formGroupBox = QGroupBox("Form layout")
         self.layout = QFormLayout()
-        self.hostnameLineEdit = QLineEdit("192.168.99.100:8080")
+        self.hostnameLineEdit = QLineEdit("11.0.0.2:8080")
         self.layout.addRow(QLabel("Hostname:"), self.hostnameLineEdit)
         self.usernameLineEdit = QLineEdit()
         self.layout.addRow(QLabel("Username:"), self.usernameLineEdit)
@@ -52,7 +52,19 @@ class ConnectionActionDialog(QDialog):
         self.methodComboBox.addItem("HTTP")
         self.methodComboBox.addItem("HTTPS")
         self.methodComboBox.setCurrentIndex(0)
-        self.layout.addRow(QLabel("Connection Method:"), self.methodComboBox)
+        self.layout.addRow(QLabel("Method:"), self.methodComboBox)
+        
+        self.maxConnectionsLineEdit = QLineEdit("1")
+        self.heightLineEdit = QLineEdit("1280")
+        self.widthLineEdit = QLineEdit("768")
+        if self.actionname == "Add":
+            #Need to make a function to create more than one user to a single instance 
+            # self.layout.addRow(QLabel("Max Connections Per Instance:"), self.maxConnectionsLineEdit)      
+            # self.maxConnectionsLineEdit = QLineEdit("1")
+            self.layout.addRow(QLabel("Max Connections Per User:"), self.maxConnectionsLineEdit)      
+            self.layout.addRow(QLabel("Display Height:"), self.heightLineEdit)
+            self.layout.addRow(QLabel("Display Width:"), self.widthLineEdit)
+
         self.formGroupBox.setLayout(self.layout)
 
     def exec_(self):
@@ -60,7 +72,10 @@ class ConnectionActionDialog(QDialog):
         result = super(ConnectionActionDialog, self).exec_()
         if str(result) == str(1):
             logging.debug("dialog_response(): OK was pressed")
-            self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText()]
+            if self.actionname == "Add":
+                self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText(), "1", self.maxConnectionsLineEdit.text(), self.heightLineEdit.text(), self.widthLineEdit.text()]
+            else:
+                self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText()]
             cad = ConnectionActioningDialog(self.parent, self.configname, self.actionname, self.args).exec_()
             return (QMessageBox.Ok)
         return (QMessageBox.Cancel)

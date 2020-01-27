@@ -104,8 +104,11 @@ class Engine:
         password = args.password
         url_path = args.url_path
         method = args.method
-
-        return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method)
+        maxConnections = args.maxConnections
+        maxConnectionsPerUser = args.maxConnectionsPerUser
+        width = args.width
+        height = args.height
+        return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height)
 
     def connectionRemoveCmd(self, args):
         logging.debug("connectionRemoveCmd(): instantiated")
@@ -273,6 +276,14 @@ class Engine:
                                           help='URL path to broker service')
         self.connectionManageCreateParser.add_argument('method', metavar='<method>', action="store",
                                           help='Either HTTP or HTTPS, depending on the server\'s configuration')
+        self.connectionManageCreateParser.add_argument('maxConnections', metavar='<maxConnections>', action="store", default="",
+                                          help='Max number of connections allowed per remote conn')
+        self.connectionManageCreateParser.add_argument('maxConnectionsPerUser', metavar='<maxConnectionsPerUser>', action="store", default="", 
+                                          help='Max number of connections allowed per user per remote conn')
+        self.connectionManageCreateParser.add_argument('width', metavar='<width>', action="store", default="1280",
+                                          help='Width of remote connection display')
+        self.connectionManageCreateParser.add_argument('height', metavar='<height>', action="store", default="768",
+                                          help='Height of remote connection display')
         self.connectionManageCreateParser.set_defaults(func=self.connectionCreateCmd)
         
         self.connectionManageRemoveParser = self.connectionManageSubParser.add_parser('remove', help='remove conns as specified in config file')
