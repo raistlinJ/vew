@@ -80,11 +80,11 @@ class VBoxManage(VMManage):
         self.vms = {}
         vmListCmd = self.vbox_path + " list vms"
         logging.debug("runVMSInfo(): Collecting VM Names using cmd: " + vmListCmd)
-        if sys.platform == "linux" or sys.platform == "linux2":
-            vmListCmd = "timeout " + str(VMManage.MANAGER_STATUS_TIMEOUT_VAL) + " " + vmListCmd
-        else:
-            logging.error("runVMSInfo(): This is not a linux system. Skipping: " + str(vmListCmd))
-            return -1
+        # if sys.platform == "linux" or sys.platform == "linux2":
+        #     vmListCmd = "timeout " + str(VMManage.MANAGER_STATUS_TIMEOUT_VAL) + " " + vmListCmd
+        # else:
+        #     logging.error("runVMSInfo(): This is not a linux system. Skipping: " + str(vmListCmd))
+        #     return -1
         try:
             p = Popen(shlex.split(vmListCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
@@ -116,8 +116,8 @@ class VBoxManage(VMManage):
             for aVM in self.vms:
                 logging.debug("runVMSInfo(): collecting # " + str(vmNum) + " of " + str(len(self.vms)))
                 vmShowInfoCmd = self.vbox_path + " showvminfo \"" + str(self.vms[aVM].UUID) + "\"" + " --machinereadable"
-                if sys.platform == "linux" or sys.platform == "linux2":
-                    vmShowInfoCmd = "timeout " + str(VMManage.MANAGER_STATUS_TIMEOUT_VAL) + " " + vmShowInfoCmd
+                # if sys.platform == "linux" or sys.platform == "linux2":
+                #     vmShowInfoCmd = "timeout " + str(VMManage.MANAGER_STATUS_TIMEOUT_VAL) + " " + vmShowInfoCmd
                 logging.debug("runVMSInfo(): Running " + vmShowInfoCmd)
                 p = Popen(shlex.split(vmShowInfoCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
                 while True:
@@ -168,8 +168,8 @@ class VBoxManage(VMManage):
         self.readStatus = VMManage.MANAGER_READING
 
         vmShowInfoCmd = self.vbox_path + " showvminfo \"" + self.vms[aVM].UUID + "\"" + " --machinereadable"
-        if sys.platform == "linux" or sys.platform == "linux2":
-            vmShowInfoCmd = "timeout " + str(VMManage.MANAGER_STATUS_TIMEOUT_VAL) + " " + vmShowInfoCmd
+        # if sys.platform == "linux" or sys.platform == "linux2":
+        #     vmShowInfoCmd = "timeout " + str(VMManage.MANAGER_STATUS_TIMEOUT_VAL) + " " + vmShowInfoCmd
         logging.debug("runVMSInfo(): Running " + vmShowInfoCmd)
         p = Popen(shlex.split(vmShowInfoCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
         while True:
@@ -226,8 +226,8 @@ class VBoxManage(VMManage):
             self.writeStatus = VMManage.MANAGER_WRITING
             self.readStatus = VMManage.MANAGER_READING
             vmCmd = self.vbox_path + " " + cmd
-            if sys.platform == "linux" or sys.platform == "linux2":
-                vmCmd = "timeout " + str(VMManage.MANAGER_STATUS_TIMEOUT_VAL) + " " + vmCmd
+            # if sys.platform == "linux" or sys.platform == "linux2":
+            #     vmCmd = "timeout " + str(VMManage.MANAGER_STATUS_TIMEOUT_VAL) + " " + vmCmd
             logging.debug("runVMCmd(): Running " + vmCmd)
             p = Popen(shlex.split(vmCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
