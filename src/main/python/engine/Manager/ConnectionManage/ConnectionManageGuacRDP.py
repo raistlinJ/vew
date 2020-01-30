@@ -37,7 +37,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
 
             #first create the users for each set of VMs
             createdUsers = []
-            clonevmjson = self.eco.getExperimentVMRolledOut(configname)
+            clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
             for vm in clonevmjson.keys(): 
                 vmName = vm
                 logging.debug("runCreateConnections(): working with vm: " + str(vmName))
@@ -146,7 +146,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
 
         #first create the users for each set of VMs
         removedUsers = []
-        clonevmjson = self.eco.getExperimentVMRolledOut(configname)
+        clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
         for vm in clonevmjson.keys(): 
             vmName = vm
             logging.debug("runRemoveConnections(): working with vm: " + str(vmName))

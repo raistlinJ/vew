@@ -95,7 +95,7 @@ class ExperimentConfigIO:
                         vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "ip-address": ipAddress, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones})
 
                     logging.debug("getExperimentVMRolledOut(): finished setting up clone: " + str(vmRolledOutList))
-            return vmRolledOutList
+            return vmRolledOutList, numClones
 
         except Exception:
             logging.error("Error in getExperimentVMRolledOut(): An error occured ")
@@ -230,7 +230,7 @@ if __name__ == "__main__":
 
     ####VM Rolled Out Data
         logging.info("Reading Experiment Roll Out Data for " + str(configname))
-        data = e.getExperimentVMRolledOut(configname)
+        data, numclones = e.getExperimentVMRolledOut(configname)
         logging.info("JSON READ:\r\n"+json.dumps(data))   
 
     logging.debug("Experiment stop complete.")    

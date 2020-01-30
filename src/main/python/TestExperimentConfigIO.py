@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     ####VM Rolled Out Data
         logging.info("Reading Experiment Roll Out Data for " + str(configname))
-        data = e.getExperimentVMRolledOut(configname)
+        data, numclones = e.getExperimentVMRolledOut(configname)
         logging.info("JSON READ:\r\n"+json.dumps(data))   
 
     logging.debug("Experiment stop complete.")    

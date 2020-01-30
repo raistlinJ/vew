@@ -41,7 +41,7 @@ class ExperimentManageVBox(ExperimentManage):
             while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
             #waiting for manager to finish query...
                 time.sleep(.1)
-            clonevmjson = self.eco.getExperimentVMRolledOut(configname)
+            clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
 
             for vm in clonevmjson.keys(): 
                 vmName = vm
@@ -126,22 +126,25 @@ class ExperimentManageVBox(ExperimentManage):
         try:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_STARTING
             #call vmManage to start clones as specified in config file; wait and query the vmManage status, and then set the complete status
-            clonevmjson = self.eco.getExperimentVMRolledOut(configname)
-            for vm in clonevmjson.keys(): 
-                vmName = vm
-                logging.debug("runStartExperiment(): working with vm: " + str(vmName))
-                #get names for clones and start them
-                for cloneinfo in clonevmjson[vm]:
-                    cloneVMName = cloneinfo["name"]
-                    #Check if clone exists and then run it if it does
-                    if self.vmManage.getVMStatus(vmName) == None:
-                        logging.error("runStartExperiment(): VM Name: " + str(vmName) + " does not exist; skipping...")
-                        continue
-                    logging.debug("runStartExperiment(): Starting: " + str(vmName))
-                    self.vmManage.startVM(cloneVMName)
-                    while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                        #waiting for vmmanager start vm to finish reading/writing...
-                        time.sleep(.1)
+            clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
+            vmnames = clonevmjson.keys()
+            for i in range(1, numclones + 1):
+                for vm in clonevmjson.keys(): 
+                    vmName = vm
+                    logging.debug("runStartExperiment(): working with vm: " + str(vmName))
+                    #get names for clones and start them
+                    for cloneinfo in clonevmjson[vm]:
+                        if cloneinfo["groupNum"] == str(i):
+                            cloneVMName = cloneinfo["name"]
+                            #Check if clone exists and then run it if it does
+                            if self.vmManage.getVMStatus(vmName) == None:
+                                logging.error("runStartExperiment(): VM Name: " + str(vmName) + " does not exist; skipping...")
+                                continue
+                            logging.debug("runStartExperiment(): Starting: " + str(vmName))
+                            self.vmManage.startVM(cloneVMName)
+                            while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                                #waiting for vmmanager start vm to finish reading/writing...
+                                time.sleep(.1)
             logging.debug("runStartExperiment(): Complete...")
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
         except Exception:
@@ -165,7 +168,7 @@ class ExperimentManageVBox(ExperimentManage):
         try:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_STOPPING
             #call vmManage to stop clones as specified in config file; wait and query the vmManage status, and then set the complete status
-            clonevmjson = self.eco.getExperimentVMRolledOut(configname)
+            clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
             for vm in clonevmjson.keys(): 
                 vmName = vm
                 logging.debug("runStopExperiment(): working with vm: " + str(vmName))
@@ -204,7 +207,8 @@ class ExperimentManageVBox(ExperimentManage):
         try:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_REMOVING
             #call vmManage to remove clones as specified in config file; wait and query the vmManage status, and then set the complete status
-            clonevmjson = self.eco.getExperimentVMRolledOut(configname)
+            clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
+
             for vm in clonevmjson.keys(): 
                 vmName = vm
                 logging.debug("runRemoveExperiment(): working with vm: " + str(vmName))
