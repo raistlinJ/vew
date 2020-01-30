@@ -408,7 +408,7 @@ class VBoxManageWin(VMManage):
             #now these settings will help against the issue when users 
             #can't reconnect after an abrupt disconnect
             #https://www.virtualbox.org/ticket/2963
-            vrdpCmd = self.vbox_path + " modifyvm " + str(vmName) + " --vrdereusecon " + " on " + " --vrdemulticon " + " off"
+            vrdpCmd = self.vbox_path + " modifyvm " + str(vmName) + " --vrdemulticon " + " on " #" --vrdereusecon " + " on " + " --vrdemulticon " + " off"
             logging.debug("enabledVRDP(): Setting disconnect on new connection for " + vmName)
             logging.debug("enabledVRDP(): executing: " + str(vrdpCmd))
             result = subprocess.check_output(vrdpCmd, encoding='utf-8')
