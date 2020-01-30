@@ -142,9 +142,9 @@ class ExperimentManageVBox(ExperimentManage):
                                 continue
                             logging.debug("runStartExperiment(): Starting: " + str(vmName))
                             self.vmManage.startVM(cloneVMName)
-                            while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                                #waiting for vmmanager start vm to finish reading/writing...
-                                time.sleep(.1)
+            while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                #waiting for vmmanager start vm to finish reading/writing...
+                time.sleep(.1)
             logging.debug("runStartExperiment(): Complete...")
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
         except Exception:
@@ -181,9 +181,9 @@ class ExperimentManageVBox(ExperimentManage):
                         continue
                     logging.error("runStopExperiment(): Stopping: " + str(vmName))
                     self.vmManage.stopVM(cloneVMName)
-                    while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                        #waiting for vmmanager stop vm to finish reading/writing...
-                        time.sleep(.1)
+            while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                #waiting for vmmanager stop vm to finish reading/writing...
+                time.sleep(.1)
             logging.debug("runStopExperiment(): Complete...")
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
         except Exception:
@@ -221,9 +221,9 @@ class ExperimentManageVBox(ExperimentManage):
                         continue
                     logging.error("runRemoveExperiment(): Removing: " + str(vmName))
                     self.vmManage.removeVM(cloneVMName)
-                    while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                        #waiting for vmmanager stop vm to finish reading/writing...
-                        time.sleep(.1)
+            while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                #waiting for vmmanager stop vm to finish reading/writing...
+                time.sleep(.1)
             logging.debug("runRemoveExperiment(): Complete...")
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
         except Exception:
@@ -247,7 +247,7 @@ class ExperimentManageVBox(ExperimentManage):
         try:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_RESTORING
             #call vmManage to restore clones as specified in config file; wait and query the vmManage status, and then set the complete status
-            clonevmjson = self.eco.getExperimentVMRolledOut(configname)
+            clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
             for vm in clonevmjson.keys(): 
                 vmName = vm
                 logging.debug("runRestoreExperiment(): working with vm: " + str(vmName))

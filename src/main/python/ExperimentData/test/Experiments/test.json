@@ -21,6 +21,13 @@
                         "internalnet-basename": [
                             "intnet"
                         ]
+                    },
+                    {
+                        "name": "Ubuntu_spring19_Hackathon_Participant",
+                        "vrdp-enabled": "false",
+                        "internalnet-basename": [
+                            "intnet"
+                        ]
                     }
                 ],
                 "material": []

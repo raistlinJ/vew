@@ -19,6 +19,11 @@
 				<vrdp-enabled>true</vrdp-enabled>
 				<internalnet-basename>intnet</internalnet-basename>
 			</vm>
+			<vm>
+				<name>Ubuntu_spring19_Hackathon_Participant</name>
+				<vrdp-enabled>false</vrdp-enabled>
+				<internalnet-basename>intnet</internalnet-basename>
+			</vm>
 		</vm-set>
 	</testbed-setup>
 </xml>
