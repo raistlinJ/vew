@@ -58,7 +58,7 @@ class VBoxManageWin(VMManage):
         logging.debug("VBoxManageWin: runVMSInfo(): instantiated")
         #run vboxmanage to get vm listing
         self.readStatus = VMManage.MANAGER_READING
-        self.writeStatus = VMManage.MANAGER_READING
+        self.writeStatus = VMManage.MANAGER_WRITING
         #clear out the current set
         self.vms = {}
         vmListCmd = self.vbox_path + " list vms"
@@ -142,6 +142,7 @@ class VBoxManageWin(VMManage):
     def runVMInfo(self, aVM):
         logging.debug("VBoxManageWin: runVMSInfo(): instantiated")
         self.readStatus = VMManage.MANAGER_READING
+        self.writeStatus = VMManage.MANAGER_WRITING
         vmShowInfoCmd = self.vbox_path + " showvminfo " + self.vms[aVM].UUID + " --machinereadable"
         logging.debug("runVMSInfo(): Running " + vmShowInfoCmd)
         p = Popen(vmShowInfoCmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
@@ -174,6 +175,7 @@ class VBoxManageWin(VMManage):
                         self.vms[aVM].state = VM.VM_STATE_OTHER
         p.wait()
         self.readStatus = VMManage.MANAGER_IDLE
+        self.writeStatus = VMManage.MANAGER_IDLE
         logging.debug("runVMInfo(): Thread completed")
 
     def runConfigureVMNet(self, vmName, netNum, netName):
@@ -233,7 +235,7 @@ class VBoxManageWin(VMManage):
         
     def getManagerStatus(self):
         logging.debug("VBoxManageWin: getManagerStatus(): instantiated")
-        if self.readStatus == VMManage.MANAGER_UNKNOWN:
+        if self.readStatus == VMManage.MANAGER_UNKNOWN or self.writeStatus == VMManage.MANAGER_UNKNOWN:
             logging.error("No status available, you must run refreshAllVMInfo() to initialize the Manager")
         vmStatus = {}
         for vmName in self.vms:
