@@ -6,26 +6,24 @@ import threading
 import time
 
 class VMManage:
+    MANAGER_IDLE = 0
+    MANAGER_WRITING = 1
+    MANAGER_READING = 2
+    MANAGER_STATUS_TIMEOUT_VAL = 11
+
     VM_SETUP_COMPLETE = 0
     VM_SETUP_NONE = 1
-    VM_SETUP_UNKNOWN = -1
-       
-    MANAGER_READING = 2
-    MANAGER_IDLE = 3
-    MANAGER_WRITING = 4
-    
-    MANAGER_UNKNOWN = 10 
-   
-    MANAGER_STATUS_TIMEOUT_VAL = 11
-   
+    VM_SETUP_UNKNOWN = -2
+          
     POSIX = False
     if platform == "linux" or platform == "linux2" or platform == "darwin":
         POSIX = True
       
     def __init__(self):
         self.vms = {} #dict of VM()
-        self.readStatus = VMManage.MANAGER_UNKNOWN
-        self.writeStatus = VMManage.MANAGER_UNKNOWN
+        self.readStatus = VMManage.MANAGER_IDLE
+        self.writeStatus = VMManage.MANAGER_IDLE
+        self.activeTaskCount = 0
 
     #abstractmethod
     def getManagerStatus(self):

@@ -23,7 +23,7 @@ class PackageManageVBox(PackageManage):
             self.vmManage = VBoxManageWin()
         if initializeVMManage:
             self.vmManage.refreshAllVMInfo()
-            while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
+            while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
             #waiting for manager to finish query...
                 time.sleep(.1)
         self.em = ExperimentManageVBox()
@@ -71,7 +71,7 @@ class PackageManageVBox(PackageManage):
                 #since we added a new VM, we have to refresh
                 res = self.vmManage.refreshAllVMInfo()
                 logging.debug("Returned: " + str(res))
-                while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
+                while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
                     time.sleep(.1)
                     logging.debug("runImportPackage(): Waiting for vmrefresh to complete...")
                 #now take a snapshot

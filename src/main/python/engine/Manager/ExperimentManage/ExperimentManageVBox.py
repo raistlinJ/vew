@@ -20,7 +20,7 @@ class ExperimentManageVBox(ExperimentManage):
             self.vmManage = VBoxManageWin()
         if initializeVMManage:
             self.vmManage.refreshAllVMInfo()
-            while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
+            while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
             #waiting for manager to finish query...
                 time.sleep(.1)
         self.eco = ExperimentConfigIO()
@@ -38,7 +38,7 @@ class ExperimentManageVBox(ExperimentManage):
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_CREATING
             #call vmManage to make clones as specified in config file; wait and query the vmManage status, and then set the complete status
             self.vmManage.refreshAllVMInfo()
-            while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
+            while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
             #waiting for manager to finish query...
                 time.sleep(.1)
             clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
@@ -69,7 +69,7 @@ class ExperimentManageVBox(ExperimentManage):
                     # We added a VM, so we have to call refresh
                     logging.info("Refreshing after clone since we added a new VM")
                     self.vmManage.refreshAllVMInfo()
-                    while self.vmManage.getManagerStatus()["readStatus"] != self.vmManage.MANAGER_IDLE:
+                    while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
                         logging.info("runCreateExperiment(): waiting for manager to finish query...")
                         time.sleep(.1)
                     logging.info("Refreshing VMs Info - AFTER")
@@ -142,7 +142,7 @@ class ExperimentManageVBox(ExperimentManage):
                                 continue
                             logging.debug("runStartExperiment(): Starting: " + str(vmName))
                             self.vmManage.startVM(cloneVMName)
-                            while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                            while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                                 #waiting for vmmanager start vm to finish reading/writing...
                                 time.sleep(.1)
             logging.debug("runStartExperiment(): Complete...")
@@ -181,7 +181,7 @@ class ExperimentManageVBox(ExperimentManage):
                         continue
                     logging.error("runStopExperiment(): Stopping: " + str(vmName))
                     self.vmManage.stopVM(cloneVMName)
-                    while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                    while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                         #waiting for vmmanager stop vm to finish reading/writing...
                         time.sleep(.1)
             logging.debug("runStopExperiment(): Complete...")
@@ -221,7 +221,7 @@ class ExperimentManageVBox(ExperimentManage):
                         continue
                     logging.error("runRemoveExperiment(): Removing: " + str(vmName))
                     self.vmManage.removeVM(cloneVMName)
-                    while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                    while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                         #waiting for vmmanager stop vm to finish reading/writing...
                         time.sleep(.1)
             logging.debug("runRemoveExperiment(): Complete...")
@@ -260,7 +260,7 @@ class ExperimentManageVBox(ExperimentManage):
                         continue
                     logging.debug("runRestoreExperiment(): Restoring latest for : " + str(cloneVMName))
                     self.vmManage.restoreLatestSnapVM(cloneVMName)
-                    while self.vmManage.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE and self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                    while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                         #waiting for vmmanager stop vm to finish reading/writing...
                         time.sleep(.1)
             logging.debug("runRestoreExperiment(): Complete...")

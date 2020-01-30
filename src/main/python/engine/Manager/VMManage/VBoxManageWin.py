@@ -22,7 +22,7 @@ class VBoxManageWin(VMManage):
         self.vbox_path = self.cf.getConfig()['VBOX']['VBOX_PATH']
         if initializeVMManage:
             self.refreshAllVMInfo()
-            while self.getManagerStatus()["readStatus"] != VMManage.MANAGER_IDLE:
+            while self.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                 #waiting for manager to finish query...
                 time.sleep(.1)
 
@@ -58,7 +58,7 @@ class VBoxManageWin(VMManage):
         logging.debug("VBoxManageWin: runVMSInfo(): instantiated")
         #run vboxmanage to get vm listing
         self.readStatus = VMManage.MANAGER_READING
-        self.writeStatus = VMManage.MANAGER_WRITING
+        self.writeStatus += 1
         #clear out the current set
         self.vms = {}
         vmListCmd = self.vbox_path + " list vms"
@@ -126,23 +126,19 @@ class VBoxManageWin(VMManage):
 
                 p.wait()
                 vmNum = vmNum + 1
-            self.readStatus = VMManage.MANAGER_IDLE
-            self.writeStatus = VMManage.MANAGER_IDLE
             logging.info("runVMSInfo(): Thread 2 completed: " + vmShowInfoCmd)
         except Exception:
             logging.error("Error in runVMSInfo(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.readStatus = VMManage.MANAGER_IDLE
-            self.writeStatus = VMManage.MANAGER_IDLE
         finally:
             self.readStatus = VMManage.MANAGER_IDLE
-            self.writeStatus = VMManage.MANAGER_IDLE
+            self.writeStatus -= 1
 
     def runVMInfo(self, aVM):
         logging.debug("VBoxManageWin: runVMSInfo(): instantiated")
         self.readStatus = VMManage.MANAGER_READING
-        self.writeStatus = VMManage.MANAGER_WRITING
+        self.writeStatus += 1
         vmShowInfoCmd = self.vbox_path + " showvminfo " + self.vms[aVM].UUID + " --machinereadable"
         logging.debug("runVMSInfo(): Running " + vmShowInfoCmd)
         p = Popen(vmShowInfoCmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
@@ -175,30 +171,32 @@ class VBoxManageWin(VMManage):
                         self.vms[aVM].state = VM.VM_STATE_OTHER
         p.wait()
         self.readStatus = VMManage.MANAGER_IDLE
-        self.writeStatus = VMManage.MANAGER_IDLE
+        self.writeStatus -= 1
         logging.debug("runVMInfo(): Thread completed")
 
     def runConfigureVMNet(self, vmName, netNum, netName):
         try:
             logging.debug("VBoxManageWin: runConfigureVMNet(): instantiated")
-            self.writeStatus = VMManage.MANAGER_WRITING
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
             vmConfigVMCmd = self.vbox_path + " modifyvm " + str(self.vms[vmName].UUID) + " --nic" + str(netNum) + " intnet " + " --intnet" + str(netNum) + " " + str(netName) + " --cableconnected"  + str(netNum) + " on "
             logging.debug("runConfigureVM(): Running " + vmConfigVMCmd)
             subprocess.check_output(vmConfigVMCmd, encoding='utf-8')
             
-            self.writeStatus = VMManage.MANAGER_IDLE
             logging.debug("runConfigureVMNet(): Thread completed")
         except Exception:
             logging.error("runConfigureVMNet() Error: " + " cmd: " + vmConfigVMCmd)
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.writeStatus = VMManage.MANAGER_IDLE
+        finally:
+            self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus -= 1
 
     def runVMCmd(self, cmd):
         logging.debug("VBoxManageWin: runVMCmd(): instantiated")
         try:
-            self.writeStatus = VMManage.MANAGER_WRITING
             self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
             vmCmd = self.vbox_path + " " + cmd
             logging.debug("runVMCmd(): Running " + vmCmd)
             p = Popen(vmCmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
@@ -209,19 +207,15 @@ class VBoxManageWin(VMManage):
                 if out != '':
                     logging.debug("output line: " + out)
             p.wait()
-            
-            self.readStatus = VMManage.MANAGER_IDLE
-            self.writeStatus = VMManage.MANAGER_IDLE
+
             logging.debug("runVMCmd(): Thread completed")
         except Exception:
             logging.error("runVMCmd() Error: " + " cmd: " + cmd)
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.readStatus = VMManage.MANAGER_IDLE
-            self.writeStatus = VMManage.MANAGER_IDLE
         finally:
             self.readStatus = VMManage.MANAGER_IDLE
-            self.writeStatus = VMManage.MANAGER_IDLE
+            self.writeStatus -= 1
 
     def getVMStatus(self, vmName):
         logging.debug("VBoxManageWin: getVMStatus(): instantiated " + vmName)
@@ -235,8 +229,6 @@ class VBoxManageWin(VMManage):
         
     def getManagerStatus(self):
         logging.debug("VBoxManageWin: getManagerStatus(): instantiated")
-        if self.readStatus == VMManage.MANAGER_UNKNOWN or self.writeStatus == VMManage.MANAGER_UNKNOWN:
-            logging.error("No status available, you must run refreshAllVMInfo() to initialize the Manager")
         vmStatus = {}
         for vmName in self.vms:
             resVM = self.vms[vmName]
@@ -330,14 +322,14 @@ class VBoxManageWin(VMManage):
 
     def runCloneVM(self, vmName, cloneName, cloneSnapshots, linkedClones, groupName):
         logging.debug("VBoxManageWin: runCloneVM(): instantiated")
-        self.writeStatus = VMManage.MANAGER_WRITING
-        self.readStatus = VMManage.MANAGER_READING
         try:
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
             #First check that the clone doesn't exist:
             if cloneName in self.vms:
                 logging.error("runCloneVM(): A VM with the clone name already exists and is registered... skipping " + str(cloneName))
                 self.readStatus = VMManage.MANAGER_IDLE
-                self.writeStatus = VMManage.MANAGER_IDLE
+                self.writeStatus -= 1
                 return
             #Call runVMCommand
             #cloneCmd = [self.vbox_path, "clonevm", self.vms[vmName].UUID, "--register"]
@@ -362,8 +354,8 @@ class VBoxManageWin(VMManage):
                         logging.error("runCloneVM(): Using the link clone option requires that VMs contain a snapshot. No snapshot found for vm: " + vmName)
                         exc_type, exc_value, exc_traceback = sys.exc_info()
                         traceback.print_exception(exc_type, exc_value, exc_traceback)
-                        self.writeStatus = VMManage.MANAGER_IDLE
                         self.readStatus = VMManage.MANAGER_IDLE
+                        self.writeStatus -= 1
                         return
                 else:
                     cloneCmd += " --mode "
@@ -383,18 +375,15 @@ class VBoxManageWin(VMManage):
             result = subprocess.check_output(groupCmd, encoding='utf-8')
 
             logging.debug("runCloneVM(): Clone Created: " + str(cloneName) + " and placed into group: " + groupName)
-            self.writeStatus = VMManage.MANAGER_IDLE
             self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus -= 1
         except Exception:
             logging.error("runCloneVM(): Error in runCloneVM(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.writeStatus = VMManage.MANAGER_IDLE
             self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus -= 1
             return
-        finally:
-            self.writeStatus = VMManage.MANAGER_IDLE
-            self.readStatus = VMManage.MANAGER_IDLE  
 
     def enableVRDPVM(self, vmName, vrdpPort):
         logging.debug("VBoxManageWin: enabledVRDP(): instantiated")
@@ -408,8 +397,8 @@ class VBoxManageWin(VMManage):
 
     def runEnableVRDP(self, vmName, vrdpPort):
         logging.debug("VBoxManageWin: enabledVRDP(): instantiated")
-        self.writeStatus = VMManage.MANAGER_WRITING
         self.readStatus = VMManage.MANAGER_READING
+        self.writeStatus += 1
         try:
             #vrdpCmd = [self.vbox_path, "modifyvm", vmName, "--vrde", "on", "--vrdeport", str(vrdpPort)]
             vrdpCmd = self.vbox_path + " modifyvm " + str(vmName) + " --vrde " + " on " + " --vrdeport " + str(vrdpPort)
@@ -424,18 +413,15 @@ class VBoxManageWin(VMManage):
             logging.debug("enabledVRDP(): executing: " + str(vrdpCmd))
             result = subprocess.check_output(vrdpCmd, encoding='utf-8')
             logging.debug("enabledVRDP(): completed")
-            self.writeStatus = VMManage.MANAGER_IDLE
-            self.readStatus = VMManage.MANAGER_IDLE
+
         except Exception:
-                logging.error("runCloneVM(): Error in runEnableVRDP(): An error occured ")
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                traceback.print_exception(exc_type, exc_value, exc_traceback)
-                self.writeStatus = VMManage.MANAGER_IDLE
-                self.readStatus = VMManage.MANAGER_IDLE
-                return
+            logging.error("runCloneVM(): Error in runEnableVRDP(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
         finally:
-                self.writeStatus = VMManage.MANAGER_IDLE
-                self.readStatus = VMManage.MANAGER_IDLE
+            self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus -= 1
+            return
 
     def restoreLatestSnapVM(self, vmName):
         logging.debug("VBoxManageWin: restoreLatestSnapVM(): instantiated")

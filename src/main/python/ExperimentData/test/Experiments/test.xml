@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xml>
+	<vbox-setup>
+		<path-to-vboxmanage>VBoxManage</path-to-vboxmanage>
+	</vbox-setup>
+	<testbed-setup>
+		<network-config>
+			<ip-address>11.0.0.2</ip-address>
+		</network-config>
+		<vm-set>
+			<base-groupname>test</base-groupname>
+			<num-clones>5</num-clones>
+			<linked-clones>true</linked-clones>
+			<clone-snapshots>true</clone-snapshots>
+			<base-outname>_set_</base-outname>
+			<vrdp-baseport>1001</vrdp-baseport>
+			<vm>
+				<name>default</name>
+				<vrdp-enabled>true</vrdp-enabled>
+				<internalnet-basename>intnet</internalnet-basename>
+			</vm>
+		</vm-set>
+	</testbed-setup>
+</xml>
