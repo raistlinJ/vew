@@ -229,7 +229,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
             connCreatePayload = {"name":connName,
             "parentIdentifier":"ROOT",
             "protocol":"rdp",
-            "attributes":{"max-connections":maxConnections, "max-connections-per-user":maxConnectionsPerUser},
+            "attributes":{"max-connections":maxConnectionsPerUser, "max-connections-per-user":maxConnectionsPerUser},
             "activeConnections":0,
             "parameters":{
                 "port":port,
