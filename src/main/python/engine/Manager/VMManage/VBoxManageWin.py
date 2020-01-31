@@ -27,14 +27,47 @@ class VBoxManageWin(VMManage):
                 time.sleep(.1)
 
     def configureVMNet(self, vmName, netNum, netName):
-        logging.info("VBoxManageWin: configureVM(): instantiated")
+        logging.info("VBoxManageWin: configureVMNet(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
         if vmName not in self.vms:
-            logging.error("configureVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+            logging.error("configureVMNet(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
             return -1
         t = threading.Thread(target=self.runConfigureVMNet, args=(vmName, netNum, netName))
         t.start()
-        return 0   
+        return 0
+
+    def configureVMNets(self, vmName, internalNets):
+        logging.info("VBoxManageWin: configureVMNets(): instantiated")
+        #check to make sure the vm is known, if not should refresh or check name:
+        if vmName not in self.vms:
+            logging.error("configureVMNets(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+            return -1
+        t = threading.Thread(target=self.runConfigureVMNets, args=(vmName, internalNets))
+        t.start()
+        return 0
+
+    def runConfigureVMNets(self, vmName, internalNets):
+        try:
+            logging.debug("VBoxManageWin: runConfigureVMNets(): instantiated")
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            
+            cloneNetNum = 1
+            logging.debug("VBoxManageWin(): Processing internal net names: " + str(internalNets))
+            for internalnet in internalNets:
+                vmConfigVMCmd = self.vbox_path + " modifyvm " + str(self.vms[vmName].UUID) + " --nic" + str(cloneNetNum) + " intnet " + " --intnet" + str(cloneNetNum) + " " + str(internalnet) + " --cableconnected"  + str(cloneNetNum) + " on "
+                logging.debug("runConfigureVM(): Running " + vmConfigVMCmd)
+                subprocess.check_output(vmConfigVMCmd, encoding='utf-8')
+                cloneNetNum += 1            
+           
+            logging.debug("runConfigureVMNets(): Thread completed")
+        except Exception:
+            logging.error("runConfigureVMNets() Error: " + " cmd: " + vmConfigVMCmd)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+        finally:
+            self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus -= 1
 
     def refreshAllVMInfo(self):
         logging.info("VBoxManageWin: refreshAllVMInfo(): instantiated")
@@ -310,6 +343,69 @@ class VBoxManageWin(VMManage):
         t.start()
         return 0
 
+    def cloneVMConfigAll(self, vmName, cloneName, cloneSnapshots, linkedClones, groupName, internalNets, vrdpPort):
+        logging.debug("VBoxManageWin: cloneVMConfigAll(): instantiated")
+        #check to make sure the vm is known, if not should refresh or check name:
+        if vmName not in self.vms:
+            logging.error("cloneVMConfigAll(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+            return -1
+        t = threading.Thread(target=self.runCloneVMConfigAll, args=(vmName, cloneName, cloneSnapshots, linkedClones, groupName, internalNets, vrdpPort))
+        t.start()
+        return 0
+
+    def runCloneVMConfigAll(self, vmName, cloneName, cloneSnapshots, linkedClones, groupName, internalNets, vrdpPort):
+        logging.debug("VBoxManageWin: runCloneVMConfigAll(): instantiated")
+
+        try:
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+
+            #first clone
+            #Check that vm does exist
+            if vmName not in self.vms:
+                logging.error("cloneVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+                self.readStatus = VMManage.MANAGER_IDLE
+                self.writeStatus -= 1
+                return
+            #Check that clone does not yet exist
+            self.runCloneVM(vmName, cloneName, cloneSnapshots, linkedClones, groupName)
+            
+            #pick up the new VM and any other changes
+            self.runVMSInfo()
+            #netsetup
+            if cloneName not in self.vms:
+                logging.error("configureVMNets(): " + cloneName + " not found in list of known vms: \r\n" + str(self.vms))
+                self.readStatus = VMManage.MANAGER_IDLE
+                self.writeStatus -= 1
+                return
+            self.runConfigureVMNets(cloneName, internalNets)
+
+            #vrdp setup (if applicable)
+            if vrdpPort != None:
+                self.runEnableVRDP(cloneName, vrdpPort)
+            
+            #create snap
+            snapcmd = self.vbox_path + " snapshot " + str(self.vms[cloneName].UUID) + " take snapshot"
+            logging.debug("runCloneVMConfigAll(): Running " + snapcmd)
+            p = Popen(snapcmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
+            while True:
+                out = p.stdout.readline()
+                if out == '' and p.poll() != None:
+                    break
+                if out != '':
+                    logging.debug("runCloneVMConfigAll(): snapproc out: " + out)
+            p.wait()
+            logging.debug("runCloneVMConfigAll(): Thread completed")
+
+        except Exception:
+            logging.error("runCloneVMConfigAll(): Error in runCloneVMConfigAll(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+        finally:
+            self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus -= 1
+            return
+
     def cloneVM(self, vmName, cloneName, cloneSnapshots, linkedClones, groupName):
         logging.debug("VBoxManageWin: cloneVM(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
@@ -332,7 +428,6 @@ class VBoxManageWin(VMManage):
                 self.writeStatus -= 1
                 return
             #Call runVMCommand
-            #cloneCmd = [self.vbox_path, "clonevm", self.vms[vmName].UUID, "--register"]
             cloneCmd = self.vbox_path + " clonevm " + str(self.vms[vmName].UUID) + " --register"
             #NOTE, the following logic is not in error. Linked clone can only be created from a snapshot.
             if cloneSnapshots == 'true':
