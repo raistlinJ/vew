@@ -107,4 +107,4 @@ python TestEngine.py
 
 ### Troubleshooting
 
-RES is stil under development, please bear with us and contribute!
+RES is stil under development, please contribute!
