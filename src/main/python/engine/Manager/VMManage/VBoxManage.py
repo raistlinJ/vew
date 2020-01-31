@@ -42,6 +42,40 @@ class VBoxManage(VMManage):
             print("Sorry your platform is not supported")
             return -1     
 
+
+    def configureVMNets(self, vmName, internalNets):
+        logging.info("VBoxManageWin: configureVMNets(): instantiated")
+        #check to make sure the vm is known, if not should refresh or check name:
+        if vmName not in self.vms:
+            logging.error("configureVMNets(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+            return -1
+        t = threading.Thread(target=self.runConfigureVMNets, args=(vmName, internalNets))
+        t.start()
+        return 0
+
+    def runConfigureVMNets(self, vmName, internalNets):
+        try:
+            logging.debug("VBoxManageWin: runConfigureVMNets(): instantiated")
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            
+            cloneNetNum = 1
+            logging.debug("VBoxManageWin(): Processing internal net names: " + str(internalNets))
+            for internalnet in internalNets:
+                vmConfigVMCmd = self.vbox_path + " modifyvm " + str(self.vms[vmName].UUID) + " --nic" + str(cloneNetNum) + " intnet " + " --intnet" + str(cloneNetNum) + " " + str(internalnet) + " --cableconnected"  + str(cloneNetNum) + " on "
+                logging.debug("runConfigureVM(): Running " + vmConfigVMCmd)
+                subprocess.check_output(vmConfigVMCmd, encoding='utf-8')
+                cloneNetNum += 1            
+           
+            logging.debug("runConfigureVMNets(): Thread completed")
+        except Exception:
+            logging.error("runConfigureVMNets() Error: " + " cmd: " + vmConfigVMCmd)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+        finally:
+            self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus -= 1
+
     def refreshAllVMInfo(self):
         logging.info("VBoxManage: refreshAllVMInfo(): instantiated")
         
