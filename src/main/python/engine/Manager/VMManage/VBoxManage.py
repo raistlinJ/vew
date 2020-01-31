@@ -64,7 +64,7 @@ class VBoxManage(VMManage):
             for internalnet in internalNets:
                 vmConfigVMCmd = self.vbox_path + " modifyvm " + str(self.vms[vmName].UUID) + " --nic" + str(cloneNetNum) + " intnet " + " --intnet" + str(cloneNetNum) + " " + str(internalnet) + " --cableconnected"  + str(cloneNetNum) + " on "
                 logging.debug("runConfigureVM(): Running " + vmConfigVMCmd)
-                subprocess.check_output(vmConfigVMCmd, encoding='utf-8')
+                subprocess.check_output(shlex.split(vmConfigVMCmd, posix=self.POSIX), encoding='utf-8')
                 cloneNetNum += 1            
            
             logging.debug("runConfigureVMNets(): Thread completed")
@@ -430,7 +430,7 @@ class VBoxManage(VMManage):
             #create snap
             snapcmd = self.vbox_path + " snapshot " + str(self.vms[cloneName].UUID) + " take snapshot"
             logging.debug("runCloneVMConfigAll(): Running " + snapcmd)
-            p = Popen(snapcmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
+            p = Popen(shlex.split(snapcmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
                 out = p.stdout.readline()
                 if out == '' and p.poll() != None:
