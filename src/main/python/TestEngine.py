@@ -32,7 +32,7 @@ if __name__ == "__main__":
     res = e.execute("vm-manage vmstatus defaulta")
     res = e.execute("vm-manage mgrstatus")
     logging.debug("Returned: " + str(res))
-    while res["readStatus"] != VMManage.MANAGER_IDLE and res["readStatus"] != VMManage.MANAGER_UNKNOWN:
+    while res["writeStatus"] != VMManage.MANAGER_IDLE:
         time.sleep(.1)
         logging.debug("Waiting for vmstatus to complete...")
         res = e.execute("vm-manage mgrstatus")
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     res = e.execute("vm-manage refresh")    
     res = e.execute("vm-manage mgrstatus")
     logging.debug("Returned: " + str(res))
-    while res["readStatus"] != VMManage.MANAGER_IDLE:
+    while res["writeStatus"] != VMManage.MANAGER_IDLE:
         time.sleep(.1)
         logging.debug("Waiting for vmrefresh to complete...")
         res = e.execute("vm-manage mgrstatus")
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     logging.debug("VM-Manage Status of defaulta: " + str(res))
     res = e.execute("vm-manage mgrstatus")
     logging.debug("Returned: " + str(res))
-    while res["readStatus"] != VMManage.MANAGER_IDLE:
+    while res["writeStatus"] != VMManage.MANAGER_IDLE:
         time.sleep(.1)
         logging.debug("Waiting for vmstatus to complete...")
         res = e.execute("vm-manage mgrstatus")
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     res = e.execute("vm-manage refresh")    
     res = e.execute("vm-manage mgrstatus")
     logging.debug("Returned: " + str(res))
-    while res["readStatus"] != VMManage.MANAGER_IDLE:
+    while res["writeStatus"] != VMManage.MANAGER_IDLE:
         time.sleep(.1)
         logging.debug("Waiting for vmrefresh to complete...")
         res = e.execute("vm-manage mgrstatus")
