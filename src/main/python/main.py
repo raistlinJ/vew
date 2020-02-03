@@ -32,6 +32,7 @@ from gui.Dialogs.ExperimentAddDialog import ExperimentAddDialog
 from gui.Dialogs.ConnectionActionDialog import ConnectionActionDialog
 from gui.Dialogs.PackageImportDialog import PackageImportDialog
 from gui.Dialogs.PackageExportDialog import PackageExportDialog
+from gui.Dialogs.HypervisorOpenDialog import HypervisorOpenDialog
 
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -118,7 +119,7 @@ class MainApp(QMainWindow):
 
     def readSystemConfig(self):
         logging.debug("MainApp:readSystemConfig() instantiated")
-        self.vboxPath = self.cf.getConfig()['VBOX']['VBOX_PATH']
+        self.vboxPath = self.cf.getConfig()['VBOX']['VMANAGE_PATH']
         self.experimentPath = self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH']
         self.statusBar.showMessage("Finished reading system config")
     
@@ -354,6 +355,18 @@ class MainApp(QMainWindow):
             self.basedataStackedWidget.addWidget(vmWidget)
         self.statusBar.showMessage("Added " + str(len(vmsChosen)) + " VM files to experiment: " + str(selectedItemName))
 
+    def startHypervisorActionEvent(self):
+        logging.debug("MainApp:startHypervisorActionEvent() instantiated")
+        logging.debug("MainApp:startHypervisorActionEvent no configurations left")
+
+        # Try to open the hypervisor and check if it worked or not
+        result = HypervisorOpenDialog().hypervisorOpenDialog(self)
+        if result != "success":
+            logging.debug("startHypervisorActionEvent(): Could not start the hypervisor")
+            self.statusBar.showMessage("Hypervisor could not be started.")
+            return
+        
+        self.statusBar.showMessage("Started hypervisor.")
 
     def addMaterialActionEvent(self):
         logging.debug("MainApp:addMaterialActionEvent() instantiated")
@@ -518,8 +531,7 @@ class MainApp(QMainWindow):
         self.startHypervisorMenuButton = QAction(QIcon(), "Instantiate Hypervisor", self)
         self.startHypervisorMenuButton.setShortcut("Ctrl+O")
         self.startHypervisorMenuButton.setStatusTip("Start the hypervisor that is currently configured")
-        #self.startHypervisorMenuButton.triggered.connect(self.startHypervisorButton)
-        self.startHypervisorMenuButton.setEnabled(False)
+        self.startHypervisorMenuButton.triggered.connect(self.startHypervisorActionEvent)
         self.hypervisorMenu.addAction(self.startHypervisorMenuButton)
 
     def getWritableData(self, configname):
