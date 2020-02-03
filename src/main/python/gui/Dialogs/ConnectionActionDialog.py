@@ -40,7 +40,7 @@ class ConnectionActionDialog(QDialog):
         self.formGroupBox = QGroupBox("Form layout")
         self.layout = QFormLayout()
         self.hostnameLineEdit = QLineEdit("11.0.0.2:8080")
-        self.layout.addRow(QLabel("Hostname:"), self.hostnameLineEdit)
+        self.layout.addRow(QLabel("Hostname & Port (if applicable):"), self.hostnameLineEdit)
         self.usernameLineEdit = QLineEdit()
         self.layout.addRow(QLabel("Username:"), self.usernameLineEdit)
         self.passwordLineEdit = QLineEdit()

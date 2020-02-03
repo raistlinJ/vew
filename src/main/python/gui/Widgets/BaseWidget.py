@@ -34,7 +34,7 @@ class BaseWidget(QtWidgets.QWidget):
         self.vBoxMangeLineEdit = QtWidgets.QLineEdit()
         self.vBoxMangeLineEdit.setObjectName("vBoxMangeLineEdit")
         self.vBoxManageHorBox.addWidget(self.vBoxMangeLineEdit)
-        self.outerVertBox.addLayout(self.vBoxManageHorBox)
+        #self.outerVertBox.addLayout(self.vBoxManageHorBox)
 
         self.ipAddressHorBox = QtWidgets.QHBoxLayout()
         self.ipAddressHorBox.setObjectName("ipAddressHorBox")
