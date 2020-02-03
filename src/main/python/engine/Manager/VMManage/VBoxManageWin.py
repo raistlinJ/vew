@@ -19,7 +19,7 @@ class VBoxManageWin(VMManage):
         logging.info("VBoxManageWin.__init__(): instantiated")
         VMManage.__init__(self)
         self.cf = SystemConfigIO()
-        self.vbox_path = self.cf.getConfig()['VBOX']['VBOX_PATH']
+        self.vmanage_path = self.cf.getConfig()['VBOX']['VMANAGE_PATH']
         if initializeVMManage:
             self.refreshAllVMInfo()
             while self.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
@@ -55,7 +55,7 @@ class VBoxManageWin(VMManage):
             cloneNetNum = 1
             logging.debug("VBoxManageWin(): Processing internal net names: " + str(internalNets))
             for internalnet in internalNets:
-                vmConfigVMCmd = self.vbox_path + " modifyvm " + str(self.vms[vmName].UUID) + " --nic" + str(cloneNetNum) + " intnet " + " --intnet" + str(cloneNetNum) + " " + str(internalnet) + " --cableconnected"  + str(cloneNetNum) + " on "
+                vmConfigVMCmd = self.vmanage_path + " modifyvm " + str(self.vms[vmName].UUID) + " --nic" + str(cloneNetNum) + " intnet " + " --intnet" + str(cloneNetNum) + " " + str(internalnet) + " --cableconnected"  + str(cloneNetNum) + " on "
                 logging.debug("runConfigureVM(): Running " + vmConfigVMCmd)
                 subprocess.check_output(vmConfigVMCmd, encoding='utf-8')
                 cloneNetNum += 1            
@@ -94,7 +94,7 @@ class VBoxManageWin(VMManage):
         self.writeStatus += 1
         #clear out the current set
         self.vms = {}
-        vmListCmd = self.vbox_path + " list vms"
+        vmListCmd = self.vmanage_path + " list vms"
         logging.debug("runVMSInfo(): Collecting VM Names using cmd: " + vmListCmd)
         try:
             p = Popen(vmListCmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
@@ -126,7 +126,7 @@ class VBoxManageWin(VMManage):
             vmShowInfoCmd = ""
             for aVM in self.vms:
                 logging.debug("runVMSInfo(): collecting # " + str(vmNum) + " of " + str(len(self.vms)))
-                vmShowInfoCmd = self.vbox_path + " showvminfo " + str(self.vms[aVM].UUID) + " --machinereadable"
+                vmShowInfoCmd = self.vmanage_path + " showvminfo " + str(self.vms[aVM].UUID) + " --machinereadable"
                 logging.debug("runVMSInfo(): Running " + vmShowInfoCmd)
                 p = Popen(vmShowInfoCmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
                 while True:
@@ -172,7 +172,7 @@ class VBoxManageWin(VMManage):
         logging.debug("VBoxManageWin: runVMSInfo(): instantiated")
         self.readStatus = VMManage.MANAGER_READING
         self.writeStatus += 1
-        vmShowInfoCmd = self.vbox_path + " showvminfo " + self.vms[aVM].UUID + " --machinereadable"
+        vmShowInfoCmd = self.vmanage_path + " showvminfo " + self.vms[aVM].UUID + " --machinereadable"
         logging.debug("runVMSInfo(): Running " + vmShowInfoCmd)
         p = Popen(vmShowInfoCmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
         while True:
@@ -212,7 +212,7 @@ class VBoxManageWin(VMManage):
             logging.debug("VBoxManageWin: runConfigureVMNet(): instantiated")
             self.readStatus = VMManage.MANAGER_READING
             self.writeStatus += 1
-            vmConfigVMCmd = self.vbox_path + " modifyvm " + str(self.vms[vmName].UUID) + " --nic" + str(netNum) + " intnet " + " --intnet" + str(netNum) + " " + str(netName) + " --cableconnected"  + str(netNum) + " on "
+            vmConfigVMCmd = self.vmanage_path + " modifyvm " + str(self.vms[vmName].UUID) + " --nic" + str(netNum) + " intnet " + " --intnet" + str(netNum) + " " + str(netName) + " --cableconnected"  + str(netNum) + " on "
             logging.debug("runConfigureVM(): Running " + vmConfigVMCmd)
             subprocess.check_output(vmConfigVMCmd, encoding='utf-8')
             
@@ -230,7 +230,7 @@ class VBoxManageWin(VMManage):
         try:
             self.readStatus = VMManage.MANAGER_READING
             self.writeStatus += 1
-            vmCmd = self.vbox_path + " " + cmd
+            vmCmd = self.vmanage_path + " " + cmd
             logging.debug("runVMCmd(): Running " + vmCmd)
             p = Popen(vmCmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
@@ -385,7 +385,7 @@ class VBoxManageWin(VMManage):
                 self.runEnableVRDP(cloneName, vrdpPort)
             
             #create snap
-            snapcmd = self.vbox_path + " snapshot " + str(self.vms[cloneName].UUID) + " take snapshot"
+            snapcmd = self.vmanage_path + " snapshot " + str(self.vms[cloneName].UUID) + " take snapshot"
             logging.debug("runCloneVMConfigAll(): Running " + snapcmd)
             p = Popen(snapcmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
@@ -428,15 +428,15 @@ class VBoxManageWin(VMManage):
                 self.writeStatus -= 1
                 return
             #Call runVMCommand
-            cloneCmd = self.vbox_path + " clonevm " + str(self.vms[vmName].UUID) + " --register"
+            cloneCmd = self.vmanage_path + " clonevm " + str(self.vms[vmName].UUID) + " --register"
             #NOTE, the following logic is not in error. Linked clone can only be created from a snapshot.
             if cloneSnapshots == 'true':
                 if linkedClones == 'true':
                     try:
                         logging.debug("runCloneVM(): using linked clones")
                         # get the name of the newest snapshot
-                        #getSnapCmd = [self.vbox_path, "snapshot", self.vms[vmName].UUID, "list", "--machinereadable"]
-                        getSnapCmd = self.vbox_path + " snapshot " + str(self.vms[vmName].UUID) + " list" + " --machinereadable"
+                        #getSnapCmd = [self.vmanage_path, "snapshot", self.vms[vmName].UUID, "list", "--machinereadable"]
+                        getSnapCmd = self.vmanage_path + " snapshot " + str(self.vms[vmName].UUID) + " list" + " --machinereadable"
                         logging.error("runCloneVM(): getting snaps; executing: " + str(getSnapCmd))
                         snapList = subprocess.check_output(getSnapCmd, encoding='utf-8')
                         latestSnapUUID = snapList.split("CurrentSnapshotUUID=\"")[1].split("\"")[0]
@@ -463,8 +463,8 @@ class VBoxManageWin(VMManage):
 
             #since we added a VM, now we have to refresh the VM status            
 
-            #groupCmd = [self.vbox_path, "modifyvm", cloneName, "--groups", groupName]
-            groupCmd = self.vbox_path + " modifyvm " + str(cloneName) + " --groups " + str(groupName)
+            #groupCmd = [self.vmanage_path, "modifyvm", cloneName, "--groups", groupName]
+            groupCmd = self.vmanage_path + " modifyvm " + str(cloneName) + " --groups " + str(groupName)
             logging.debug("runCloneVM(): placing into group: " + str(groupName))
             logging.error("runCloneVM(): executing: " + str(groupCmd))
             result = subprocess.check_output(groupCmd, encoding='utf-8')
@@ -495,15 +495,15 @@ class VBoxManageWin(VMManage):
         self.readStatus = VMManage.MANAGER_READING
         self.writeStatus += 1
         try:
-            #vrdpCmd = [self.vbox_path, "modifyvm", vmName, "--vrde", "on", "--vrdeport", str(vrdpPort)]
-            vrdpCmd = self.vbox_path + " modifyvm " + str(vmName) + " --vrde " + " on " + " --vrdeport " + str(vrdpPort)
+            #vrdpCmd = [self.vmanage_path, "modifyvm", vmName, "--vrde", "on", "--vrdeport", str(vrdpPort)]
+            vrdpCmd = self.vmanage_path + " modifyvm " + str(vmName) + " --vrde " + " on " + " --vrdeport " + str(vrdpPort)
             logging.debug("enabledVRDP(): setting up vrdp for " + vmName)
             logging.debug("enabledVRDP(): executing: "+ str(vrdpCmd))
             result = subprocess.check_output(vrdpCmd, encoding='utf-8')
             #now these settings will help against the issue when users 
             #can't reconnect after an abrupt disconnect
             #https://www.virtualbox.org/ticket/2963
-            vrdpCmd = self.vbox_path + " modifyvm " + str(vmName) + " --vrdemulticon " + " on " #" --vrdereusecon " + " on " + " --vrdemulticon " + " off"
+            vrdpCmd = self.vmanage_path + " modifyvm " + str(vmName) + " --vrdemulticon " + " on " #" --vrdereusecon " + " on " + " --vrdemulticon " + " off"
             logging.debug("enabledVRDP(): Setting disconnect on new connection for " + vmName)
             logging.debug("enabledVRDP(): executing: " + str(vrdpCmd))
             result = subprocess.check_output(vrdpCmd, encoding='utf-8')

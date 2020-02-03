@@ -44,10 +44,10 @@ class SystemConfigIO():
 
         if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
             self.config['VBOX'] = {}
-            self.config['VBOX']['VBOX_PATH'] = "VBoxManage"
+            self.config['VBOX']['VMANAGE_PATH'] = "VBoxManage"
         else:
             self.config['VBOX'] = {}
-            self.config['VBOX']['VBOX_PATH'] = "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"
+            self.config['VBOX']['VMANAGE_PATH'] = "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"
         self.config['EXPERIMENTS'] = {}
         self.config['EXPERIMENTS']['EXPERIMENTS_PATH'] = "ExperimentData"
         self.config['EXPERIMENTS']['TEMP_DATA_PATH'] = "tmp"
