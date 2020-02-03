@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QStandardPaths
-import sys
+import sys, traceback
 import configparser
 import os
 import logging
@@ -25,22 +25,38 @@ class SystemConfigIO():
     def readConfig(self):
         logging.debug("SystemConfigIO: readConfig(): instantiated")
         logging.debug("readConfig(): checking if folder exists: " + self.path)
-        if os.path.exists(self.path):
-            logging.debug("readConfig(): folder was found: " + self.path)
-            logging.debug("readConfig(): checking if file exists: " + self.filename)
-            if os.path.exists(self.filename):
-                logging.debug("readConfig(): file was found: " + self.filename)
-                self.config.read(self.filename, encoding="utf-8")        
-                return
-        else:
-            try:
-                # Create target Directory
-                os.mkdir("config")
-                logging.debug("readConfig(): directory config created")
-            except FileExistsError:
-                logging.debug("readConfig(): Directory config already exists")
-            
-        logging.debug("readConfig(): file was NOT found: " + self.filename)
+        try:
+            if os.path.exists(self.path):
+                logging.debug("readConfig(): folder was found: " + self.path)
+                logging.debug("readConfig(): checking if file exists: " + self.filename)
+                if os.path.exists(self.filename):
+                    logging.debug("readConfig(): file was found: " + self.filename)
+                    self.config.read(self.filename, encoding="utf-8")        
+                    return
+            else:
+                try:
+                    # Create target Directory
+                    os.mkdir("config")
+                    logging.debug("readConfig(): directory config created")
+                except FileExistsError:
+                    logging.debug("readConfig(): Directory config already exists")
+                    return
+            logging.debug("readConfig(): file was NOT found: " + self.filename)
+
+            if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
+                self.config['VBOX'] = {}
+                self.config['VBOX']['VBOX_PATH'] = "VBoxManage"
+            else:
+                self.config['VBOX'] = {}
+                self.config['VBOX']['VBOX_PATH'] = "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"
+            self.config['EXPERIMENTS'] = {}
+            self.config['EXPERIMENTS']['EXPERIMENTS_PATH'] = "ExperimentData"
+            self.config['EXPERIMENTS']['TEMP_DATA_PATH'] = "tmp"
+        except Exception:
+            logging.error("Error in readConfig(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            return None
 
         if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
             self.config['VBOX'] = {}
@@ -58,15 +74,26 @@ class SystemConfigIO():
         return self.config
 
     #currently only accepts serverIP and username as saveable to the config file
-    def writeConfig(self, serverIP, username):
+    def writeConfig(self, key, subkey, value):
         logging.debug("SystemConfigIO: writeConfig(): instantiated")
         #Write any default values here, e.g., 
         #self.config['SERVER']['SERVER_IP'] = serverIP
         #self.config['SERVER']['USERNAME'] = username
-        logging.debug("writeConfig(): writing to file: " + self.filename)
-        with open(self.filename, 'w', encoding="utf-8") as configfile:
-            self.config.write(configfile)
-
+        try:
+            logging.debug("writeConfig(): making sure keys exist")
+            if key in self.config and subkey in self.config[key]:    
+                logging.debug("writeConfig(): writing to file: " + self.filename)
+                self.config[key][subkey] = value
+                with open(self.filename, 'w', encoding="utf-8") as configfile:
+                    self.config.write(configfile)
+            else:
+                logging.error("writeConfig(): Key or subkey do not exist in config" + str(key) + " " + str(subkey))
+        except Exception:
+            logging.error("Error in writeConfig(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            return None
+            
     def writablePath(self, suffix=None):
         logging.debug("SystemConfigIO: writablePath(): instantiated")
         if hasattr(QStandardPaths, "AppLocalDataLocation"):

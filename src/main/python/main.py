@@ -33,6 +33,7 @@ from gui.Dialogs.ConnectionActionDialog import ConnectionActionDialog
 from gui.Dialogs.PackageImportDialog import PackageImportDialog
 from gui.Dialogs.PackageExportDialog import PackageExportDialog
 from gui.Dialogs.HypervisorOpenDialog import HypervisorOpenDialog
+from gui.Dialogs.ConfigurationDialog import ConfigurationDialog
 
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -490,6 +491,11 @@ class MainApp(QMainWindow):
 
         self.statusBar.showMessage("Exported to " + folderChosen)
 
+    def editPathActionEvent(self):
+        logging.debug("MainApp:editPathActionEvent() instantiated")
+        result = ConfigurationDialog(self).exec_()
+        
+
     def closeEvent(self, event):
         logging.debug("MainApp:closeEvent(): instantiated")
         logging.debug("closeEvent(): returning accept")
@@ -501,6 +507,7 @@ class MainApp(QMainWindow):
         
         mainMenu = self.menuBar()
         self.fileMenu = mainMenu.addMenu("File")
+        self.editMenu = mainMenu.addMenu("Edit")
         self.hypervisorMenu = mainMenu.addMenu("Hypervisor")
         
         self.newExperimentMenuButton = QAction(QIcon(), "New Experiment", self)
@@ -527,6 +534,12 @@ class MainApp(QMainWindow):
         self.exitMenuButton.setStatusTip("Exit application")
         self.exitMenuButton.triggered.connect(self.close)
         self.fileMenu.addAction(self.exitMenuButton)
+
+        self.pathMenuButton = QAction(QIcon(), "Edit Paths", self)
+        self.pathMenuButton.setShortcut("Ctrl+E")
+        self.pathMenuButton.setStatusTip("Edit Paths")
+        self.pathMenuButton.triggered.connect(self.editPathActionEvent)
+        self.editMenu.addAction(self.pathMenuButton)
 
         self.startHypervisorMenuButton = QAction(QIcon(), "Instantiate Hypervisor", self)
         self.startHypervisorMenuButton.setShortcut("Ctrl+O")
