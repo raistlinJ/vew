@@ -56,7 +56,7 @@ class ConnectionActionDialog(QDialog):
         
         self.maxConnectionsLineEdit = QLineEdit("1")
         self.heightLineEdit = QLineEdit("1280")
-        self.widthLineEdit = QLineEdit("768")
+        self.widthLineEdit = QLineEdit("1024")
         if self.actionname == "Add":
             #Need to make a function to create more than one user to a single instance 
             # self.layout.addRow(QLabel("Max Connections Per Instance:"), self.maxConnectionsLineEdit)      

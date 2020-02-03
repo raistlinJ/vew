@@ -15,7 +15,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
         self.eco = ExperimentConfigIO()
 
     #abstractmethod
-    def createConnections(self, configname, guacHostname, username, password, url_path, method, maxConnections="", maxConnectionsPerUser="", width="1280", height="768"):
+    def createConnections(self, configname, guacHostname, username, password, url_path, method, maxConnections="", maxConnectionsPerUser="", width="1280", height="1024"):
         logging.debug("createConnections(): instantiated")
         t = threading.Thread(target=self.runCreateConnections, args=(configname, guacHostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height))
         t.start()

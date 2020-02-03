@@ -282,7 +282,7 @@ class Engine:
                                           help='Max number of connections allowed per user per remote conn')
         self.connectionManageCreateParser.add_argument('width', metavar='<width>', action="store", default="1280",
                                           help='Width of remote connection display')
-        self.connectionManageCreateParser.add_argument('height', metavar='<height>', action="store", default="768",
+        self.connectionManageCreateParser.add_argument('height', metavar='<height>', action="store", default="1024",
                                           help='Height of remote connection display')
         self.connectionManageCreateParser.set_defaults(func=self.connectionCreateCmd)
         
