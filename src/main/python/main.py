@@ -32,6 +32,7 @@ from gui.Dialogs.ExperimentAddDialog import ExperimentAddDialog
 from gui.Dialogs.ConnectionActionDialog import ConnectionActionDialog
 from gui.Dialogs.PackageImportDialog import PackageImportDialog
 from gui.Dialogs.PackageExportDialog import PackageExportDialog
+from gui.Dialogs.HypervisorOpenDialog import HypervisorOpenDialog
 
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -55,6 +56,8 @@ class MainApp(QMainWindow):
         quit.triggered.connect(self.closeEvent)
         self.setWindowTitle("ARL South RES v0.1")
 
+        self.initMenu()
+
         self.tabWidget = QtWidgets.QTabWidget()
         self.tabWidget.setGeometry(QtCore.QRect(0, 15, 668, 565))
         self.tabWidget.setObjectName("tabWidget")
@@ -66,7 +69,7 @@ class MainApp(QMainWindow):
         self.windowWidget = QtWidgets.QWidget()
         self.windowWidget.setObjectName("windowWidget")
         self.windowBoxHLayout = QtWidgets.QHBoxLayout()
-        self.windowBoxHLayout.setContentsMargins(0, 0, 0, 0)
+        #self.windowBoxHLayout.setContentsMargins(0, 0, 0, 0)
         self.windowBoxHLayout.setObjectName("windowBoxHLayout")
         self.windowWidget.setLayout(self.windowBoxHLayout)
 
@@ -91,12 +94,12 @@ class MainApp(QMainWindow):
         self.experimentActionsWidget.setObjectName("experimentActionsWidget")
         self.tabWidget.addTab(self.experimentActionsWidget, "Experiment Actions")      
 
-        ##Create the bottom layout so that we can access the status bar
+        #Create the bottom layout so that we can access the status bar
         self.bottomLayout = QHBoxLayout()
         self.statusBar.showMessage("Loading GUI...")
         self.bottomLayout.addWidget(self.statusBar)
         self.saveButton = QtWidgets.QPushButton("Save Current")
-        self.saveButton.clicked.connect(self.buttonSaveExperiment)
+        self.saveButton.clicked.connect(self.saveExperimentButton)
         self.saveButton.setEnabled(False)
         self.bottomLayout.addWidget(self.saveButton)
 
@@ -116,7 +119,7 @@ class MainApp(QMainWindow):
 
     def readSystemConfig(self):
         logging.debug("MainApp:readSystemConfig() instantiated")
-        self.vboxPath = self.cf.getConfig()['VBOX']['VBOX_PATH']
+        self.vboxPath = self.cf.getConfig()['VBOX']['VMANAGE_PATH']
         self.experimentPath = self.cf.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH']
         self.statusBar.showMessage("Finished reading system config")
     
@@ -126,7 +129,7 @@ class MainApp(QMainWindow):
         self.blankTreeContextMenu = QtWidgets.QMenu()
        	self.addExperiment = self.blankTreeContextMenu.addAction("New Experiment")
        	self.addExperiment.triggered.connect(self.addExperimentActionEvent)
-        self.importExperiment = self.blankTreeContextMenu.addAction("Import Experiment from EBX archive")
+        self.importExperiment = self.blankTreeContextMenu.addAction("Import Experiment from RES archive")
         self.importExperiment.triggered.connect(self.importActionEvent)
 
     # Experiment context menu
@@ -212,7 +215,7 @@ class MainApp(QMainWindow):
                     vmlabel = "V: " + vm["name"]
                     vm_item.setText(0,vmlabel)
                     # VM Config Widget
-                    vmWidget = VMWidget(self, configname, vm["name"], vm)
+                    vmWidget = VMWidget(None, configname, vm["name"], vm)
                     self.baseWidgets[configname]["VMWidgets"][vmlabel] = vmWidget
                     self.basedataStackedWidget.addWidget(vmWidget)
             else:
@@ -220,7 +223,7 @@ class MainApp(QMainWindow):
                 vmlabel = "V: " + vmsjsondata["name"]
                 vm_item.setText(0,vmlabel)
                 # VM Config Widget
-                vmWidget = VMWidget(self, configname, vmsjsondata["name"], vmsjsondata)
+                vmWidget = VMWidget(None, configname, vmsjsondata["name"], vmsjsondata)
                 self.baseWidgets[configname]["VMWidgets"][vmlabel] = vmWidget
                 self.basedataStackedWidget.addWidget(vmWidget)
 
@@ -233,7 +236,7 @@ class MainApp(QMainWindow):
                     materiallabel = "M: " + material["name"]
                     material_item.setText(0,materiallabel)
                     # Material Config Widget
-                    materialWidget = MaterialWidget(self, configname, material["name"], material)
+                    materialWidget = MaterialWidget(None, configname, material["name"], material)
                     self.baseWidgets[configname]["MaterialWidgets"][materiallabel] = materialWidget
                     self.basedataStackedWidget.addWidget(materialWidget)
             else:
@@ -241,7 +244,7 @@ class MainApp(QMainWindow):
                 materiallabel = "M: " + materialsjsondata["name"]
                 material_item.setText(0,materiallabel)
                 # Material Config Widget
-                materialWidget = MaterialWidget(self, configname, materialsjsondata["name"], materialsjsondata)
+                materialWidget = MaterialWidget(None, configname, materialsjsondata["name"], materialsjsondata)
                 self.baseWidgets[configname]["MaterialWidgets"][materiallabel] = materialWidget
                 self.basedataStackedWidget.addWidget(materialWidget)
         logging.debug("MainApp(): Finished loading configname: " + str(configname))
@@ -256,6 +259,7 @@ class MainApp(QMainWindow):
             return
         # Now enable the save button
         self.saveButton.setEnabled(True)
+        self.saveExperimentMenuButton.setEnabled(True)
         #Check if it's the case that an experiment name was selected
         parentSelectedItem = selectedItem.parent()
         if(parentSelectedItem == None):
@@ -351,6 +355,18 @@ class MainApp(QMainWindow):
             self.basedataStackedWidget.addWidget(vmWidget)
         self.statusBar.showMessage("Added " + str(len(vmsChosen)) + " VM files to experiment: " + str(selectedItemName))
 
+    def startHypervisorActionEvent(self):
+        logging.debug("MainApp:startHypervisorActionEvent() instantiated")
+        logging.debug("MainApp:startHypervisorActionEvent no configurations left")
+
+        # Try to open the hypervisor and check if it worked or not
+        result = HypervisorOpenDialog().hypervisorOpenDialog(self)
+        if result != "success":
+            logging.debug("startHypervisorActionEvent(): Could not start the hypervisor")
+            self.statusBar.showMessage("Hypervisor could not be started.")
+            return
+        
+        self.statusBar.showMessage("Started hypervisor.")
 
     def addMaterialActionEvent(self):
         logging.debug("MainApp:addMaterialActionEvent() instantiated")
@@ -476,55 +492,6 @@ class MainApp(QMainWindow):
 
     def closeEvent(self, event):
         logging.debug("MainApp:closeEvent(): instantiated")
-        e = Engine.getInstance()
-        # res = e.execute("pptp status " + ConnectionBox.CONNECTION_NAME)
-        # logging.debug("delete_event(): result: " + str(res))
-        # if res == -1:
-        #     self.destroy()
-        #     #continue with any other destruction
-        #     logging.debug("closeEvent(): accept()")
-        #     self.connectionBox.killConnThread()
-        #     event.accept()
-        #     qApp.quit()
-        #     return
-        # result = res["connStatus"]
-        # if result == Connection.NOT_CONNECTED:
-        #     #continue with any other destruction
-        #     logging.debug("closeEvent(): returning accept()")
-        #     self.connectionBox.killConnThread()
-        #     qApp.quit()
-        #     event.accept()
-        #     return
-        # if result == Connection.CONNECTING:
-        #     close = QMessageBox.warning(self,
-        #                                  "Busy",
-        #                                  "Connection is busy, try again later",
-        #                                  QMessageBox.Ok)            
-        # elif result == Connection.CONNECTED:
-        #     close = QMessageBox.question(self,
-        #                                  "QUIT",
-        #                                  "Disconnect and quit?",
-        #                                  QMessageBox.Yes | QMessageBox.No)
-        #     if close == QMessageBox.Yes:
-        #         logging.debug("closeEvent(): opening disconnect dialog")
-        #         #need to create a thread (probably a dialog box with disabled ok button until connection either times out (5 seconds), connection good
-        #         e = Engine.getInstance()
-        #         e.execute("pptp stop " + ConnectionBox.CONNECTION_NAME)
-        #         s = DisconnectingDialog(None, ConnectionBox.CONNECTION_NAME).exec_()
-        #         if s["connStatus"] == Connection.NOT_CONNECTED:
-        #             self.connectionBox.killConnThread()
-        #             event.accept()
-        #             qApp.quit()
-        #             return
-        #         else:
-        #             close = QMessageBox.warning(self,
-        #                                  "Busy",
-        #                                  "Connection is busy, try again later",
-        #                                  QMessageBox.Ok)            
-        #             event.ignore()
-        #             return
-        #logging.debug("closeEvent(): returning ignore")
-        #event.ignore()
         logging.debug("closeEvent(): returning accept")
         event.accept()
         qApp.quit()
@@ -532,14 +499,40 @@ class MainApp(QMainWindow):
     
     def initMenu(self):               
         
-        exitAct = QAction(QIcon('exit.png'), '&Exit', self)        
-        exitAct.setShortcut('Ctrl+Q')
-        exitAct.setStatusTip('Exit application')
-        exitAct.triggered.connect(qApp.quit)
+        mainMenu = self.menuBar()
+        self.fileMenu = mainMenu.addMenu("File")
+        self.hypervisorMenu = mainMenu.addMenu("Hypervisor")
+        
+        self.newExperimentMenuButton = QAction(QIcon(), "New Experiment", self)
+        self.newExperimentMenuButton.setShortcut("Ctrl+N")
+        self.newExperimentMenuButton.setStatusTip("Create New Experiment")
+        self.newExperimentMenuButton.triggered.connect(self.addExperimentActionEvent)
+        self.fileMenu.addAction(self.newExperimentMenuButton)
 
-        menubar = self.menuBar()
-        fileMenu = menubar.addMenu('&File')
-        fileMenu.addAction(exitAct)
+        self.importExperimentMenuButton = QAction(QIcon(), "Import Experiment", self)
+        self.importExperimentMenuButton.setShortcut("Ctrl+I")
+        self.importExperimentMenuButton.setStatusTip("Import Experiment from RES File")
+        self.importExperimentMenuButton.triggered.connect(self.importActionEvent)
+        self.fileMenu.addAction(self.importExperimentMenuButton)
+
+        self.saveExperimentMenuButton = QAction(QIcon(), "Save Experiment", self)
+        self.saveExperimentMenuButton.setShortcut("Ctrl+I")
+        self.saveExperimentMenuButton.setStatusTip("Save currently selected experiment")
+        self.saveExperimentMenuButton.triggered.connect(self.saveExperimentButton)
+        self.saveExperimentMenuButton.setEnabled(False)
+        self.fileMenu.addAction(self.saveExperimentMenuButton)
+
+        self.exitMenuButton = QAction(QIcon("exit24.png"), "Exit", self)
+        self.exitMenuButton.setShortcut("Ctrl+Q")
+        self.exitMenuButton.setStatusTip("Exit application")
+        self.exitMenuButton.triggered.connect(self.close)
+        self.fileMenu.addAction(self.exitMenuButton)
+
+        self.startHypervisorMenuButton = QAction(QIcon(), "Instantiate Hypervisor", self)
+        self.startHypervisorMenuButton.setShortcut("Ctrl+O")
+        self.startHypervisorMenuButton.setStatusTip("Start the hypervisor that is currently configured")
+        self.startHypervisorMenuButton.triggered.connect(self.startHypervisorActionEvent)
+        self.hypervisorMenu.addAction(self.startHypervisorMenuButton)
 
     def getWritableData(self, configname):
         logging.debug("MainApp: getWritableData() instantiated")
@@ -566,7 +559,7 @@ class MainApp(QMainWindow):
             jsondata["xml"]["testbed-setup"]["vm-set"]["material"].append(materialData.getWritableData())
         return jsondata
 
-    def buttonSaveExperiment(self):
+    def saveExperimentButton(self):
         logging.debug("MainApp: saveExperiment() instantiated")
         self.saveExperiment()
 
