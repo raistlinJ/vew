@@ -265,7 +265,6 @@ class MainApp(QMainWindow):
         parentSelectedItem = selectedItem.parent()
         if(parentSelectedItem == None):
             #A base widget was selected
-            self.baseWidget.baseGroupNameLineEdit.setText(selectedItem.text(0))
             self.basedataStackedWidget.setCurrentWidget(self.baseWidgets[selectedItem.text(0)]["BaseWidget"])
         else:
             #Check if it's the case that a VM Name was selected
