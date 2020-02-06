@@ -90,88 +90,88 @@ class VBoxManage(VMManage):
         return 0
 
     def addVMByName(self, vmName, replace=False):
-    logging.debug("VBoxManage: addVMByName(): instantiated")
-    #run vboxmanage to get vm listing
-    vmListCmd = self.vmanage_path + " list vms"
-    logging.debug("addVMByName(): Collecting VM Names using cmd: " + vmListCmd)
-    try:
-        self.readStatus = VMManage.MANAGER_READING
-        self.writeStatus += 1
-        logging.debug("addVMByName(): adding 1 "+ str(self.writeStatus))
-        p = Popen(vmListCmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
-        while True:
-            out = p.stdout.readline()
-            if out == '' and p.poll() != None:
-                break
-            if out != '':
-                splitOut = out.split("{")
-                vm = VM()
-                tmpname = splitOut[0].strip()
-                #has to be at least one character and every name has a start and end quote
-                if len(tmpname) > 2:
-                    vm.name = splitOut[0].strip()[1:-1]
-                else: 
+        logging.debug("VBoxManage: addVMByName(): instantiated")
+        #run vboxmanage to get vm listing
+        vmListCmd = self.vmanage_path + " list vms"
+        logging.debug("addVMByName(): Collecting VM Names using cmd: " + vmListCmd)
+        try:
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            logging.debug("addVMByName(): adding 1 "+ str(self.writeStatus))
+            p = Popen(vmListCmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
+            while True:
+                out = p.stdout.readline()
+                if out == '' and p.poll() != None:
                     break
-                vm.UUID = splitOut[1].split("}")[0].strip()
-                # logging.debug("UUID: " + vm.UUID)
-                self.vms[vm.name] = vm
-        p.wait()
-        logging.debug("addVMByName(): Thread 1 completed: " + vmListCmd)
-        logging.debug("addVMByName(): Found # VMS: " + str(len(self.vms)))
-        if vmName in self.vms:
-            if replace==False:
-                logging.error("addVMByName(): VM already exists... skipping: " + str(vmName))
-                return
+                if out != '':
+                    splitOut = out.split("{")
+                    vm = VM()
+                    tmpname = splitOut[0].strip()
+                    #has to be at least one character and every name has a start and end quote
+                    if len(tmpname) > 2:
+                        vm.name = splitOut[0].strip()[1:-1]
+                    else: 
+                        break
+                    vm.UUID = splitOut[1].split("}")[0].strip()
+                    # logging.debug("UUID: " + vm.UUID)
+                    self.vms[vm.name] = vm
+            p.wait()
+            logging.debug("addVMByName(): Thread 1 completed: " + vmListCmd)
+            logging.debug("addVMByName(): Found # VMS: " + str(len(self.vms)))
+            if vmName in self.vms:
+                if replace==False:
+                    logging.error("addVMByName(): VM already exists... skipping: " + str(vmName))
+                    return
 
-        #get the machine readable info
-        logging.debug("addVMByName(): collecting VM extended info")
-        vmShowInfoCmd = ""
-        logging.debug("addVMByName(): collecting # " + str(vmNum) + " of " + str(len(self.vms)))
-        vmShowInfoCmd = self.vmanage_path + " showvminfo " + str(self.vms[vmName].UUID) + " --machinereadable"
-        logging.debug("addVMByName(): Running " + vmShowInfoCmd)
-        p = Popen(shlex.split(vmShowInfoCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
-        while True:
-            out = p.stdout.readline()
-            if out == '' and p.poll() != None:
-                break
-            if out != '':
-                #match example: nic1="none"
-                res = re.match("nic[0-9]+=", out)
-                if res:
-                    # logging.debug("Found nic: " + out + " added to " + self.vms[aVM].name)
-                    out = out.strip()
-                    nicNum = out.split("=")[0][3:]
-                    nicType = out.split("=")[1]
-                    self.vms[aVM].adaptorInfo[nicNum] = nicType
-                res = re.match("groups=", out)
-                if res:
-                    # logging.debug("Found groups: " + out + " added to " + self.vms[aVM].name)
-                    self.vms[aVM].groups = out.strip()
-                res = re.match("VMState=", out)
-                if res:
-                    # logging.debug("Found vmState: " + out + " added to " + self.vms[aVM].name)
-                    state = out.strip().split("\"")[1].split("\"")[0]
-                    if state == "running":
-                        self.vms[aVM].state = VM.VM_STATE_RUNNING
-                    elif state == "poweroff":
-                        self.vms[aVM].state = VM.VM_STATE_OFF
-                    else:
-                        self.vms[aVM].state = VM.VM_STATE_OTHER
-                    res = re.match("CurrentSnapshotUUID=", out)
-                if res:
-                    # logging.debug("Found snaps: " + out + " added to " + self.vms[aVM].latestSnapUUID)
-                    latestSnap = out.strip().split("\"")[1].split("\"")[0]
-                    self.vms[aVM].latestSnapUUID = latestSnap
-        p.wait()
-        logging.info("addVMByName(): Thread 2 completed: " + vmShowInfoCmd)
-    except Exception:
-        logging.error("Error in addVMByName(): An error occured ")
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_exception(exc_type, exc_value, exc_traceback)
-    finally:
-        self.readStatus = VMManage.MANAGER_IDLE
-        self.writeStatus -= 1
-        logging.debug("addVMByName(): sub 1 "+ str(self.writeStatus))
+            #get the machine readable info
+            logging.debug("addVMByName(): collecting VM extended info")
+            vmShowInfoCmd = ""
+            logging.debug("addVMByName(): collecting # " + str(vmNum) + " of " + str(len(self.vms)))
+            vmShowInfoCmd = self.vmanage_path + " showvminfo " + str(self.vms[vmName].UUID) + " --machinereadable"
+            logging.debug("addVMByName(): Running " + vmShowInfoCmd)
+            p = Popen(shlex.split(vmShowInfoCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
+            while True:
+                out = p.stdout.readline()
+                if out == '' and p.poll() != None:
+                    break
+                if out != '':
+                    #match example: nic1="none"
+                    res = re.match("nic[0-9]+=", out)
+                    if res:
+                        # logging.debug("Found nic: " + out + " added to " + self.vms[aVM].name)
+                        out = out.strip()
+                        nicNum = out.split("=")[0][3:]
+                        nicType = out.split("=")[1]
+                        self.vms[aVM].adaptorInfo[nicNum] = nicType
+                    res = re.match("groups=", out)
+                    if res:
+                        # logging.debug("Found groups: " + out + " added to " + self.vms[aVM].name)
+                        self.vms[aVM].groups = out.strip()
+                    res = re.match("VMState=", out)
+                    if res:
+                        # logging.debug("Found vmState: " + out + " added to " + self.vms[aVM].name)
+                        state = out.strip().split("\"")[1].split("\"")[0]
+                        if state == "running":
+                            self.vms[aVM].state = VM.VM_STATE_RUNNING
+                        elif state == "poweroff":
+                            self.vms[aVM].state = VM.VM_STATE_OFF
+                        else:
+                            self.vms[aVM].state = VM.VM_STATE_OTHER
+                        res = re.match("CurrentSnapshotUUID=", out)
+                    if res:
+                        # logging.debug("Found snaps: " + out + " added to " + self.vms[aVM].latestSnapUUID)
+                        latestSnap = out.strip().split("\"")[1].split("\"")[0]
+                        self.vms[aVM].latestSnapUUID = latestSnap
+            p.wait()
+            logging.info("addVMByName(): Thread 2 completed: " + vmShowInfoCmd)
+        except Exception:
+            logging.error("Error in addVMByName(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+        finally:
+            self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus -= 1
+            logging.debug("addVMByName(): sub 1 "+ str(self.writeStatus))
 
     def runVMSInfo(self):
         logging.debug("VBoxManage: runVMSInfo(): instantiated")
