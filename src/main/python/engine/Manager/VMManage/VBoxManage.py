@@ -21,7 +21,7 @@ class VBoxManage(VMManage):
         self.cf = SystemConfigIO()
         self.vmanage_path = self.cf.getConfig()['VBOX']['VMANAGE_PATH']
         self.vms = {}
-            if initializeVMManage:
+        if initializeVMManage:
             self.refreshAllVMInfo()
             while self.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
             #waiting for manager to finish query...
