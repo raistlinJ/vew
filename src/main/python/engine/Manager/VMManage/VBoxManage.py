@@ -98,7 +98,7 @@ class VBoxManage(VMManage):
             self.readStatus = VMManage.MANAGER_READING
             self.writeStatus += 1
             logging.debug("addVMByName(): adding 1 "+ str(self.writeStatus))
-            p = Popen(vmListCmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
+            p = Popen(shlex.split(vmListCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
                 out = p.stdout.readline()
                 if out == '' and p.poll() != None:
