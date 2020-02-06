@@ -16,3 +16,4 @@ class VM:
         self.state = VM.VM_STATE_UNKNOWN
         self.adaptorInfo = {} #list adaptors (strings)
         self.groups = ""#list groups (strings)
+        self.latestSnapUUID = ""
