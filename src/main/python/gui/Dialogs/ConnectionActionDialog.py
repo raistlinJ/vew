@@ -14,12 +14,13 @@ import configparser
 
 class ConnectionActionDialog(QDialog):
 
-    def __init__(self, parent, configname, actionname):
+    def __init__(self, parent, configname, actionname, experimentHostname):
         logging.debug("ConnectionActionDialog(): instantiated")
         super(ConnectionActionDialog, self).__init__(parent)      
         self.parent = parent
         self.configname = configname
         self.actionname = actionname
+        self.experimentHostname = experimentHostname
         self.cm = ConnectionManage()
         self.setMinimumWidth(275)
 
@@ -37,10 +38,13 @@ class ConnectionActionDialog(QDialog):
         self.setWindowTitle(str(actionname) + " Connection")
         
     def createFormGroupBox(self):
-        self.formGroupBox = QGroupBox("Form layout")
+        self.formGroupBox = QGroupBox("Connection Information")
         self.layout = QFormLayout()
+        self.experimentHostnameLineEdit = QLineEdit(self.experimentHostname)
+        self.experimentHostnameLineEdit.setEnabled(False)
+        self.layout.addRow(QLabel("Experiment Hostname/IP:"), self.experimentHostnameLineEdit)
         self.hostnameLineEdit = QLineEdit("11.0.0.2:8080")
-        self.layout.addRow(QLabel("Hostname & Port (if applicable):"), self.hostnameLineEdit)
+        self.layout.addRow(QLabel("RDP Broker Hostname/IP:"), self.hostnameLineEdit)
         self.usernameLineEdit = QLineEdit()
         self.layout.addRow(QLabel("Username:"), self.usernameLineEdit)
         self.passwordLineEdit = QLineEdit()

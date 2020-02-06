@@ -405,7 +405,7 @@ class MainApp(QMainWindow):
             self.statusBar.showMessage("Could complete connection action. No configuration items selected or available.")
             return
         selectedItemName = selectedItem.text(0)
-        connResult = ConnectionActionDialog(self, selectedItemName, "Add").exec_()
+        connResult = ConnectionActionDialog(self, selectedItemName, "Add", self.baseWidgets[selectedItemName]["BaseWidget"].ipAddressLineEdit.text()).exec_()
 
     def removeGuacActionEvent(self):
         logging.debug("MainApp:removeGuacActionEvent() instantiated")

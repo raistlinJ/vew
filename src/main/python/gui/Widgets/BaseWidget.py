@@ -40,7 +40,7 @@ class BaseWidget(QtWidgets.QWidget):
         self.ipAddressHorBox.setObjectName("ipAddressHorBox")
         self.ipAddressLabel = QtWidgets.QLabel()
         self.ipAddressLabel.setObjectName("ipAddressLabel")
-        self.ipAddressLabel.setText("Experiment Hosting IP Address:")
+        self.ipAddressLabel.setText("Experiment Hostname/IP:")
 
         self.ipAddressHorBox.addWidget(self.ipAddressLabel)
         self.ipAddressLineEdit = QtWidgets.QLineEdit()
