@@ -22,9 +22,11 @@ class VBoxManage(VMManage):
         self.vmanage_path = self.cf.getConfig()['VBOX']['VMANAGE_PATH']
         self.vms = {}
         if initializeVMManage:
-            self.refreshAllVMInfo()
-            while self.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+            self.vmManage.refreshAllVMInfo()
+            result = self.vmManage.getManagerStatus()["writeStatus"]
+            while result != self.vmManage.MANAGER_IDLE:
             #waiting for manager to finish query...
+                result = self.vmManage.getManagerStatus()["writeStatus"]
                 time.sleep(.1)
 
     def configureVMNet(self, vmName, netNum, netName):
@@ -89,15 +91,15 @@ class VBoxManage(VMManage):
         t.start()
         return 0
 
-    def addVMByName(self, vmName, replace=False):
-        logging.debug("VBoxManage: addVMByName(): instantiated")
+    def updateVMByName(self, vmName, replace=False):
+        logging.debug("VBoxManage: updateVMByName(): instantiated")
         #run vboxmanage to get vm listing
         vmListCmd = self.vmanage_path + " list vms"
-        logging.debug("addVMByName(): Collecting VM Names using cmd: " + vmListCmd)
+        logging.debug("updateVMByName(): Collecting VM Names using cmd: " + vmListCmd)
         try:
             self.readStatus = VMManage.MANAGER_READING
             self.writeStatus += 1
-            logging.debug("addVMByName(): adding 1 "+ str(self.writeStatus))
+            logging.debug("updateVMByName(): adding 1 "+ str(self.writeStatus))
             p = Popen(shlex.split(vmListCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
                 out = p.stdout.readline()
@@ -116,19 +118,19 @@ class VBoxManage(VMManage):
                     # logging.debug("UUID: " + vm.UUID)
                     self.vms[vm.name] = vm
             p.wait()
-            logging.debug("addVMByName(): Thread 1 completed: " + vmListCmd)
-            logging.debug("addVMByName(): Found # VMS: " + str(len(self.vms)))
+            logging.debug("updateVMByName(): Thread 1 completed: " + vmListCmd)
+            logging.debug("updateVMByName(): Found # VMS: " + str(len(self.vms)))
             if vmName in self.vms:
                 if replace==False:
-                    logging.error("addVMByName(): VM already exists... skipping: " + str(vmName))
+                    logging.error("updateVMByName(): VM already exists... skipping: " + str(vmName))
                     return
 
             #get the machine readable info
-            logging.debug("addVMByName(): collecting VM extended info")
+            logging.debug("updateVMByName(): collecting VM extended info")
             vmShowInfoCmd = ""
-            logging.debug("addVMByName(): collecting # " + str(vmNum) + " of " + str(len(self.vms)))
+            logging.debug("updateVMByName(): collecting # " + str(vmNum) + " of " + str(len(self.vms)))
             vmShowInfoCmd = self.vmanage_path + " showvminfo " + str(self.vms[vmName].UUID) + " --machinereadable"
-            logging.debug("addVMByName(): Running " + vmShowInfoCmd)
+            logging.debug("updateVMByName(): Running " + vmShowInfoCmd)
             p = Popen(shlex.split(vmShowInfoCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
                 out = p.stdout.readline()
@@ -157,21 +159,21 @@ class VBoxManage(VMManage):
                             self.vms[aVM].state = VM.VM_STATE_OFF
                         else:
                             self.vms[aVM].state = VM.VM_STATE_OTHER
-                        res = re.match("CurrentSnapshotUUID=", out)
+                    res = re.match("CurrentSnapshotUUID=", out)
                     if res:
                         # logging.debug("Found snaps: " + out + " added to " + self.vms[aVM].latestSnapUUID)
                         latestSnap = out.strip().split("\"")[1].split("\"")[0]
                         self.vms[aVM].latestSnapUUID = latestSnap
             p.wait()
-            logging.info("addVMByName(): Thread 2 completed: " + vmShowInfoCmd)
+            logging.info("updateVMByName(): Thread 2 completed: " + vmShowInfoCmd)
         except Exception:
-            logging.error("Error in addVMByName(): An error occured ")
+            logging.error("Error in updateVMByName(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
         finally:
             self.readStatus = VMManage.MANAGER_IDLE
             self.writeStatus -= 1
-            logging.debug("addVMByName(): sub 1 "+ str(self.writeStatus))
+            logging.debug("updateVMByName(): sub 1 "+ str(self.writeStatus))
 
     def runVMSInfo(self):
         logging.debug("VBoxManage: runVMSInfo(): instantiated")
@@ -547,7 +549,7 @@ class VBoxManage(VMManage):
                 else:
                     cloneCmd += " --mode "
                     cloneCmd += " all "
-            cloneCmd += " --options keepallmacs "                
+            #cloneCmd += " --options keepallmacs "                
             cloneCmd += " --name "
             cloneCmd += str(cloneName)
             logging.debug("runCloneVM(): executing: " + str(cloneCmd))
@@ -556,13 +558,13 @@ class VBoxManage(VMManage):
             #groupCmd = [self.vmanage_path, "modifyvm", cloneName, "--groups", groupName]
             groupCmd = self.vmanage_path + " modifyvm " + str(cloneName) + " --groups \"" + str(groupName)+"\""
             logging.debug("runCloneVM(): placing into group: " + str(groupName))
-            logging.error("runCloneVM(): executing: " + str(groupCmd))
+            logging.debug("runCloneVM(): executing: " + str(groupCmd))
             result = subprocess.check_output(shlex.split(groupCmd, posix=self.POSIX), encoding='utf-8')
 
             logging.debug("runCloneVM(): Clone Created: " + str(cloneName) + " and placed into group: " + groupName)
             #since we added a VM, now we have to add it to the known list
             logging.debug("runCloneVM(): Adding: " + str(cloneName) + " to known VMs")
-            self.addVMByName(cloneName)
+            self.updateVMByName(cloneName)
 
         except Exception:
             logging.error("runCloneVM(): Error in runCloneVM(): An error occured; it could be due to a missing snapshot for the VM")

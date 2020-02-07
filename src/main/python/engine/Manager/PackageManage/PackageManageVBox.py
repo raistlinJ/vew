@@ -18,13 +18,15 @@ class PackageManageVBox(PackageManage):
         PackageManage.__init__(self)
         #Create an instance of vmManage
         if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
-            self.vmManage = VBoxManage()
+            self.vmManage = VBoxManage(False)
         else:
-            self.vmManage = VBoxManageWin()
+            self.vmManage = VBoxManageWin(False)
         if initializeVMManage:
             self.vmManage.refreshAllVMInfo()
-            while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
+            result = self.vmManage.getManagerStatus()["writeStatus"]
+            while result != self.vmManage.MANAGER_IDLE:
             #waiting for manager to finish query...
+                result = self.vmManage.getManagerStatus()["writeStatus"]
                 time.sleep(.1)
         self.em = ExperimentManageVBox()
         self.s = SystemConfigIO()
@@ -69,11 +71,15 @@ class PackageManageVBox(PackageManage):
                 #Import the VM using a system call
                 self.importVMWorker(os.path.join(tmpPathVMs, vmFilename))
                 #since we added a new VM, we have to refresh
-                res = self.vmManage.refreshAllVMInfo()
-                logging.debug("Returned: " + str(res))
-                while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
+                
+                ##TODO: replace with updateVMByName()
+                self.vmManage.refreshAllVMInfo()
+                result = self.vmManage.getManagerStatus()["writeStatus"]
+                while result != self.vmManage.MANAGER_IDLE:
+                #waiting for manager to finish query...
+                    result = self.vmManage.getManagerStatus()["writeStatus"]
                     time.sleep(.1)
-                    logging.debug("runImportPackage(): Waiting for vmrefresh to complete...")
+
                 #now take a snapshot
                 self.snapshotVMWorker(os.path.join(vmFilename[:-4]))
                 vmNum = vmNum + 1
@@ -313,9 +319,11 @@ class PackageManageVBox(PackageManage):
         logging.debug("exportVMWorker(): instantiated")
         self.vmManage.refreshAllVMInfo()
         logging.debug("Waiting for export to complete...")
-        while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
+        result = self.vmManage.getManagerStatus()["writeStatus"]
+        while result != self.vmManage.MANAGER_IDLE:
+        #waiting for manager to finish query...
+            result = self.vmManage.getManagerStatus()["writeStatus"]
             time.sleep(.1)
-            logging.debug("exportVMWorker(): Waiting for export vm to complete...")
 
         self.vmManage.exportVM(vmName, filepath)
         res = self.vmManage.getManagerStatus()

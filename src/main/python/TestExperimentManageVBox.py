@@ -15,13 +15,15 @@ if __name__ == "__main__":
 
     logging.debug("Instantiating Engine")
     e = ExperimentManageVBox(initializeVMManage=True)
-    
+
     #####---Create Experiment Test#####
     logging.info("Creating Experiment")
     e.createExperiment("sample")
-    while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
-        time.sleep(.1)
+    result = e.getExperimentManageStatus()["writeStatus"]
+    while result != e.EXPERIMENT_MANAGE_COMPLETE:
+        time.sleep(1)
         logging.debug("Waiting for experiment create to complete...")
+        result = e.getExperimentManageStatus()["writeStatus"]
     
     # #####---Start Experiment Test#####
     # logging.info("Starting Experiment")
@@ -47,9 +49,11 @@ if __name__ == "__main__":
     #     logging.debug("Waiting for experiment stop to complete...")
     # logging.debug("Experiment stop complete.")
 
-    #####---Remove Experiment Test#####
-    logging.info("Creating Experiment")
+    ####---Remove Experiment Test#####
+    logging.info("Removing Experiment")
     e.removeExperiment("sample")
-    while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
+    result = e.getExperimentManageStatus()["writeStatus"]
+    while result != e.EXPERIMENT_MANAGE_COMPLETE:
         time.sleep(.1)
         logging.debug("Waiting for experiment create to complete...")
+        result = e.getExperimentManageStatus()["writeStatus"]
