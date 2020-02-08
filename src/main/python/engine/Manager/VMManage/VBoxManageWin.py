@@ -140,8 +140,6 @@ class VBoxManageWin(VMManage):
                 if out == '' and p.poll() != None:
                     break
                 if out != '':
-                    # logging.debug("runVMSInfo(): stdout Line: " + out)
-                    # logging.debug("runVMSInfo(): split Line: " + str(out.split("{")))
                     splitOut = out.split("{")
                     vm = VM()
                     tmpname = splitOut[0].strip()
@@ -263,7 +261,6 @@ class VBoxManageWin(VMManage):
                     #match example: nic1="none"
                     res = re.match("nic[0-9]+=", out)
                     if res:
-                        # logging.debug("Found nic: " + out + " added to " + self.tempVMs[vmName].name)
                         out = out.strip()
                         nicNum = out.split("=")[0][3:]
                         nicType = out.split("=")[1]
@@ -305,7 +302,6 @@ class VBoxManageWin(VMManage):
             self.readStatus = VMManage.MANAGER_IDLE
             self.writeStatus -= 1
             logging.debug("runVMInfo(): sub 1 "+ str(self.writeStatus))
-
 
     def runConfigureVMNet(self, vmName, netNum, netName):
         try:
