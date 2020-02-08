@@ -38,11 +38,6 @@ class ExperimentManageVBox(ExperimentManage):
         logging.debug("runCreateExperiment(): instantiated")
         try:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_CREATING
-            #call vmManage to make clones as specified in config file; wait and query the vmManage status, and then set the complete status
-            # self.vmManage.refreshAllVMInfo()
-            # while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
-            # #waiting for manager to finish query...
-            #     time.sleep(.1)
             clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
 
             for vm in clonevmjson.keys(): 
@@ -119,9 +114,9 @@ class ExperimentManageVBox(ExperimentManage):
                                 continue
                             logging.debug("runStartExperiment(): Starting: " + str(vmName))
                             self.vmManage.startVM(cloneVMName)
-            while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                #waiting for vmmanager start vm to finish reading/writing...
-                time.sleep(.1)
+                while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                    #waiting for vmmanager start vm to finish reading/writing...
+                    time.sleep(.1)
             logging.debug("runStartExperiment(): Complete...")
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
         except Exception:
