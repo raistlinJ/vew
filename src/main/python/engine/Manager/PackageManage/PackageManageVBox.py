@@ -13,22 +13,12 @@ import shutil
 import time
 
 class PackageManageVBox(PackageManage):
-    def __init__(self, initializeVMManage=False):
+    def __init__(self, vmManage, experimentManage):
         logging.debug("PackageManageVBox(): instantiated")
         PackageManage.__init__(self)
-        #Create an instance of vmManage
-        if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
-            self.vmManage = VBoxManage(False)
-        else:
-            self.vmManage = VBoxManageWin(False)
-        if initializeVMManage:
-            self.vmManage.refreshAllVMInfo()
-            result = self.vmManage.getManagerStatus()["writeStatus"]
-            while result != self.vmManage.MANAGER_IDLE:
-            #waiting for manager to finish query...
-                result = self.vmManage.getManagerStatus()["writeStatus"]
-                time.sleep(.1)
-        self.em = ExperimentManageVBox()
+
+        self.vmManage = vmManage
+        self.em = experimentManage
         self.s = SystemConfigIO()
         self.s.readConfig()
 

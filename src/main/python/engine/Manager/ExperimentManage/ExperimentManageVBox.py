@@ -10,21 +10,11 @@ from engine.Manager.VMManage.VBoxManageWin import VBoxManageWin
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 
 class ExperimentManageVBox(ExperimentManage):
-    def __init__(self, initializeVMManage = True):
+    def __init__(self, vmManage):
         logging.debug("ExperimentManageVBox(): instantiated")
         ExperimentManage.__init__(self)
         #Create an instance of vmManage
-        if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
-            self.vmManage = VBoxManage(False)
-        else:
-            self.vmManage = VBoxManageWin(False)
-        if initializeVMManage:
-            self.vmManage.refreshAllVMInfo()
-            result = self.vmManage.getManagerStatus()["writeStatus"]
-            while result != self.vmManage.MANAGER_IDLE:
-            #waiting for manager to finish query...
-                result = self.vmManage.getManagerStatus()["writeStatus"]
-                time.sleep(.1)
+        self.vmManage = vmManage
         self.eco = ExperimentConfigIO()
 
     #abstractmethod

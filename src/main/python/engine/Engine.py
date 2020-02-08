@@ -41,9 +41,9 @@ class Engine:
         #Create the ConnectionManage
         self.connectionManage = ConnectionManageGuacRDP()
         #Create the ExperimentManage
-        self.experimentManage = ExperimentManageVBox(True)
+        self.experimentManage = ExperimentManageVBox(self.vmManage)
         #Create the PackageManage
-        self.packageManage = PackageManageVBox(True)
+        self.packageManage = PackageManageVBox(self.vmManage, self.experimentManage)
         #build the parser
         self.buildParser()
 
