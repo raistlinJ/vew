@@ -213,8 +213,8 @@ class VBoxManage(VMManage):
             self.writeStatus -= 1
             logging.debug("runVMSInfo(): sub 1 "+ str(self.writeStatus))
 
-    def runVMSInfo(self, vmName):
-        logging.debug("VBoxManage: runVMSInfo(): instantiated")
+    def runVMInfo(self, vmName):
+        logging.debug("VBoxManage: runVMInfo(): instantiated")
         try:
             #run vboxmanage to get vm listing
             #Make sure this one isn't cleared before use too...
