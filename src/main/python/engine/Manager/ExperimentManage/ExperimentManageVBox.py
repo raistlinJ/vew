@@ -15,13 +15,15 @@ class ExperimentManageVBox(ExperimentManage):
         ExperimentManage.__init__(self)
         #Create an instance of vmManage
         if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
-            self.vmManage = VBoxManage()
+            self.vmManage = VBoxManage(False)
         else:
-            self.vmManage = VBoxManageWin()
+            self.vmManage = VBoxManageWin(False)
         if initializeVMManage:
             self.vmManage.refreshAllVMInfo()
-            while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
+            result = self.vmManage.getManagerStatus()["writeStatus"]
+            while result != self.vmManage.MANAGER_IDLE:
             #waiting for manager to finish query...
+                result = self.vmManage.getManagerStatus()["writeStatus"]
                 time.sleep(.1)
         self.eco = ExperimentConfigIO()
 
@@ -36,11 +38,6 @@ class ExperimentManageVBox(ExperimentManage):
         logging.debug("runCreateExperiment(): instantiated")
         try:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_CREATING
-            #call vmManage to make clones as specified in config file; wait and query the vmManage status, and then set the complete status
-            self.vmManage.refreshAllVMInfo()
-            while self.vmManage.getManagerStatus()["writeStatus"] != self.vmManage.MANAGER_IDLE:
-            #waiting for manager to finish query...
-                time.sleep(.1)
             clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
 
             for vm in clonevmjson.keys(): 
@@ -74,21 +71,18 @@ class ExperimentManageVBox(ExperimentManage):
                     else:
                         self.vmManage.cloneVMConfigAll(vmName, cloneVMName, cloneSnapshots, linkedClones, cloneGroupName, internalnets, vrdpPort, refreshVMInfo=False)
                         refreshedVMName = True
-            status = self.vmManage.getManagerStatus()["writeStatus"]
+                    status = self.vmManage.getManagerStatus()["writeStatus"]
             while status != VMManage.MANAGER_IDLE:
                 #waiting for vmmanager clone vm to finish reading/writing...
                 logging.debug("runCreateExperiment(): waiting for vmmanager clone vm to finish reading/writing..." + str(status))
                 time.sleep(.1)
                 status = self.vmManage.getManagerStatus()["writeStatus"]
             logging.debug("runCreateExperiment(): finished setting up " + str(numclones) + " clones")
-            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
             logging.debug("runCreateExperiment(): Complete...")
         except Exception:
             logging.error("runCloneVM(): Error in runCreateExperiment(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
-            return
         finally:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
@@ -120,9 +114,9 @@ class ExperimentManageVBox(ExperimentManage):
                                 continue
                             logging.debug("runStartExperiment(): Starting: " + str(vmName))
                             self.vmManage.startVM(cloneVMName)
-            while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                #waiting for vmmanager start vm to finish reading/writing...
-                time.sleep(.1)
+                while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                    #waiting for vmmanager start vm to finish reading/writing...
+                    time.sleep(.1)
             logging.debug("runStartExperiment(): Complete...")
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
         except Exception:
@@ -157,7 +151,7 @@ class ExperimentManageVBox(ExperimentManage):
                     if self.vmManage.getVMStatus(vmName) == None:
                         logging.error("runStopExperiment(): VM Name: " + str(vmName) + " does not exist; skipping...")
                         continue
-                    logging.error("runStopExperiment(): Stopping: " + str(vmName))
+                    logging.debug("runStopExperiment(): Stopping: " + str(vmName))
                     self.vmManage.stopVM(cloneVMName)
             while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
                 #waiting for vmmanager stop vm to finish reading/writing...

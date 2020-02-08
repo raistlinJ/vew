@@ -13,6 +13,7 @@ import re
 import configparser
 import os
 from engine.Configuration.SystemConfigIO import SystemConfigIO
+from threading import RLock
 
 class VBoxManage(VMManage):
     def __init__(self, initializeVMManage=False):
@@ -20,46 +21,72 @@ class VBoxManage(VMManage):
         VMManage.__init__(self)
         self.cf = SystemConfigIO()
         self.vmanage_path = self.cf.getConfig()['VBOX']['VMANAGE_PATH']
+        # A lock for acces/updates to self.vms
+        self.lock = RLock()
         self.vms = {}
+        self.tempVMs = {}
         if initializeVMManage:
             self.refreshAllVMInfo()
-            while self.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+            result = self.getManagerStatus()["writeStatus"]
+            while result != self.MANAGER_IDLE:
             #waiting for manager to finish query...
+                result = self.getManagerStatus()["writeStatus"]
                 time.sleep(.1)
 
     def configureVMNet(self, vmName, netNum, netName):
         logging.info("VBoxManage: configureVMNet(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
-        if vmName not in self.vms:
-            logging.error("configureVMNet(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-            return -1
-        t = threading.Thread(target=self.runConfigureVMNet, args=(vmName, netNum, netName))
-        t.start()
-        return 0
+        exists = False
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("configureVMNet(): " + vmName + " not found in list of known vms: \r\n" + str(vmName))
+                return -1
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            t = threading.Thread(target=self.runConfigureVMNet, args=(vmName, netNum, netName))
+            t.start()
+            return 0
+        finally:
+            self.lock.release()
 
     def configureVMNets(self, vmName, internalNets):
         logging.info("VBoxManageWin: configureVMNets(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
-        if vmName not in self.vms:
-            logging.error("configureVMNets(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-            return -1
-        t = threading.Thread(target=self.runConfigureVMNets, args=(vmName, internalNets))
-        t.start()
-        return 0
+        exists = False
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("configureVMNets(): " + vmName + " not found in list of known vms: \r\n" + str(vmName))
+                return -1
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            t = threading.Thread(target=self.runConfigureVMNets, args=(vmName, internalNets))
+            t.start()
+            return 0
+        finally:
+            self.lock.release()
 
     def runConfigureVMNets(self, vmName, internalNets):
         try:
             logging.debug("VBoxManage: runConfigureVMNets(): instantiated")
             self.readStatus = VMManage.MANAGER_READING
-            self.writeStatus += 1
             logging.debug("runConfigureVMNets(): adding 1 "+ str(self.writeStatus))            
             cloneNetNum = 1
             logging.debug("runConfigureVMNets(): Processing internal net names: " + str(internalNets))
             for internalnet in internalNets:
-                vmConfigVMCmd = self.vmanage_path + " modifyvm " + str(self.vms[vmName].UUID) + " --nic" + str(cloneNetNum) + " intnet " + " --intnet" + str(cloneNetNum) + " " + str(internalnet) + " --cableconnected"  + str(cloneNetNum) + " on "
-                logging.debug("runConfigureVMNets(): Running " + vmConfigVMCmd)
-                subprocess.check_output(shlex.split(vmConfigVMCmd, posix=self.POSIX), encoding='utf-8')
-                cloneNetNum += 1            
+                                vmUUID = ""
+            try:
+                self.lock.acquire()
+                vmUUID = str(self.vms[vmName].UUID)
+            finally:
+                self.lock.release()
+            vmConfigVMCmd = self.vmanage_path + " modifyvm " + vmUUID + " --nic" + str(cloneNetNum) + " intnet " + " --intnet" + str(cloneNetNum) + " " + str(internalnet) + " --cableconnected"  + str(cloneNetNum) + " on "
+            logging.debug("runConfigureVMNets(): Running " + vmConfigVMCmd)
+            subprocess.check_output(shlex.split(vmConfigVMCmd, posix=self.POSIX), encoding='utf-8')
+            cloneNetNum += 1            
            
             logging.debug("runConfigureVMNets(): Thread completed")
         except Exception:
@@ -73,8 +100,9 @@ class VBoxManage(VMManage):
 
     def refreshAllVMInfo(self):
         logging.info("VBoxManage: refreshAllVMInfo(): instantiated")
-        
         logging.debug("getListVMS() Starting List VMs thread")
+        self.readStatus = VMManage.MANAGER_READING
+        self.writeStatus += 1
         t = threading.Thread(target=self.runVMSInfo)
         t.start()
         
@@ -82,106 +110,29 @@ class VBoxManage(VMManage):
         logging.info("VBoxManage: refreshVMInfo(): instantiated: " + str(vmName))
         logging.debug("refreshVMInfo() refresh VMs thread")
         #check to make sure the vm is known, if not should refresh or check name:
-        if vmName not in self.vms:
-            logging.error("refreshVMInfo(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-            return -1
-        t = threading.Thread(target=self.runVMInfo, args=(vmName,))
-        t.start()
-        return 0
-
-    def addVMByName(self, vmName, replace=False):
-        logging.debug("VBoxManage: addVMByName(): instantiated")
-        #run vboxmanage to get vm listing
-        vmListCmd = self.vmanage_path + " list vms"
-        logging.debug("addVMByName(): Collecting VM Names using cmd: " + vmListCmd)
+        exists = False
         try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("refreshVMInfo(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+                return -1
             self.readStatus = VMManage.MANAGER_READING
             self.writeStatus += 1
-            logging.debug("addVMByName(): adding 1 "+ str(self.writeStatus))
-            p = Popen(shlex.split(vmListCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
-            while True:
-                out = p.stdout.readline()
-                if out == '' and p.poll() != None:
-                    break
-                if out != '':
-                    splitOut = out.split("{")
-                    vm = VM()
-                    tmpname = splitOut[0].strip()
-                    #has to be at least one character and every name has a start and end quote
-                    if len(tmpname) > 2:
-                        vm.name = splitOut[0].strip()[1:-1]
-                    else: 
-                        break
-                    vm.UUID = splitOut[1].split("}")[0].strip()
-                    # logging.debug("UUID: " + vm.UUID)
-                    self.vms[vm.name] = vm
-            p.wait()
-            logging.debug("addVMByName(): Thread 1 completed: " + vmListCmd)
-            logging.debug("addVMByName(): Found # VMS: " + str(len(self.vms)))
-            if vmName in self.vms:
-                if replace==False:
-                    logging.error("addVMByName(): VM already exists... skipping: " + str(vmName))
-                    return
-
-            #get the machine readable info
-            logging.debug("addVMByName(): collecting VM extended info")
-            vmShowInfoCmd = ""
-            logging.debug("addVMByName(): collecting # " + str(vmNum) + " of " + str(len(self.vms)))
-            vmShowInfoCmd = self.vmanage_path + " showvminfo " + str(self.vms[vmName].UUID) + " --machinereadable"
-            logging.debug("addVMByName(): Running " + vmShowInfoCmd)
-            p = Popen(shlex.split(vmShowInfoCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
-            while True:
-                out = p.stdout.readline()
-                if out == '' and p.poll() != None:
-                    break
-                if out != '':
-                    #match example: nic1="none"
-                    res = re.match("nic[0-9]+=", out)
-                    if res:
-                        # logging.debug("Found nic: " + out + " added to " + self.vms[aVM].name)
-                        out = out.strip()
-                        nicNum = out.split("=")[0][3:]
-                        nicType = out.split("=")[1]
-                        self.vms[aVM].adaptorInfo[nicNum] = nicType
-                    res = re.match("groups=", out)
-                    if res:
-                        # logging.debug("Found groups: " + out + " added to " + self.vms[aVM].name)
-                        self.vms[aVM].groups = out.strip()
-                    res = re.match("VMState=", out)
-                    if res:
-                        # logging.debug("Found vmState: " + out + " added to " + self.vms[aVM].name)
-                        state = out.strip().split("\"")[1].split("\"")[0]
-                        if state == "running":
-                            self.vms[aVM].state = VM.VM_STATE_RUNNING
-                        elif state == "poweroff":
-                            self.vms[aVM].state = VM.VM_STATE_OFF
-                        else:
-                            self.vms[aVM].state = VM.VM_STATE_OTHER
-                        res = re.match("CurrentSnapshotUUID=", out)
-                    if res:
-                        # logging.debug("Found snaps: " + out + " added to " + self.vms[aVM].latestSnapUUID)
-                        latestSnap = out.strip().split("\"")[1].split("\"")[0]
-                        self.vms[aVM].latestSnapUUID = latestSnap
-            p.wait()
-            logging.info("addVMByName(): Thread 2 completed: " + vmShowInfoCmd)
-        except Exception:
-            logging.error("Error in addVMByName(): An error occured ")
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            t = threading.Thread(target=self.runVMInfo, args=(vmName,))
+            t.start()
+            return 0
         finally:
-            self.readStatus = VMManage.MANAGER_IDLE
-            self.writeStatus -= 1
-            logging.debug("addVMByName(): sub 1 "+ str(self.writeStatus))
-
+            self.lock.release()
+    
     def runVMSInfo(self):
-        logging.debug("VBoxManage: runVMSInfo(): instantiated")
-        #clear out the current set
-        self.vms = {}
-        vmListCmd = self.vmanage_path + " list vms"
-        logging.debug("runVMSInfo(): Collecting VM Names using cmd: " + vmListCmd)
+        logging.debug("VBoxManageWin: runVMSInfo(): instantiated")
         try:
+            vmListCmd = self.vmanage_path + " list vms"
+            logging.debug("runVMSInfo(): Collecting VM Names using cmd: " + vmListCmd)
+            #clear out the current set
+            self.tempVMs = {}
             self.readStatus = VMManage.MANAGER_READING
-            self.writeStatus += 1
             logging.debug("runVMSInfo(): adding 1 "+ str(self.writeStatus))
             p = Popen(shlex.split(vmListCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
@@ -189,8 +140,6 @@ class VBoxManage(VMManage):
                 if out == '' and p.poll() != None:
                     break
                 if out != '':
-                    # logging.debug("runVMSInfo(): stdout Line: " + out)
-                    # logging.debug("runVMSInfo(): split Line: " + str(out.split("{")))
                     splitOut = out.split("{")
                     vm = VM()
                     tmpname = splitOut[0].strip()
@@ -201,18 +150,18 @@ class VBoxManage(VMManage):
                         break
                     vm.UUID = splitOut[1].split("}")[0].strip()
                     # logging.debug("UUID: " + vm.UUID)
-                    self.vms[vm.name] = vm
+                    self.tempVMs[vm.name] = vm
             p.wait()
             logging.debug("runVMSInfo(): Thread 1 completed: " + vmListCmd)
-            logging.debug("runVMSInfo(): Found # VMS: " + str(len(self.vms)))
+            logging.debug("runVMSInfo(): Found # VMS: " + str(len(self.tempVMs)))
 
             #for each vm, get the machine readable info
             logging.debug("runVMSInfo(): collecting VM extended info")
             vmNum = 1
             vmShowInfoCmd = ""
-            for aVM in self.vms:
-                logging.debug("runVMSInfo(): collecting # " + str(vmNum) + " of " + str(len(self.vms)))
-                vmShowInfoCmd = self.vmanage_path + " showvminfo \"" + str(self.vms[aVM].UUID) + "\"" + " --machinereadable"
+            for aVM in self.tempVMs:
+                logging.debug("runVMSInfo(): collecting # " + str(vmNum) + " of " + str(len(self.tempVMs)) + " : " + str(aVM))
+                vmShowInfoCmd = self.vmanage_path + " showvminfo " + str(self.tempVMs[aVM].UUID) + " --machinereadable"
                 logging.debug("runVMSInfo(): Running " + vmShowInfoCmd)
                 p = Popen(shlex.split(vmShowInfoCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
                 while True:
@@ -223,33 +172,38 @@ class VBoxManage(VMManage):
                         #match example: nic1="none"
                         res = re.match("nic[0-9]+=", out)
                         if res:
-                            # logging.debug("Found nic: " + out + " added to " + self.vms[aVM].name)
+                            # logging.debug("Found nic: " + out + " added to " + self.tempVMs[aVM].name)
                             out = out.strip()
                             nicNum = out.split("=")[0][3:]
                             nicType = out.split("=")[1]
-                            self.vms[aVM].adaptorInfo[nicNum] = nicType
+                            self.tempVMs[aVM].adaptorInfo[nicNum] = nicType
                         res = re.match("groups=", out)
                         if res:
-                            # logging.debug("Found groups: " + out + " added to " + self.vms[aVM].name)
-                            self.vms[aVM].groups = out.strip()
+                            # logging.debug("Found groups: " + out + " added to " + self.tempVMs[aVM].name)
+                            self.tempVMs[aVM].groups = out.strip()
                         res = re.match("VMState=", out)
                         if res:
-                            # logging.debug("Found vmState: " + out + " added to " + self.vms[aVM].name)
+                            # logging.debug("Found vmState: " + out + " added to " + self.tempVMs[aVM].name)
                             state = out.strip().split("\"")[1].split("\"")[0]
                             if state == "running":
-                                self.vms[aVM].state = VM.VM_STATE_RUNNING
+                                self.tempVMs[aVM].state = VM.VM_STATE_RUNNING
                             elif state == "poweroff":
-                                self.vms[aVM].state = VM.VM_STATE_OFF
+                                self.tempVMs[aVM].state = VM.VM_STATE_OFF
                             else:
-                                self.vms[aVM].state = VM.VM_STATE_OTHER
+                                self.tempVMs[aVM].state = VM.VM_STATE_OTHER
                         res = re.match("CurrentSnapshotUUID=", out)
                         if res:
-                            # logging.debug("Found snaps: " + out + " added to " + self.vms[aVM].latestSnapUUID)
+                            # logging.debug("Found snaps: " + out + " added to " + self.tempVMs[aVM].latestSnapUUID)
                             latestSnap = out.strip().split("\"")[1].split("\"")[0]
-                            self.vms[aVM].latestSnapUUID = latestSnap
+                            self.tempVMs[aVM].latestSnapUUID = latestSnap
                 p.wait()
                 vmNum = vmNum + 1
-            logging.info("runVMSInfo(): Thread 2 completed: " + vmShowInfoCmd)
+            try:
+                self.lock.acquire()
+                self.vms = self.tempVMs
+            finally:
+                self.lock.release()
+            logging.debug("runVMSInfo(): Thread 2 completed: " + vmShowInfoCmd)
         except Exception:
             logging.error("Error in runVMSInfo(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -259,13 +213,44 @@ class VBoxManage(VMManage):
             self.writeStatus -= 1
             logging.debug("runVMSInfo(): sub 1 "+ str(self.writeStatus))
 
-    def runVMInfo(self, aVM):
-        logging.debug("VBoxManage: runVMSInfo(): instantiated")
+    def runVMInfo(self, vmName):
+        logging.debug("VBoxManage: runVMInfo(): instantiated")
         try:
+            #run vboxmanage to get vm listing
+            #Make sure this one isn't cleared before use too...
+            vmListCmd = self.vmanage_path + " list vms"
+            logging.debug("runVMInfo(): Collecting VM Names using cmd: " + vmListCmd)
             self.readStatus = VMManage.MANAGER_READING
-            self.writeStatus += 1
-            logging.debug("runVMInfo(): adding 1 "+ str(self.writeStatus))
-            vmShowInfoCmd = self.vmanage_path + " showvminfo \"" + self.vms[aVM].UUID + "\"" + " --machinereadable"
+            logging.debug("runVMInfo(): adding 1 "+ str(self.writeStatus))            
+            p = Popen(shlex.split(vmListCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
+            while True:
+                out = p.stdout.readline()
+                if out == '' and p.poll() != None:
+                    break
+                if out != '':
+                    splitOut = out.split("{")
+                    vm = VM()
+                    tmpname = splitOut[0].strip()
+                    #has to be at least one character and every name has a start and end quote
+                    if len(tmpname) > 2:
+                        vm.name = splitOut[0].strip()[1:-1]
+                    else: 
+                        break
+                    vm.UUID = splitOut[1].split("}")[0].strip()
+                    # logging.debug("UUID: " + vm.UUID)
+                    self.tempVMs[vm.name] = vm
+            p.wait()
+            logging.debug("runVMInfo(): Thread 1 completed: " + vmListCmd)
+            logging.debug("runVMInfo(): Found # VMS: " + str(len(self.tempVMs)))
+
+            if vmName not in self.tempVMs:
+                logging.error("runVMInfo(): VM was not found/registered: " + vmName)
+                return
+
+            #get the machine readable info
+            logging.debug("runVMInfo(): collecting VM extended info")
+            vmShowInfoCmd = ""
+            vmShowInfoCmd = self.vmanage_path + " showvminfo " + str(self.tempVMs[vmName].UUID) + " --machinereadable"
             logging.debug("runVMInfo(): Running " + vmShowInfoCmd)
             p = Popen(shlex.split(vmShowInfoCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
@@ -276,32 +261,39 @@ class VBoxManage(VMManage):
                     #match example: nic1="none"
                     res = re.match("nic[0-9]+=", out)
                     if res:
-                        # logging.debug("Found nic: " + out + " added to " + self.vms[aVM].name)
                         out = out.strip()
                         nicNum = out.split("=")[0][3:]
                         nicType = out.split("=")[1]
-                        self.vms[aVM].adaptorInfo[nicNum] = nicType
+                        self.tempVMs[vmName].adaptorInfo[nicNum] = nicType
                     res = re.match("groups=", out)
                     if res:
-                        # logging.debug("Found groups: " + out + " added to " + self.vms[aVM].name)
-                        self.vms[aVM].groups = out.strip()
+                        # logging.debug("Found groups: " + out + " added to " + self.tempVMs[vmName].name)
+                        self.tempVMs[vmName].groups = out.strip()
                     res = re.match("VMState=", out)
                     if res:
-                        # logging.debug("Found vmState: " + out + " added to " + self.vms[aVM].name)
-                        state = out.strip().split("\"")[1].split("\"")[0].strip()
+                        # logging.debug("Found vmState: " + out + " added to " + self.tempVMs[vmName].name)
+                        state = out.strip().split("\"")[1].split("\"")[0]
                         if state == "running":
-                            self.vms[aVM].state = VM.VM_STATE_RUNNING
+                            self.tempVMs[vmName].state = VM.VM_STATE_RUNNING
                         elif state == "poweroff":
-                            self.vms[aVM].state = VM.VM_STATE_OFF
+                            self.tempVMs[vmName].state = VM.VM_STATE_OFF
                         else:
-                            self.vms[aVM].state = VM.VM_STATE_OTHER
+                            self.tempVMs[vmName].state = VM.VM_STATE_OTHER
                     res = re.match("CurrentSnapshotUUID=", out)
                     if res:
-                        # logging.debug("Found snaps: " + out + " added to " + self.vms[aVM].latestSnapUUID)
+                        # logging.debug("Found snaps: " + out + " added to " + self.tempVMs[vmName].latestSnapUUID)
                         latestSnap = out.strip().split("\"")[1].split("\"")[0]
-                        self.vms[aVM].latestSnapUUID = latestSnap                            
+                        self.tempVMs[vmName].latestSnapUUID = latestSnap
             p.wait()
-            logging.debug("runVMInfo(): Thread completed")
+            try:
+                #Set self.vms to our temporary -- did it this way to save time
+                self.lock.acquire()
+                logging.debug("VM: " + str(vmName) + "\r\nself.vms: " + str(self.vms) + "\r\nself.tempVMs: " + str(self.tempVMs))
+                self.vms[vmName] = self.tempVMs[vmName]
+            finally:
+                self.lock.release()
+
+            logging.debug("runVMInfo(): Thread 2 completed: " + vmShowInfoCmd)
         except Exception:
             logging.error("Error in runVMInfo(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -315,9 +307,15 @@ class VBoxManage(VMManage):
         try:
             logging.debug("VBoxManage: runConfigureVMNet(): instantiated")
             self.readStatus = VMManage.MANAGER_READING
-            self.writeStatus += 1
+            vmUUID = ""
+            try:
+                self.lock.acquire()
+                vmUUID = str(self.vms[vmName].UUID)
+            finally:
+                self.lock.release()
+                
             logging.debug("runConfigureVMNet(): adding 1 "+ str(self.writeStatus))
-            vmConfigVMCmd = self.vmanage_path + " modifyvm " + str(self.vms[vmName].UUID) + " --nic" + str(netNum) + " intnet " + " --intnet" + str(netNum) + " " + str(netName) + " --cableconnected"  + str(netNum) + " on "
+            vmConfigVMCmd = self.vmanage_path + " modifyvm " + vmUUID + " --nic" + str(netNum) + " intnet " + " --intnet" + str(netNum) + " " + str(netName) + " --cableconnected"  + str(netNum) + " on "
             logging.debug("runConfigureVMNet(): Running " + vmConfigVMCmd)
             subprocess.check_output(shlex.split(vmConfigVMCmd, posix=self.POSIX), encoding='utf-8')
 
@@ -335,7 +333,6 @@ class VBoxManage(VMManage):
         logging.debug("VBoxManageWin: runVMCmd(): instantiated")
         try:
             self.readStatus = VMManage.MANAGER_READING
-            self.writeStatus += 1
             logging.debug("runVMCmd(): adding 1 "+ str(self.writeStatus))
             vmCmd = self.vmanage_path + " " + cmd
             logging.debug("runVMCmd(): Running " + vmCmd)
@@ -360,25 +357,37 @@ class VBoxManage(VMManage):
 
     def getVMStatus(self, vmName):
         logging.debug("VBoxManage: getVMStatus(): instantiated " + vmName)
-        #TODO: need to make this thread safe
-        if vmName not in self.vms:
-            logging.error("getVMStatus(): vmName does not exist: " + vmName)
-            return None
-        resVM = self.vms[vmName]
-        #Don't want to rely on python objects in case we go with 3rd party clients in the future
-        return {"vmName" : resVM.name, "vmUUID" : resVM.UUID, "setupStatus" : resVM.setupStatus, "vmState" : resVM.state, "adaptorInfo" : resVM.adaptorInfo, "groups" : resVM.groups}
+        exists = False
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("getVMStatus(): " + vmName + " not found in list of known vms: \r\n" + str(vmName))
+                return -1
+            resVM = self.vms[vmName]
+            #Don't want to rely on python objects in case we go with 3rd party clients in the future
+            return {"vmName" : resVM.name, "vmUUID" : resVM.UUID, "setupStatus" : resVM.setupStatus, "vmState" : resVM.state, "adaptorInfo" : resVM.adaptorInfo, "groups" : resVM.groups, "latestSnapUUID": resVM.latestSnapUUID}
+        finally:
+            self.lock.release()        
         
     def getManagerStatus(self):
         logging.debug("VBoxManage: getManagerStatus(): instantiated")
         vmStatus = {}
-        for vmName in self.vms:
-            resVM = self.vms[vmName]
-            vmStatus[resVM.name] = {"vmUUID" : resVM.UUID, "setupStatus" : resVM.setupStatus, "vmState" : resVM.state, "adaptorInfo" : resVM.adaptorInfo, "groups" : resVM.groups}
+        try:
+            self.lock.acquire()
+            for vmName in self.vms:
+                resVM = self.vms[vmName]
+                vmStatus[resVM.name] = {"vmUUID" : resVM.UUID, "setupStatus" : resVM.setupStatus, "vmState" : resVM.state, "adaptorInfo" : resVM.adaptorInfo, "groups" : resVM.groups}
+        finally:
+            self.lock.release()
+        
         return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "vmstatus" : vmStatus}
 
     def importVM(self, filepath):
         logging.debug("VBoxManage: importVM(): instantiated")
         cmd = "import \"" + filepath + "\" --options keepallmacs"
+        self.readStatus = VMManage.MANAGER_READING
+        self.writeStatus += 1
         t = threading.Thread(target=self.runVMCmd, args=(cmd,))
         t.start()
         return 0  
@@ -386,79 +395,166 @@ class VBoxManage(VMManage):
     def snapshotVM(self, vmName):
         logging.debug("VBoxManage: snapshotVM(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
-        if vmName not in self.vms:
-            logging.error("snapshotVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-            return -1
-        cmd = " snapshot " + str(self.vms[vmName].UUID) + " take snapshot"
-        t = threading.Thread(target=self.runVMCmd, args=(cmd,))
-        t.start()
-        return 0
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("snapshotVM(): " + vmName + " not found in list of known vms: \r\n" + str(vmName))
+                return -1
+            cmd = " snapshot " + str(self.vms[vmName].UUID) + " take snapshot"
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            t = threading.Thread(target=self.runVMCmd, args=(cmd,))
+            t.start()
+            return 0
+        finally:
+            self.lock.release()
 
     def exportVM(self, vmName, filepath):
         logging.debug("VBoxManage: importVM(): instantiated")
         #first remove any quotes that may have been entered before (because we will add some after we add the file and extension)
-        if vmName not in self.vms:
-            logging.error("exportVM(): vmName does not exist. Skipping... " + vmName)
-            return None
-        filepath = filepath.replace("\"","")
-        exportfilename = os.path.join(filepath,vmName+".ova")
-        cmd = "export " + self.vms[vmName].UUID + " -o \"" + exportfilename + "\" --iso"
-        t = threading.Thread(target=self.runVMCmd, args=(cmd,))
-        t.start()
-        return 0
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("exportVM(): " + vmName + " not found in list of known vms: \r\n" + str(vmName))
+                return -1
+            filepath = filepath.replace("\"","")
+            exportfilename = os.path.join(filepath,vmName+".ova")
+            cmd = "export " + self.vms[vmName].UUID + " -o \"" + exportfilename + "\" --iso"
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            t = threading.Thread(target=self.runVMCmd, args=(cmd,))
+            t.start()
+            return 0
+        finally:
+            self.lock.release()
 
     def startVM(self, vmName):
         logging.debug("VBoxManage: startVM(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
-        if vmName not in self.vms:
-            logging.error("startVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-            return -1
-        cmd = "startvm " + str(self.vms[vmName].UUID) + " --type headless"
-        t = threading.Thread(target=self.runVMCmd, args=(cmd,))
-        t.start()
-        return 0
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("startVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+                return -1
+            cmd = "startvm " + str(self.vms[vmName].UUID) + " --type headless"
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            t = threading.Thread(target=self.runVMCmd, args=(cmd,))
+            t.start()
+            return 0
+        finally:
+            self.lock.release()
 
     def suspendVM(self, vmName):
         logging.debug("VBoxManage: suspendVM(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
-        if vmName not in self.vms:
-            logging.error("suspendVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-            return -1
-        cmd = "controlvm " + str(self.vms[vmName].UUID) + " savestate"
-        t = threading.Thread(target=self.runVMCmd, args=(cmd,))
-        t.start()
-        return 0
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("suspendVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+                return -1
+            cmd = "controlvm " + str(self.vms[vmName].UUID) + " savestate"
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            t = threading.Thread(target=self.runVMCmd, args=(cmd,))
+            t.start()
+            return 0
+        finally:
+            self.lock.release()
 
     def stopVM(self, vmName):
         logging.debug("VBoxManage: stopVM(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
-        if vmName not in self.vms:
-            logging.error("stopVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-            return -1
-        cmd = "controlvm " + str(self.vms[vmName].UUID) + " poweroff"
-        t = threading.Thread(target=self.runVMCmd, args=(cmd,))
-        t.start()
-        return 0
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("stopVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+                return -1
+            cmd = "controlvm " + str(self.vms[vmName].UUID) + " poweroff"
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            t = threading.Thread(target=self.runVMCmd, args=(cmd,))
+            t.start()
+            return 0
+        finally:
+            self.lock.release()
 
     def removeVM(self, vmName):
         logging.debug("VBoxManage: removeVM(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
-        if vmName not in self.vms:
-            logging.error("removeVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-            return -1
-        cmd = "unregistervm " + str(self.vms[vmName].UUID) + " --delete"
-        t = threading.Thread(target=self.runVMCmd, args=(cmd,))
-        t.start()
-        return 0
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("removeVM(): " + vmName + " not found in list of known vms: \r\n" + str(vmName))
+                return -1
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            t = threading.Thread(target=self.runRemoveVM, args=(vmName, str(self.vms[vmName].UUID)))
+            t.start()
+            return 0
+        finally:
+            self.lock.release()
+
+    def runRemoveVM(self, vmName, vmUUID):
+        logging.debug("VBoxManage: runRemoveVM(): instantiated")
+        try:
+            self.readStatus = VMManage.MANAGER_READING
+            logging.debug("runRemoveVM(): adding 1 "+ str(self.writeStatus))
+            vmCmd = self.vmanage_path + " unregistervm " + vmUUID + " --delete"
+            logging.debug("runRemoveVM(): Running " + vmCmd)
+            success = False
+            p = Popen(shlex.split(vmCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
+            while True:
+                out = p.stderr.readline()
+                if out == '' and p.poll() != None:
+                    break
+                if out != '':
+                    logging.debug("output line: " + out)
+                    if "100%" in out:
+                        success = True
+            p.wait()
+            if success:
+                try:
+                    self.lock.acquire()
+                    del self.vms[vmName]
+                finally:
+                    self.lock.release()
+
+            logging.debug("runRemoveVM(): Thread completed")
+        except Exception:
+            logging.error("runRemoveVM() Error: " + " cmd: " + cmd)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+        finally:
+            self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus -= 1
+            logging.debug("runRemoveVM(): sub 1 "+ str(self.writeStatus))
 
     def cloneVMConfigAll(self, vmName, cloneName, cloneSnapshots, linkedClones, groupName, internalNets, vrdpPort, refreshVMInfo=False):
         logging.debug("VBoxManage: cloneVMConfigAll(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
-        if vmName not in self.vms:
-            logging.error("cloneVMConfigAll(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-            return -1
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("cloneVMConfigAll(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+                return -1
+        finally:
+            self.lock.release()
+
         if refreshVMInfo == True:
-            self.refreshVMInfo(vmName)
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            #runVMInfo obtains it's own lock
+            self.runVMInfo(vmName)
+        self.readStatus = VMManage.MANAGER_READING
+        self.writeStatus += 1
         t = threading.Thread(target=self.runCloneVMConfigAll, args=(vmName, cloneName, cloneSnapshots, linkedClones, groupName, internalNets, vrdpPort))
         t.start()
         return 0
@@ -466,29 +562,43 @@ class VBoxManage(VMManage):
     def runCloneVMConfigAll(self, vmName, cloneName, cloneSnapshots, linkedClones, groupName, internalNets, vrdpPort):
         logging.debug("VBoxManage: runCloneVMConfigAll(): instantiated")
         try:
-            self.readStatus = VMManage.MANAGER_READING
-            self.writeStatus += 1
             logging.debug("runCloneVMConfigAll(): adding 1 "+ str(self.writeStatus))
             #first clone
             #Check that vm does exist
-            if vmName not in self.vms:
-                logging.error("runCloneVMConfigAll(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-                return
-            #Check that clone does not yet exist
+            try:
+                self.lock.acquire()
+                exists = vmName in self.vms
+                if not exists:
+                    logging.error("runCloneVMConfigAll(): " + vmName + " not found in list of known vms: \r\n" + str(vmName))
+                    return
+            finally:
+                self.lock.release()
+            # clone the VM
+            self.writeStatus += 1
             self.runCloneVM(vmName, cloneName, cloneSnapshots, linkedClones, groupName)
             
             #netsetup
-            if cloneName not in self.vms:
-                logging.error("runCloneVMConfigAll(): " + cloneName + " not found in list of known vms: \r\n" + str(self.vms))
-                return
+            try:
+                self.lock.acquire()
+                exists = cloneName in self.vms
+                if not exists:
+                    logging.error("runCloneVMConfigAll(): " + cloneName + " not found in list of known vms: \r\n" + str(cloneName))
+                    return
+                else:
+                    cloneUUID = str(self.vms[cloneName].UUID)
+            finally:
+                self.lock.release()
+
+            self.writeStatus += 1
             self.runConfigureVMNets(cloneName, internalNets)
 
             #vrdp setup (if applicable)
             if vrdpPort != None:
+                self.writeStatus += 1
                 self.runEnableVRDP(cloneName, vrdpPort)
             
             #create snap
-            snapcmd = self.vmanage_path + " snapshot " + str(self.vms[cloneName].UUID) + " take snapshot"
+            snapcmd = self.vmanage_path + " snapshot " + cloneUUID + " take snapshot"
             logging.debug("runCloneVMConfigAll(): Running " + snapcmd)
             p = Popen(shlex.split(snapcmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
@@ -512,11 +622,22 @@ class VBoxManage(VMManage):
     def cloneVM(self, vmName, cloneName, cloneSnapshots, linkedClones, groupName, refreshVMInfo=False):
         logging.debug("VBoxManage: cloneVM(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
-        if vmName not in self.vms:
-            logging.error("cloneVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-            return -1
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("cloneVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+                return -1
+        finally:
+            self.lock.release()
+
         if refreshVMInfo == True:
-            self.refreshVMInfo(vmName)
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            #runVMInfo obtains it's own lock
+            self.runVMInfo(vmName)
+        self.readStatus = VMManage.MANAGER_READING
+        self.writeStatus += 1
         t = threading.Thread(target=self.runCloneVM, args=(vmName, cloneName, cloneSnapshots, linkedClones, groupName))
         t.start()
         return 0
@@ -525,44 +646,49 @@ class VBoxManage(VMManage):
         logging.debug("VBoxManage: runCloneVM(): instantiated")
         try:
             self.readStatus = VMManage.MANAGER_READING
-            self.writeStatus += 1
             logging.debug("runCloneVM(): adding 1 "+ str(self.writeStatus))
             #First check that the clone doesn't exist:
-            if cloneName in self.vms:
-                logging.error("runCloneVM(): A VM with the clone name already exists and is registered... skipping " + str(cloneName))
-                return
+            try:
+                self.lock.acquire()
+                exists = cloneName in self.vms
+                if exists:
+                    logging.error("runCloneVM(): A VM with the clone name already exists and is registered... skipping " + str(cloneName))
+                    return
+                else:
+                    vmUUID = str(self.vms[vmName].UUID)
+                    vmLatestSnapUUID = str(self.vms[vmName].latestSnapUUID)
+            finally:
+                self.lock.release()
             #Call runVMCommand
-            cloneCmd = self.vmanage_path + " clonevm " + str(self.vms[vmName].UUID) + " --register"
+            cloneCmd = self.vmanage_path + " clonevm " + vmUUID + " --register"
             #NOTE, the following logic is not in error. Linked clone can only be created from a snapshot.
             if cloneSnapshots == 'true':
-                cloneSnapshotUUID = self.vms[vmName].latestSnapUUID
                 #linked Clones option requires a cloneSnapshotUUID to be specified
-                if linkedClones == 'true' and cloneSnapshotUUID != "":
+                if linkedClones == 'true' and vmLatestSnapUUID != "":
                     logging.debug("runCloneVM(): using linked clones")
-                    # get the name of the newest snapshot
-                    #getSnapCmd = [self.vmanage_path, "snapshot", self.vms[vmName].UUID, "list", "--machinereadable"]
                     cloneCmd += " --options "
                     cloneCmd += " link "
-                    cloneCmd += " --snapshot " + str(cloneSnapshotUUID)                    
+                    cloneCmd += " --snapshot " + vmLatestSnapUUID
                 else:
                     cloneCmd += " --mode "
                     cloneCmd += " all "
-            cloneCmd += " --options keepallmacs "                
+            #cloneCmd += " --options keepallmacs "                
             cloneCmd += " --name "
             cloneCmd += str(cloneName)
             logging.debug("runCloneVM(): executing: " + str(cloneCmd))
             result = subprocess.check_output(shlex.split(cloneCmd, posix=self.POSIX), encoding='utf-8')
 
             #groupCmd = [self.vmanage_path, "modifyvm", cloneName, "--groups", groupName]
-            groupCmd = self.vmanage_path + " modifyvm " + str(cloneName) + " --groups \"" + str(groupName)+"\""
+            groupCmd = self.vmanage_path + " modifyvm " + str(cloneName) + " --groups " + str(groupName)
             logging.debug("runCloneVM(): placing into group: " + str(groupName))
-            logging.error("runCloneVM(): executing: " + str(groupCmd))
+            logging.debug("runCloneVM(): executing: " + str(groupCmd))
             result = subprocess.check_output(shlex.split(groupCmd, posix=self.POSIX), encoding='utf-8')
 
             logging.debug("runCloneVM(): Clone Created: " + str(cloneName) + " and placed into group: " + groupName)
             #since we added a VM, now we have to add it to the known list
             logging.debug("runCloneVM(): Adding: " + str(cloneName) + " to known VMs")
-            self.addVMByName(cloneName)
+            self.writeStatus += 1
+            self.runVMInfo(cloneName)
 
         except Exception:
             logging.error("runCloneVM(): Error in runCloneVM(): An error occured; it could be due to a missing snapshot for the VM")
@@ -576,18 +702,24 @@ class VBoxManage(VMManage):
     def enableVRDPVM(self, vmName, vrdpPort):
         logging.debug("VBoxManage: enabledVRDP(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
-        if vmName not in self.vms:
-            logging.error("enabledVRDP(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-            return -1
-        t = threading.Thread(target=self.runEnableVRDP, args=(vmName, vrdpPort))
-        t.start()
-        return 0
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("enabledVRDP(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+                return -1
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            t = threading.Thread(target=self.runEnableVRDP, args=(vmName, vrdpPort))
+            t.start()
+            return 0
+        finally:
+            self.lock.release()
 
     def runEnableVRDP(self, vmName, vrdpPort):
         logging.debug("VBoxManage: runEnabledVRDP(): instantiated")
         try:
             self.readStatus = VMManage.MANAGER_READING
-            self.writeStatus += 1
             logging.debug("runEnableVRDP(): adding 1 "+ str(self.writeStatus))
             #vrdpCmd = [self.vmanage_path, "modifyvm", vmName, "--vrde", "on", "--vrdeport", str(vrdpPort)]
             vrdpCmd = self.vmanage_path + " modifyvm " + str(vmName) + " --vrde " + " on " + " --vrdeport " + str(vrdpPort)
@@ -614,11 +746,17 @@ class VBoxManage(VMManage):
     def restoreLatestSnapVM(self, vmName):
         logging.debug("VBoxManage: restoreLatestSnapVM(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
-        if vmName not in self.vms:
-            logging.error("restoreLatestSnapVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-            return -1
-
-        cmd = "snapshot " + str(self.vms[vmName].UUID) + " restorecurrent"
-        t = threading.Thread(target=self.runVMCmd, args=(cmd,))
-        t.start()
-        return 0
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("restoreLatestSnapVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+                return -1
+            cmd = "snapshot " + str(self.vms[vmName].UUID) + " restorecurrent"
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            t = threading.Thread(target=self.runVMCmd, args=(cmd,))
+            t.start()
+            return 0
+        finally:
+            self.lock.release()

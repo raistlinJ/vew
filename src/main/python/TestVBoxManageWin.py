@@ -31,9 +31,10 @@ if __name__ == "__main__":
     for vm in vbm.vms:
         logging.info("VM Info:\r\n" + str(vm.name))
     vbm.refreshAllVMInfo()   
-
-    while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-        logging.info("waiting for manager to finish query...")
+    result = vbm.getManagerStatus()["writeStatus"]
+    while result != vbm.MANAGER_IDLE:
+    #waiting for manager to finish query...
+        result = vbm.getManagerStatus()["writeStatus"]
         time.sleep(.1)
     logging.info("Refreshing VMs Info - AFTER")
 
@@ -61,8 +62,10 @@ if __name__ == "__main__":
     
     logging.info("Refreshing after clone since we added a new VM")
     vbm.refreshAllVMInfo()
-    while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-        logging.info("waiting for manager to finish query...")
+    result = vbm.getManagerStatus()["writeStatus"]
+    while result != vbm.MANAGER_IDLE:
+    #waiting for manager to finish query...
+        result = vbm.getManagerStatus()["writeStatus"]
         time.sleep(.1)
     logging.info("Refreshing VMs Info - AFTER")
 

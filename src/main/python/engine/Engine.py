@@ -40,10 +40,10 @@ class Engine:
 
         #Create the ConnectionManage
         self.connectionManage = ConnectionManageGuacRDP()
-        #Create the PackageManage
-        self.packageManage = PackageManageVBox(True)
         #Create the ExperimentManage
         self.experimentManage = ExperimentManageVBox(True)
+        #Create the PackageManage
+        self.packageManage = PackageManageVBox(True)
         #build the parser
         self.buildParser()
 
