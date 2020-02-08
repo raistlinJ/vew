@@ -76,12 +76,12 @@ class ExperimentManageVBox(ExperimentManage):
                     else:
                         self.vmManage.cloneVMConfigAll(vmName, cloneVMName, cloneSnapshots, linkedClones, cloneGroupName, internalnets, vrdpPort, refreshVMInfo=False)
                         refreshedVMName = True
-                status = self.vmManage.getManagerStatus()["writeStatus"]
-                while status != VMManage.MANAGER_IDLE:
-                    #waiting for vmmanager clone vm to finish reading/writing...
-                    logging.debug("runCreateExperiment(): waiting for vmmanager clone vm to finish reading/writing..." + str(status))
-                    time.sleep(.1)
                     status = self.vmManage.getManagerStatus()["writeStatus"]
+            while status != VMManage.MANAGER_IDLE:
+                #waiting for vmmanager clone vm to finish reading/writing...
+                logging.debug("runCreateExperiment(): waiting for vmmanager clone vm to finish reading/writing..." + str(status))
+                time.sleep(.1)
+                status = self.vmManage.getManagerStatus()["writeStatus"]
             logging.debug("runCreateExperiment(): finished setting up " + str(numclones) + " clones")
             logging.debug("runCreateExperiment(): Complete...")
         except Exception:
