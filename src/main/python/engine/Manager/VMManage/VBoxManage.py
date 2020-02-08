@@ -293,7 +293,7 @@ class VBoxManage(VMManage):
             finally:
                 self.lock.release()
 
-        logging.debug("runVMInfo(): Thread 2 completed: " + vmShowInfoCmd)
+            logging.debug("runVMInfo(): Thread 2 completed: " + vmShowInfoCmd)
         except Exception:
             logging.error("Error in runVMInfo(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
