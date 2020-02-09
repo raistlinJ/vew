@@ -14,7 +14,8 @@ if __name__ == "__main__":
     logging.debug("Starting Program")
 
     logging.debug("Instantiating Engine")
-    e = ExperimentManageVBox(initializeVMManage=True)
+    vbm = VBoxManageWin()
+    e = ExperimentManageVBox(vbm)
     ####---Create Experiment Test#####
     logging.info("Creating Experiment")
     e.createExperiment("sample")
