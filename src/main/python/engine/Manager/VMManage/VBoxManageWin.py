@@ -76,13 +76,13 @@ class VBoxManageWin(VMManage):
             logging.debug("runConfigureVMNets(): adding 1 "+ str(self.writeStatus))
             cloneNetNum = 1
             logging.debug("runConfigureVMNets(): Processing internal net names: " + str(internalNets))
+            try:
+                self.lock.acquire()
+                vmUUID = str(self.vms[vmName].UUID)
+            finally:
+                self.lock.release()            
             for internalnet in internalNets:
                 vmUUID = ""
-                try:
-                    self.lock.acquire()
-                    vmUUID = str(self.vms[vmName].UUID)
-                finally:
-                    self.lock.release()
                 vmConfigVMCmd = self.vmanage_path + " modifyvm " + vmUUID + " --nic" + str(cloneNetNum) + " intnet " + " --intnet" + str(cloneNetNum) + " " + str(internalnet) + " --cableconnected"  + str(cloneNetNum) + " on "
                 logging.debug("runConfigureVMNets(): Running " + vmConfigVMCmd)
                 subprocess.check_output(vmConfigVMCmd, encoding='utf-8')
