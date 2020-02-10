@@ -76,17 +76,17 @@ class VBoxManage(VMManage):
             logging.debug("runConfigureVMNets(): adding 1 "+ str(self.writeStatus))            
             cloneNetNum = 1
             logging.debug("runConfigureVMNets(): Processing internal net names: " + str(internalNets))
-            for internalnet in internalNets:
-                                vmUUID = ""
+            vmUUID = ""            
             try:
                 self.lock.acquire()
                 vmUUID = str(self.vms[vmName].UUID)
             finally:
                 self.lock.release()
-            vmConfigVMCmd = self.vmanage_path + " modifyvm " + vmUUID + " --nic" + str(cloneNetNum) + " intnet " + " --intnet" + str(cloneNetNum) + " " + str(internalnet) + " --cableconnected"  + str(cloneNetNum) + " on "
-            logging.debug("runConfigureVMNets(): Running " + vmConfigVMCmd)
-            subprocess.check_output(shlex.split(vmConfigVMCmd, posix=self.POSIX), encoding='utf-8')
-            cloneNetNum += 1            
+            for internalnet in internalNets:
+                vmConfigVMCmd = self.vmanage_path + " modifyvm " + vmUUID + " --nic" + str(cloneNetNum) + " intnet " + " --intnet" + str(cloneNetNum) + " " + str(internalnet) + " --cableconnected"  + str(cloneNetNum) + " on "
+                logging.debug("runConfigureVMNets(): Running " + vmConfigVMCmd)
+                subprocess.check_output(shlex.split(vmConfigVMCmd, posix=self.POSIX), encoding='utf-8')
+                cloneNetNum += 1            
            
             logging.debug("runConfigureVMNets(): Thread completed")
         except Exception:
