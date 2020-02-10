@@ -415,7 +415,7 @@ class MainApp(QMainWindow):
             self.statusBar.showMessage("Could complete connection action. No configuration items selected or available.")
             return
         selectedItemName = selectedItem.text(0)
-        connResult = ConnectionActionDialog(self, selectedItemName, "Remove").exec_()
+        connResult = ConnectionActionDialog(self, selectedItemName, "Remove", self.baseWidgets[selectedItemName]["BaseWidget"].ipAddressLineEdit.text()).exec_()
 
     def clearGuacActionEvent(self):
         logging.debug("MainApp:clearGuacActionEvent() instantiated")
@@ -425,7 +425,7 @@ class MainApp(QMainWindow):
             self.statusBar.showMessage("Could complete connection action. No configuration items selected or available.")
             return
         selectedItemName = selectedItem.text(0)
-        connResult = ConnectionActionDialog(self, selectedItemName, "Clear").exec_()
+        connResult = ConnectionActionDialog(self, selectedItemName, "Clear", self.baseWidgets[selectedItemName]["BaseWidget"].ipAddressLineEdit.text()).exec_()
 
     def removeExperimentItemActionEvent(self):
         logging.debug("MainApp:removeExperimentItemActionEvent() instantiated")
