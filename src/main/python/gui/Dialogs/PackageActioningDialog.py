@@ -33,7 +33,7 @@ class PackageActioningThread(QThread):
             logging.debug("PackageActioningThread(): Processing for " + str(self.filenames) + " " + str(self.actionname) )
             e = Engine.getInstance()
             if self.actionname == "import":
-                e.execute("packager import " + str(self.filenames))
+                e.execute("packager import \"" + str(self.filenames) + "\"")
             elif self.actionname == "export":
                 e.execute("packager export " + self.args[0] + " " + str(self.filenames))
             #will check status every 0.5 second and will either display stopped or ongoing or connected
