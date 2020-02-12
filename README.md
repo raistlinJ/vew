@@ -25,7 +25,7 @@ RES has been tested on:
 * Ubuntu 16.04 LTE (64-bit)
 
 ##### Requirements
-* [Python 3.6 (64-bit) ](https://www.python.org/downloads/release/python-360/)
+* [Python 3.5 (64-bit) ](https://www.python.org/downloads/release/python-360/)
 * [VirtualBox 6.x](https://www.virtualbox.org/wiki/Downloads)
 * [Several Other Python packages] (see requirements.txt)
 ##### Windows
@@ -45,7 +45,7 @@ pip install -r requirements.txt
 ```
 
 ##### Linux
-Install Python > 3.5 (if you already have it, skip this step):
+Install Python >= 3.5 (if you already have it, skip this step):
 ```
 sudo apt-get install libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev
 
