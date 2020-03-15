@@ -108,7 +108,8 @@ class Engine:
         maxConnectionsPerUser = args.maxConnectionsPerUser
         width = args.width
         height = args.height
-        return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height)
+        bitdepth = args.bitdepth
+        return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth)
 
     def connectionRemoveCmd(self, args):
         logging.debug("connectionRemoveCmd(): instantiated")
@@ -280,10 +281,12 @@ class Engine:
                                           help='Max number of connections allowed per remote conn')
         self.connectionManageCreateParser.add_argument('maxConnectionsPerUser', metavar='<maxConnectionsPerUser>', action="store", default="", 
                                           help='Max number of connections allowed per user per remote conn')
-        self.connectionManageCreateParser.add_argument('width', metavar='<width>', action="store", default="1280",
+        self.connectionManageCreateParser.add_argument('width', metavar='<width>', action="store", default="1400",
                                           help='Width of remote connection display')
-        self.connectionManageCreateParser.add_argument('height', metavar='<height>', action="store", default="1024",
+        self.connectionManageCreateParser.add_argument('height', metavar='<height>', action="store", default="1050",
                                           help='Height of remote connection display')
+        self.connectionManageCreateParser.add_argument('bitdepth', metavar='<bitdepth>', action="store", default="16",
+                                          help='Bit-depth (8, 16, 24, or 32)')
         self.connectionManageCreateParser.set_defaults(func=self.connectionCreateCmd)
         
         self.connectionManageRemoveParser = self.connectionManageSubParser.add_parser('remove', help='remove conns as specified in config file')

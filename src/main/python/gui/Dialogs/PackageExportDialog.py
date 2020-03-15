@@ -14,7 +14,7 @@ class PackageExportDialog:
         fdialog.setOption(QFileDialog.ShowDirsOnly, True)
         fdialog.setViewMode(QFileDialog.Detail)
         fdialog.setWindowTitle("Choose Export Folder")
-        filedir = ""
+        filedirs = ""
         if fdialog.exec_() == QFileDialog.Accepted:
             filedirs = fdialog.selectedFiles()
         if len(filedirs) > 0:
