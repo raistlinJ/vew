@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (QApplication, qApp, QAction, QCheckBox, QComboBox, 
         QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QMessageBox, QTableWidget, QTabWidget, QTextEdit,
-        QVBoxLayout, QWidget, QStackedWidget)
+        QVBoxLayout, QWidget, QStackedWidget, QStatusBar, QMenuBar)
 
 from engine.Engine import Engine
 import time
@@ -41,23 +41,21 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
-class MainApp(QMainWindow):
+class MainApp(QWidget):
     def __init__(self, parent=None):
         logging.debug("MainApp:init() instantiated")
-        super(MainApp, self).__init__(parent)
+        super().__init__()
         self.baseWidgets = {}
         self.vmWidgets = {}
         self.materialWidgets = {}
         self.cf = SystemConfigIO()
         self.ec = ExperimentConfigIO()
-        self.statusBar = self.statusBar()
+        self.statusBar = QStatusBar()
         
         self.setFixedSize(670,565)
         quit = QAction("Quit", self)
         quit.triggered.connect(self.closeEvent)
         self.setWindowTitle("ARL South RES v0.1")
-
-        self.initMenu()
 
         self.tabWidget = QtWidgets.QTabWidget()
         self.tabWidget.setGeometry(QtCore.QRect(0, 15, 668, 565))
@@ -107,13 +105,14 @@ class MainApp(QMainWindow):
         self.populateUi()
         self.setupContextMenus()
 
+        self.initMenu()
         self.mainLayout = QVBoxLayout()
+        self.mainLayout.addWidget(self.mainMenu)
         self.mainLayout.addWidget(self.tabWidget)
         self.mainLayout.addLayout(self.bottomLayout)
-
-        self.outerBox = QWidget()
-        self.outerBox.setLayout(self.mainLayout)
-        self.setCentralWidget(self.outerBox)
+        
+        self.setLayout(self.mainLayout)
+        #self.setCentralWidget(self.outerBox)
         self.tabWidget.setCurrentIndex(0)
 
         #self.statusBar.showMessage("Finished Loading GUI Components")
@@ -504,10 +503,10 @@ class MainApp(QMainWindow):
     
     def initMenu(self):               
         
-        mainMenu = self.menuBar()
-        self.fileMenu = mainMenu.addMenu("File")
-        self.editMenu = mainMenu.addMenu("Edit")
-        self.hypervisorMenu = mainMenu.addMenu("Hypervisor")
+        self.mainMenu = QMenuBar()
+        self.fileMenu = self.mainMenu.addMenu("File")
+        self.editMenu = self.mainMenu.addMenu("Edit")
+        self.hypervisorMenu = self.mainMenu.addMenu("Hypervisor")
         
         self.newExperimentMenuButton = QAction(QIcon(), "New Experiment", self)
         self.newExperimentMenuButton.setShortcut("Ctrl+N")
