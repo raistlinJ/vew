@@ -94,7 +94,7 @@ class ConnectionActionDialog(QDialog):
                     bitDepth = "24"
                 elif bitDepth == "True color (32-bit)":
                     bitDepth = "32"
-                self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText(), "1", self.maxConnectionsLineEdit.text(), self.heightLineEdit.text(), self.widthLineEdit.text(), self.bitdepthComboBox.current]
+                self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText(), "1", self.maxConnectionsLineEdit.text(), self.heightLineEdit.text(), self.widthLineEdit.text(), bitDepth]
             else:
                 self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText()]
             cad = ConnectionActioningDialog(self.parent, self.configname, self.actionname, self.args).exec_()
