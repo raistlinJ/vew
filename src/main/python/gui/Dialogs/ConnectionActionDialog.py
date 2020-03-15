@@ -59,8 +59,15 @@ class ConnectionActionDialog(QDialog):
         self.layout.addRow(QLabel("Method:"), self.methodComboBox)
         
         self.maxConnectionsLineEdit = QLineEdit("1")
-        self.heightLineEdit = QLineEdit("1280")
-        self.widthLineEdit = QLineEdit("1024")
+        self.heightLineEdit = QLineEdit("1400")
+        self.widthLineEdit = QLineEdit("1050")
+        self.bitdepthComboBox = QComboBox()
+        self.bitdepthComboBox.addItem("256 colors (8-bit)")
+        self.bitdepthComboBox.addItem("Low color (16-bit)")
+        self.bitdepthComboBox.addItem("True color (24-bit)")
+        self.bitdepthComboBox.addItem("True color (32-bit)")
+        self.bitdepthComboBox.setCurrentIndex(1)
+
         if self.actionname == "Add":
             #Need to make a function to create more than one user to a single instance 
             # self.layout.addRow(QLabel("Max Connections Per Instance:"), self.maxConnectionsLineEdit)      
@@ -68,6 +75,7 @@ class ConnectionActionDialog(QDialog):
             self.layout.addRow(QLabel("Max Connections Per User:"), self.maxConnectionsLineEdit)      
             self.layout.addRow(QLabel("Display Height:"), self.heightLineEdit)
             self.layout.addRow(QLabel("Display Width:"), self.widthLineEdit)
+            self.layout.addRow(QLabel("Bit Depth:"), self.bitdepthComboBox)
 
         self.formGroupBox.setLayout(self.layout)
 

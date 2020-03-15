@@ -15,13 +15,13 @@ class ConnectionManageGuacRDP(ConnectionManage):
         self.eco = ExperimentConfigIO()
 
     #abstractmethod
-    def createConnections(self, configname, guacHostname, username, password, url_path, method, maxConnections="", maxConnectionsPerUser="", width="1280", height="1024"):
+    def createConnections(self, configname, guacHostname, username, password, url_path, method, maxConnections="", maxConnectionsPerUser="", width="1400", height="1050", bitdepth="16"):
         logging.debug("createConnections(): instantiated")
-        t = threading.Thread(target=self.runCreateConnections, args=(configname, guacHostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height))
+        t = threading.Thread(target=self.runCreateConnections, args=(configname, guacHostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth))
         t.start()
         return 0
 
-    def runCreateConnections(self, configname, guacHostname, username, password,url_path, method, maxConnections, maxConnectionsPerUser, width, height):
+    def runCreateConnections(self, configname, guacHostname, username, password,url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth):
         logging.debug("runCreateConnections(): instantiated")
         #call guac backend API to make connections as specified in config file and then set the complete status
         #self.guacifx.createGuacEntries(inputFilename, guacHostname, guacUsername, guacPass, guacURLPath, guacConnMethod)
@@ -67,7 +67,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
                         # Associate a User and Connection
                         logging.debug( "Creating Connection for Username: " + username)
                         try:
-                            result = self.createConnAssociation(guacConn, cloneVMName, username, ipAddress, vrdpPort, maxConnections, maxConnectionsPerUser, width, height)
+                            result = self.createConnAssociation(guacConn, cloneVMName, username, ipAddress, vrdpPort, maxConnections, maxConnectionsPerUser, width, height, bitdepth)
                             if result == "already_exists":
                                 logging.debug("Connection already exists; skipping...")
                         except Exception:
@@ -221,7 +221,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
             #traceback.print_exception(exc_type, exc_value, exc_traceback)
             return None
 
-    def createConnAssociation(self, guacConn, connName, username, ip, port, maxConnections, maxConnectionsPerUser, width, height):
+    def createConnAssociation(self, guacConn, connName, username, ip, port, maxConnections, maxConnectionsPerUser, width, height, bitdepth):
         logging.debug("createConnAssociation(): Instantiated")
         try:
             #logic to add a user/connection and associate them together
@@ -236,7 +236,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
                 "enable-menu-animations":"true",
                 "enable-desktop-composition":"true",
                 "hostname":ip,
-                "color-depth":"16",
+                "color-depth":bitdepth,
                 "enable-font-smoothing":"true",
                 "ignore-cert":"true",
                 "enable-drive":"false",
