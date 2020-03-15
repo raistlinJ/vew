@@ -27,12 +27,12 @@ class WatchActioningThread(QThread):
         try:
             e = Engine.getInstance()
             if self.actionname == "Add":
-                if len(self.args) != 9:
+                if len(self.args) != 10:
                     logging.error("WatchActioningThread(): invalid number of args for create connections. Skipping...")
                     self.watchsignal.emit("Invalid number of args for create connections. Skipping...", self.status, True)
                     self.status = -1
                     return None
-                cmd = "conns " + " create " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4]) + " " + str(self.args[5]) + " " + str(self.args[6]) + " " + str(self.args[7]) + " " + str(self.args[8])
+                cmd = "conns " + " create " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4]) + " " + str(self.args[5]) + " " + str(self.args[6]) + " " + str(self.args[7]) + " " + str(self.args[8]) + " " + str(self.args[9])
             if self.actionname == "Remove":
                 if len(self.args) != 5:
                     logging.error("WatchActioningThread(): invalid number of args for remove connections. Skipping...")
