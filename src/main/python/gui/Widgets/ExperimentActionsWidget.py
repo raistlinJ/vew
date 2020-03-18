@@ -21,32 +21,44 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
 
         # Context menu for blank space
         self.experimentMenu = QtWidgets.QMenu()
+        self.startupContextMenu = QtWidgets.QMenu("Startup")
+        self.shutdownContextMenu = QtWidgets.QMenu("Shutdown")
+        self.stateContextMenu = QtWidgets.QMenu("State")
+        self.experimentMenu.addMenu(self.startupContextMenu)
+        self.experimentMenu.addMenu(self.shutdownContextMenu)
+        self.experimentMenu.addMenu(self.stateContextMenu)
+        ######
 
-        self.cloneExperiment = self.experimentMenu.addAction("Signal - Create Clones")
+        self.cloneExperiment = self.startupContextMenu.addAction("Signal - Create Clones")
         self.cloneExperiment.triggered.connect(self.cloneExperimentActionEvent)
         
-        self.startVMs = self.experimentMenu.addAction("Signal - Start VMs (headless)")
+        self.startVMs = self.startupContextMenu.addAction("Signal - Start VMs (headless)")
         self.startVMs.triggered.connect(self.startVMsActionEvent)
 
-        self.pauseVMs = self.experimentMenu.addAction("Signal - Pause VMs")
+        self.restoreSnapshots = self.startupContextMenu.addAction("Signal - Restore Snapshots")
+        self.restoreSnapshots.triggered.connect(self.restoreSnapshotsActionEvent)
+        ######
+
+        self.pauseVMs = self.shutdownContextMenu.addAction("Signal - Pause VMs")
         self.pauseVMs.triggered.connect(self.pauseVMsActionEvent)
+        self.shutdownContextMenu.addAction(self.pauseVMs)
 
-        self.snapshotVMs = self.experimentMenu.addAction("Signal - Snapshot VMs")
-        self.snapshotVMs.triggered.connect(self.snapshotVMsActionEvent)
-
-        self.suspendVMs = self.experimentMenu.addAction("Signal - Suspend & Save State")
+        self.suspendVMs = self.shutdownContextMenu.addAction("Signal - Suspend & Save State")
         self.suspendVMs.triggered.connect(self.suspendVMsActionEvent)
+        self.shutdownContextMenu.addAction(self.suspendVMs)
 
-        self.poweroffVMs = self.experimentMenu.addAction("Signal - Power Off VMs")
+        self.poweroffVMs = self.shutdownContextMenu.addAction("Signal - Power Off VMs")
         self.poweroffVMs.triggered.connect(self.poweroffVMsActionEvent)
 
-        self.restoreSnapshots = self.experimentMenu.addAction("Signal - Restore Snapshots")
-        self.restoreSnapshots.triggered.connect(self.restoreSnapshotsActionEvent)
-        
-        self.deleteClones = self.experimentMenu.addAction("Signal - Delete Clones")
+        self.deleteClones = self.shutdownContextMenu.addAction("Signal - Delete Clones")
         self.deleteClones.triggered.connect(self.deleteClonesActionEvent)
-        self.setLayout(self.outerVertBox)
+        ######
 
+        self.snapshotVMs = self.stateContextMenu.addAction("Signal - Snapshot VMs")
+        self.snapshotVMs.triggered.connect(self.snapshotVMsActionEvent)
+        ######
+
+        self.setLayout(self.outerVertBox)
         self.retranslateUi()
 
     def retranslateUi(self):
