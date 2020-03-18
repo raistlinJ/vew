@@ -46,6 +46,10 @@ class VMManage:
         raise NotImplementedError()
 
     #abstractmethod
+    def pauseVM(self, vmName):
+        raise NotImplementedError()
+
+    #abstractmethod
     def suspendVM(self, vmName):
         raise NotImplementedError()
 

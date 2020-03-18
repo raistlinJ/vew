@@ -448,6 +448,24 @@ class VBoxManageWin(VMManage):
         finally:
             self.lock.release()
 
+    def pauseVM(self, vmName):
+        logging.debug("VBoxManageWin: pauseVM(): instantiated")
+        #check to make sure the vm is known, if not should refresh or check name:
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("pauseVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
+                return -1
+            cmd = "controlvm " + str(self.vms[vmName].UUID) + " pause"
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            t = threading.Thread(target=self.runVMCmd, args=(cmd,))
+            t.start()
+            return 0
+        finally:
+            self.lock.release()
+
     def suspendVM(self, vmName):
         logging.debug("VBoxManageWin: suspendVM(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:

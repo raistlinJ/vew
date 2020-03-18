@@ -162,6 +162,20 @@ class Engine:
 
         return self.experimentManage.startExperiment(configname)
 
+    def experimentSuspendCmd(self, args):
+        logging.debug("experimentSuspendCmd(): instantiated")
+        #will suspend instances of the experiment (clones of vms) as specified in configfile
+        configname = args.configname
+
+        return self.experimentManage.suspendExperiment(configname)
+
+    def experimentPauseCmd(self, args):
+        logging.debug("experimentPauseCmd(): instantiated")
+        #will pause instances of the experiment (clones of vms) as specified in configfile
+        configname = args.configname
+
+        return self.experimentManage.pauseExperiment(configname)
+
     def experimentStopCmd(self, args):
         logging.debug("experimentStopCmd(): instantiated")
         #will start instances of the experiment (clones of vms) as specified in configfile
@@ -212,6 +226,13 @@ class Engine:
 
         #send suspend command
         self.vmManage.suspendVM(vmName)
+
+    def vmManagePauseCmd(self, args):
+        logging.debug("vmManagePauseCmd(): instantiated")
+        vmName = args.vmName.replace("\"","").replace("'","")
+
+        #send pause command
+        self.vmManage.pauseVM(vmName)
 
     def buildParser(self):
         self.parser = argparse.ArgumentParser(description='Replication Experiment System engine')
@@ -347,6 +368,16 @@ class Engine:
         self.experimentManageStopParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')                                          
         self.experimentManageStopParser.set_defaults(func=self.experimentStopCmd)
+
+        self.experimentManageSuspendParser = self.experimentManageSubParser.add_parser('suspend', help='save state for clones aka instances of experiment')
+        self.experimentManageSuspendParser.add_argument('configname', metavar='<config filename>', action="store",
+                                          help='path to config file')                                          
+        self.experimentManageSuspendParser.set_defaults(func=self.experimentSuspendCmd)
+
+        self.experimentManagePauseParser = self.experimentManageSubParser.add_parser('pause', help='pause clones aka instances of experiment')
+        self.experimentManagePauseParser.add_argument('configname', metavar='<config filename>', action="store",
+                                          help='path to config file')                                          
+        self.experimentManagePauseParser.set_defaults(func=self.experimentPauseCmd)
 
         self.experimentManageRestoreParser = self.experimentManageSubParser.add_parser('restore', help='restore experiment to latest snapshot')
         self.experimentManageRestoreParser.add_argument('configname', metavar='<config filename>', action="store",

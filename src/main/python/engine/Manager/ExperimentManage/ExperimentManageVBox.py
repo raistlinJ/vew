@@ -119,6 +119,90 @@ class ExperimentManageVBox(ExperimentManage):
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
     #abstractmethod
+    def suspendExperiment(self, configname):
+        logging.debug("suspendExperiment(): instantiated")
+        t = threading.Thread(target=self.runSuspendExperiment, args=(configname,))
+        t.start()
+        return 0
+
+    def runSuspendExperiment(self, configname):
+        logging.debug("runSuspendExperiment(): instantiated")
+        try:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_SUSPENDING
+            #call vmManage to suspend clones as specified in config file; wait and query the vmManage status, and then set the complete status
+            clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
+            vmnames = clonevmjson.keys()
+            for i in range(1, numclones + 1):
+                for vm in clonevmjson.keys(): 
+                    vmName = vm
+                    logging.debug("runSuspendExperiment(): working with vm: " + str(vmName))
+                    #get names for clones and suspend them
+                    for cloneinfo in clonevmjson[vm]:
+                        if cloneinfo["groupNum"] == str(i):
+                            cloneVMName = cloneinfo["name"]
+                            #Check if clone exists and then run it if it does
+                            if self.vmManage.getVMStatus(vmName) == None:
+                                logging.error("runSuspendExperiment(): VM Name: " + str(vmName) + " does not exist; skipping...")
+                                continue
+                            logging.debug("runSuspendExperiment(): Suspending: " + str(vmName))
+                            self.vmManage.suspendVM(cloneVMName)
+                while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                    #waiting for vmmanager suspend vm to finish reading/writing...
+                    time.sleep(.1)
+            logging.debug("runSuspendingExperiment(): Complete...")
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+        except Exception:
+            logging.error("runSuspendingExperiment(): Error in runSuspendingExperiment(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+            return
+        finally:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+
+    #abstractmethod
+    def pauseExperiment(self, configname):
+        logging.debug("pauseExperiment(): instantiated")
+        t = threading.Thread(target=self.runPauseExperiment, args=(configname,))
+        t.start()
+        return 0
+
+    def runPauseExperiment(self, configname):
+        logging.debug("runPauseExperiment(): instantiated")
+        try:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_PAUSING
+            #call vmManage to pause clones as specified in config file; wait and query the vmManage status, and then set the complete status
+            clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
+            vmnames = clonevmjson.keys()
+            for i in range(1, numclones + 1):
+                for vm in clonevmjson.keys(): 
+                    vmName = vm
+                    logging.debug("runPauseExperiment(): working with vm: " + str(vmName))
+                    #get names for clones and pausing them
+                    for cloneinfo in clonevmjson[vm]:
+                        if cloneinfo["groupNum"] == str(i):
+                            cloneVMName = cloneinfo["name"]
+                            #Check if clone exists and then run it if it does
+                            if self.vmManage.getVMStatus(vmName) == None:
+                                logging.error("runPauseExperiment(): VM Name: " + str(vmName) + " does not exist; skipping...")
+                                continue
+                            logging.debug("runPauseExperiment(): Pausing: " + str(vmName))
+                            self.vmManage.pauseVM(cloneVMName)
+                while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                    #waiting for vmmanager pause vm to finish reading/writing...
+                    time.sleep(.1)
+            logging.debug("runPauseExperiment(): Complete...")
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+        except Exception:
+            logging.error("runPauseExperiment(): Error in runPauseExperiment(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+            return
+        finally:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+
+    #abstractmethod
     def stopExperiment(self, configname):
         logging.debug("stopExperiment(): instantiated")
         t = threading.Thread(target=self.runStopExperiment, args=(configname,))
@@ -261,14 +345,16 @@ if __name__ == "__main__":
     logging.debug("Starting Program")
 
     logging.debug("Instantiating Engine")
-    e = ExperimentManageVBox(initializeVMManage=True)
-    
-    #####---Create Experiment Test#####
+    vbm = VBoxManageWin()
+    e = ExperimentManageVBox(vbm)
+    ####---Create Experiment Test#####
     logging.info("Creating Experiment")
     e.createExperiment("sample")
-    while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
+    result = e.getExperimentManageStatus()["writeStatus"]
+    while result != e.EXPERIMENT_MANAGE_COMPLETE:
         time.sleep(.1)
         logging.debug("Waiting for experiment create to complete...")
+        result = e.getExperimentManageStatus()["writeStatus"]
     
     #####---Start Experiment Test#####
     logging.info("Starting Experiment")
@@ -278,6 +364,14 @@ if __name__ == "__main__":
         logging.debug("Waiting for experiment start to complete...")
     logging.debug("Experiment start complete.")    
 
+    #####---Pause Experiment Test#####
+    logging.info("Pause Experiment")
+    e.pauseExperiment("sample")
+    while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
+        time.sleep(.1)
+        logging.debug("Waiting for experiment pause to complete...")
+    logging.debug("Experiment pause complete.")
+
     #####---Stop Experiment Test#####
     logging.info("Stopping Experiment")
     e.stopExperiment("sample")
@@ -285,18 +379,28 @@ if __name__ == "__main__":
         time.sleep(.1)
         logging.debug("Waiting for experiment stop to complete...")
     logging.debug("Experiment stop complete.")    
-   
+
+    #####---Suspend Experiment Test#####
+    logging.info("Suspend Experiment")
+    e.suspendExperiment("sample")
+    while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
+        time.sleep(.1)
+        logging.debug("Waiting for experiment suspend to complete...")
+    logging.debug("Experiment suspend complete.")    
+
     #####---Restore Experiment Test#####
-    logging.info("Stopping Experiment")
+    logging.info("Restoring Experiment")
     e.restoreExperiment("sample")
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
         time.sleep(.1)
         logging.debug("Waiting for experiment stop to complete...")
     logging.debug("Experiment stop complete.")
 
-    #####---Remove Experiment Test#####
-    logging.info("Creating Experiment")
+    # #####---Remove Experiment Test#####
+    logging.info("Removing Experiment")
     e.removeExperiment("sample")
-    while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
+    result = e.getExperimentManageStatus()["writeStatus"]
+    while result != e.EXPERIMENT_MANAGE_COMPLETE:
         time.sleep(.1)
         logging.debug("Waiting for experiment create to complete...")
+        result = e.getExperimentManageStatus()["writeStatus"]
