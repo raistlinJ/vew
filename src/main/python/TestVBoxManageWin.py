@@ -109,6 +109,13 @@ if __name__ == "__main__":
     logging.info("----Waiting 5 seconds to resume -------")
     time.sleep(5)
 
+    vbm.snapshotVM(testvmname)
+    while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+        logging.info("waiting for manager to finish reading/writing...")
+        time.sleep(.1)
+    logging.info("----Waiting 5 seconds to snapshot -------")
+    time.sleep(5)
+
     vbm.startVM(testvmname)
     while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
         logging.info("waiting for manager to finish reading/writing...")

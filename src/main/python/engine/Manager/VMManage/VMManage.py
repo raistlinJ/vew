@@ -50,6 +50,10 @@ class VMManage:
         raise NotImplementedError()
 
     #abstractmethod
+    def snapshotVM(self, vmName):
+        raise NotImplementedError()
+
+    #abstractmethod
     def suspendVM(self, vmName):
         raise NotImplementedError()
 

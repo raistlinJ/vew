@@ -14,7 +14,8 @@ class ExperimentManage:
     EXPERIMENT_MANAGE_RESTORING = 5
     EXPERIMENT_MANAGE_SUSPENDING = 6
     EXPERIMENT_MANAGE_PAUSING = 7
-    EXPERIMENT_MANAGE_IDLE = 8
+    EXPERIMENT_MANAGE_SNAPSHOTTING = 8
+    EXPERIMENT_MANAGE_IDLE = 9
     
     EXPERIMENT_MANAGE_UNKNOWN = 10 
    
@@ -42,6 +43,10 @@ class ExperimentManage:
 
     #abstractmethod
     def pauseExperiment(self, configname):
+        raise NotImplementedError()
+
+    #abstractmethod
+    def snapshotExperiment(self, configname):
         raise NotImplementedError()
 
     #abstractmethod

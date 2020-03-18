@@ -41,6 +41,14 @@ if __name__ == "__main__":
         logging.debug("Waiting for experiment pause to complete...")
     logging.debug("Experiment pause complete.")
 
+    #####---Snapshot Experiment Test#####
+    logging.info("Snapshot Experiment")
+    e.snapshotExperiment("sample")
+    while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
+        time.sleep(.1)
+        logging.debug("Waiting for experiment snapshot to complete...")
+    logging.debug("Experiment snapshot complete.")
+
     #####---Stop Experiment Test#####
     logging.info("Stopping Experiment")
     e.stopExperiment("sample")

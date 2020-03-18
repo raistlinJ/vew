@@ -203,6 +203,48 @@ class ExperimentManageVBox(ExperimentManage):
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
     #abstractmethod
+    def snapshotExperiment(self, configname):
+        logging.debug("snapshotExperiment(): instantiated")
+        t = threading.Thread(target=self.runSnapshotExperiment, args=(configname,))
+        t.start()
+        return 0
+
+    def runSnapshotExperiment(self, configname):
+        logging.debug("runSnapshotExperiment(): instantiated")
+        try:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_SNAPSHOTTING
+            #call vmManage to snapshot clones as specified in config file; wait and query the vmManage status, and then set the complete status
+            clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
+            vmnames = clonevmjson.keys()
+            for i in range(1, numclones + 1):
+                for vm in clonevmjson.keys(): 
+                    vmName = vm
+                    logging.debug("runSnapshotExperiment(): working with vm: " + str(vmName))
+                    #get names for clones and pausing them
+                    for cloneinfo in clonevmjson[vm]:
+                        if cloneinfo["groupNum"] == str(i):
+                            cloneVMName = cloneinfo["name"]
+                            #Check if clone exists and then run it if it does
+                            if self.vmManage.getVMStatus(vmName) == None:
+                                logging.error("runSnapshotExperiment(): VM Name: " + str(vmName) + " does not exist; skipping...")
+                                continue
+                            logging.debug("runSnapshotExperiment(): Snapshotting: " + str(vmName))
+                            self.vmManage.snapshotVM(cloneVMName)
+                while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                    #waiting for vmmanager snapshot vm to finish reading/writing...
+                    time.sleep(.1)
+            logging.debug("runSnapshotExperiment(): Complete...")
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+        except Exception:
+            logging.error("runSnapshotExperiment(): Error in runSnapshotExperiment(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+            return
+        finally:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+
+    #abstractmethod
     def stopExperiment(self, configname):
         logging.debug("stopExperiment(): instantiated")
         t = threading.Thread(target=self.runStopExperiment, args=(configname,))
@@ -371,6 +413,14 @@ if __name__ == "__main__":
         time.sleep(.1)
         logging.debug("Waiting for experiment pause to complete...")
     logging.debug("Experiment pause complete.")
+
+    #####---Snapshot Experiment Test#####
+    logging.info("Snapshot Experiment")
+    e.snapshotExperiment("sample")
+    while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
+        time.sleep(.1)
+        logging.debug("Waiting for experiment snapshot to complete...")
+    logging.debug("Experiment snapshot complete.")
 
     #####---Stop Experiment Test#####
     logging.info("Stopping Experiment")

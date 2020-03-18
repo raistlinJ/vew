@@ -40,6 +40,8 @@ class ExperimentActionThread(QThread):
                 e.execute("experiment suspend " + str(self.configname))
             elif self.actionname == "Pause Experiment":
                 e.execute("experiment pause " + str(self.configname))
+            elif self.actionname == "Snapshot Experiment":
+                e.execute("experiment snapshot " + str(self.configname))
             elif self.actionname == "Restore Experiment":
                 e.execute("experiment restore " + str(self.configname))
             elif self.actionname == "Remove Experiment":

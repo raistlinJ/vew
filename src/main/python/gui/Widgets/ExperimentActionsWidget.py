@@ -31,6 +31,9 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.pauseVMs = self.experimentMenu.addAction("Signal - Pause VMs")
         self.pauseVMs.triggered.connect(self.pauseVMsActionEvent)
 
+        self.snapshotVMs = self.experimentMenu.addAction("Signal - Snapshot VMs")
+        self.snapshotVMs.triggered.connect(self.snapshotVMsActionEvent)
+
         self.suspendVMs = self.experimentMenu.addAction("Signal - Suspend & Save State")
         self.suspendVMs.triggered.connect(self.suspendVMsActionEvent)
 
@@ -109,6 +112,11 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         logging.debug("pauseVMsActionEvent(): showContextMenu(): instantiated")
         ExperimentActionDialog().experimentActionDialog(self.treeWidget.currentItem().text(0), "Pause Experiment")
         self.statusBar.showMessage("Finished executing Pause Experiment " + str(self.treeWidget.currentItem().text(0)))
+
+    def snapshotVMsActionEvent(self):
+        logging.debug("snapshotVMsActionEvent(): showContextMenu(): instantiated")
+        ExperimentActionDialog().experimentActionDialog(self.treeWidget.currentItem().text(0), "Snapshot Experiment")
+        self.statusBar.showMessage("Finished executing Snapshot Experiment " + str(self.treeWidget.currentItem().text(0)))
 
     def poweroffVMsActionEvent(self):
         logging.debug("poweroffVMsActionEvent(): showContextMenu(): instantiated")

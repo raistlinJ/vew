@@ -176,6 +176,13 @@ class Engine:
 
         return self.experimentManage.pauseExperiment(configname)
 
+    def experimentSnapshotCmd(self, args):
+        logging.debug("experimentSnapshotCmd(): instantiated")
+        #will snapshot instances of the experiment (clones of vms) as specified in configfile
+        configname = args.configname
+
+        return self.experimentManage.snapshotExperiment(configname)
+
     def experimentStopCmd(self, args):
         logging.debug("experimentStopCmd(): instantiated")
         #will start instances of the experiment (clones of vms) as specified in configfile
@@ -233,6 +240,13 @@ class Engine:
 
         #send pause command
         self.vmManage.pauseVM(vmName)
+
+    def vmManageSnapshotCmd(self, args):
+        logging.debug("vmManageSnapshotCmd(): instantiated")
+        vmName = args.vmName.replace("\"","").replace("'","")
+
+        #send snapshot command
+        self.vmManage.snapshotVM(vmName)
 
     def buildParser(self):
         self.parser = argparse.ArgumentParser(description='Replication Experiment System engine')
@@ -378,6 +392,11 @@ class Engine:
         self.experimentManagePauseParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')                                          
         self.experimentManagePauseParser.set_defaults(func=self.experimentPauseCmd)
+
+        self.experimentManageSnapshotParser = self.experimentManageSubParser.add_parser('snapshot', help='snapshot clones aka instances of experiment')
+        self.experimentManageSnapshotParser.add_argument('configname', metavar='<config filename>', action="store",
+                                          help='path to config file')                                          
+        self.experimentManageSnapshotParser.set_defaults(func=self.experimentSnapshotCmd)
 
         self.experimentManageRestoreParser = self.experimentManageSubParser.add_parser('restore', help='restore experiment to latest snapshot')
         self.experimentManageRestoreParser.add_argument('configname', metavar='<config filename>', action="store",
