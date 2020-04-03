@@ -79,8 +79,16 @@ To run the engine tests, follow the steps in [Run Engine Tests](#run-engine-test
 Navigate to the folder where you downloaded res and activate the virtualenv container
 ```
 cd res
+```
+##### Linux
+```
+source venv\bin\activate
+```
+##### Windows
+```
 venv\Scripts\activate
 ```
+##### Both
 Start the GUI
 ```
 fbs run
