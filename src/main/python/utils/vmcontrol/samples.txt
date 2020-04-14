@@ -1,0 +1,11 @@
+#Run find command, wait, and view output:
+VBoxManage.exe guestcontrol "NetworkMachine_a" run --exe "/bin/bash" --username researchdev --password toor --wait-stdout --wait-stderr -- -l -c "echo toor | sudo -S /usr/bin/find /etc/"
+
+#Run find command, wait, view output, and echo done after 10 seconds:
+VBoxManage.exe guestcontrol "NetworkMachine_a" run --exe "/bin/bash" --username researchdev --password toor --wait-stdout --wait-stderr -- -l -c "echo toor | sudo -S /usr/bin/find /etc/ && sleep 10"
+
+#Start find, write output to /tmp/out.txt, wait 10 seconds and then cat output
+VBoxManage.exe guestcontrol "NetworkMachine_a" run --exe "/bin/bash" --username researchdev --password toor --wait-stdout --wait-stderr -- -l -c "echo toor | sudo -S /usr/bin/find /etc/ | tee /tmp/out.txt | cat && sleep 10 && cat /tmp/out.txt"
+
+#copyfrom example
+VBoxManage guestcontrol "NetworkMachine_a" --verbose --username researchdev --password toor copyfrom --follow -R /tmp/ "C:\Users\Acosta\Desktop\tmp"
