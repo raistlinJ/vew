@@ -16,9 +16,10 @@ if __name__ == "__main__":
     logging.debug("Instantiating Engine")
     vbm = VBoxManageWin()
     e = ExperimentManageVBox(vbm)
+    experimentName = "sample"
     ####---Create Experiment Test#####
     logging.info("Creating Experiment")
-    e.createExperiment("sample")
+    e.createExperiment(experimentName)
     result = e.getExperimentManageStatus()["writeStatus"]
     while result != e.EXPERIMENT_MANAGE_COMPLETE:
         time.sleep(.1)
@@ -26,16 +27,17 @@ if __name__ == "__main__":
         result = e.getExperimentManageStatus()["writeStatus"]
     
     #####---Start Experiment Test#####
+    ##Note that the guestcontrol behavior only works if VMs have guest additions installed
     logging.info("Starting Experiment")
-    e.startExperiment("sample")
+    e.startExperiment(experimentName)
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
         time.sleep(.1)
         logging.debug("Waiting for experiment start to complete...")
     logging.debug("Experiment start complete.")    
-
+    time.sleep(20)
     #####---Pause Experiment Test#####
     logging.info("Pause Experiment")
-    e.pauseExperiment("sample")
+    e.pauseExperiment(experimentName)
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
         time.sleep(.1)
         logging.debug("Waiting for experiment pause to complete...")
@@ -43,7 +45,7 @@ if __name__ == "__main__":
 
     #####---Snapshot Experiment Test#####
     logging.info("Snapshot Experiment")
-    e.snapshotExperiment("sample")
+    e.snapshotExperiment(experimentName)
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
         time.sleep(.1)
         logging.debug("Waiting for experiment snapshot to complete...")
@@ -51,7 +53,7 @@ if __name__ == "__main__":
 
     #####---Stop Experiment Test#####
     logging.info("Stopping Experiment")
-    e.stopExperiment("sample")
+    e.stopExperiment(experimentName)
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
         time.sleep(.1)
         logging.debug("Waiting for experiment stop to complete...")
@@ -59,7 +61,7 @@ if __name__ == "__main__":
 
     #####---Suspend Experiment Test#####
     logging.info("Suspend Experiment")
-    e.suspendExperiment("sample")
+    e.suspendExperiment(experimentName)
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
         time.sleep(.1)
         logging.debug("Waiting for experiment suspend to complete...")
@@ -67,7 +69,7 @@ if __name__ == "__main__":
 
     #####---Restore Experiment Test#####
     logging.info("Restoring Experiment")
-    e.restoreExperiment("sample")
+    e.restoreExperiment(experimentName)
     while e.getExperimentManageStatus()["writeStatus"] != e.EXPERIMENT_MANAGE_COMPLETE:
         time.sleep(.1)
         logging.debug("Waiting for experiment stop to complete...")
@@ -75,7 +77,7 @@ if __name__ == "__main__":
 
     # #####---Remove Experiment Test#####
     logging.info("Removing Experiment")
-    e.removeExperiment("sample")
+    e.removeExperiment(experimentName)
     result = e.getExperimentManageStatus()["writeStatus"]
     while result != e.EXPERIMENT_MANAGE_COMPLETE:
         time.sleep(.1)

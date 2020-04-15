@@ -98,6 +98,51 @@ class VBoxManage(VMManage):
             self.writeStatus -= 1
             logging.debug("runConfigureVMNets(): sub 1 "+ str(self.writeStatus))
 
+    def guestCommands(self, vmName, cmds):
+        logging.debug("VBoxManageWin: guestCommands(): instantiated")
+        #check to make sure the vm is known, if not should refresh or check name:
+        exists = False
+        try:
+            self.lock.acquire()
+            exists = vmName in self.vms
+            if not exists:
+                logging.error("guestCommands(): " + vmName + " not found in list of known vms: \r\n" + str(vmName))
+                return -1
+            self.readStatus = VMManage.MANAGER_READING
+            self.writeStatus += 1
+            t = threading.Thread(target=self.runGuestCommands, args=(vmName, cmds))
+            t.start()
+            return 0
+        finally:
+            self.lock.release()
+
+    def runGuestCommands(self, vmName, cmds):
+        try:
+            self.readStatus = VMManage.MANAGER_READING
+            logging.debug("runGuestCommands(): adding 1 "+ str(self.writeStatus))
+            cmd = "N/A"
+            for cmd in cmds:
+                vmCmd = self.vmanage_path + " guestcontrol " + str(self.vms[vmName].UUID) + " " + cmd
+                logging.debug("runGuestCommands(): Running " + vmCmd)
+                p = Popen(shlex.split(vmCmd, posix=self.POIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
+                while True:
+                    out = p.stdout.readline()
+                    if out == '' and p.poll() != None:
+                        break
+                    if out != '':
+                        logging.debug("output line: " + out)
+                p.wait()
+
+            logging.debug("runGuestCommands(): Thread completed")
+        except Exception:
+            logging.error("runGuestCommands() Error: " + " cmd: " + cmd)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+        finally:
+            self.readStatus = VMManage.MANAGER_IDLE
+            self.writeStatus -= 1
+            logging.debug("runGuestCommands(): sub 1 "+ str(self.writeStatus))
+
     def refreshAllVMInfo(self):
         logging.info("VBoxManage: refreshAllVMInfo(): instantiated")
         logging.debug("getListVMS() Starting List VMs thread")
