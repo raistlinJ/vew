@@ -23,6 +23,7 @@ class VMManage:
         self.vms = {} #dict of VM()
         self.readStatus = VMManage.MANAGER_IDLE
         self.writeStatus = VMManage.MANAGER_IDLE
+        self.guestThreadStatus = VMManage.MANAGER_IDLE
         self.activeTaskCount = 0
 
     #abstractmethod
@@ -61,9 +62,8 @@ class VMManage:
     def stopVM(self, vmName):
         raise NotImplementedError()
 
-#TODO:
-#    def runVMCommand(self, VMName, commandString):
-#        raise NotImplementedError()
+    def guestCommands(self, VMName, cmds):
+        raise NotImplementedError()
 
     def importVM(self, filepath):
         raise NotImplementedError()

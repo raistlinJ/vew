@@ -29,7 +29,7 @@ if __name__ == "__main__":
     
     logging.info("Refreshing VM Info")
     for vm in vbm.vms:
-        logging.info("VM Info:\r\n" + str(vm.name))
+        logging.info("VM Info:\r\n" + str(vm))
     vbm.refreshAllVMInfo()   
     result = vbm.getManagerStatus()["writeStatus"]
     while result != vbm.MANAGER_IDLE:
@@ -136,6 +136,19 @@ if __name__ == "__main__":
         time.sleep(.1)
     logging.info("----Waiting 5 seconds to stop-------")
     time.sleep(5)
+##Test guestCommands -- only works when guest additions is installed
+    # cmd1 = "run --exe \"/bin/bash\" --username researchdev --password toor --wait-stdout --wait-stderr -- -l -c \"echo toor | sudo -S /usr/bin/find /etc/ | tee /tmp/out.txt | cat && sleep 10 && cat /tmp/out.txt\""
+    # cmd2 = "copyfrom --username researchdev --password toor --verbose --follow -R /tmp/ \"C:\\Users\\Desktop\\tmp2\""
+
+    # guestCmds = [cmd1,cmd2]
+
+    # vbm.guestCommands(testvmname, guestCmds)
+    # while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+    #     logging.info("waiting for manager to finish reading/writing...")
+    #     time.sleep(.1)
+    # logging.info("----Waiting 15 seconds to stop-------")
+    # time.sleep(15)
+##Test guestCommands -- only works when guest additions is installed
 
     vbm.stopVM(testvmname)
     while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:

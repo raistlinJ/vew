@@ -63,10 +63,38 @@ class ExperimentConfigIO:
             if isinstance(vmSet["vm"], list) == False:
                 logging.debug("getExperimentVMRolledOut(): vmSet only has a single VM; placing into list for compatibility")
                 vmSet["vm"] = [vmSet["vm"]]
+            #we get the vms in order of group; 
             for vm in vmSet["vm"]:
                 vmName = vm["name"]
                 vmRolledOutList[vmName] = []
                 logging.debug("getExperimentVMRolledOut(): adding data for vm: " + str(vmName))
+
+                startupCmds = None
+                #read startup commands
+                if "startup" in vm and "cmd" in vm["startup"]:
+                    startupCmds = {}
+                    startupcmds = vm["startup"]["cmd"]
+                    #if this is not a list, make it one (xml to json limitation)
+                    if isinstance(startupcmds, list) == False:
+                        startupcmds = [startupcmds]
+                    #iterate through each startup command
+                    for startupcmd in startupcmds:
+                        #if exec does not exist, just quit; can't do anything without it
+                        if "exec" not in startupcmd:
+                            logging.error("getExperimentVMRolledOut(): exec tag missing: " + str(startupcmd))
+                            continue
+                        #set default hypervisor and seq if they aren't specified
+                        hypervisor = "vbox"
+                        seq = "0"
+                        if hypervisor in startupcmd:
+                            hypervisor = startupcmd["hypervisor"]
+                        if "seq" in startupcmd:
+                            seq = startupcmd["seq"]
+                        #store the data and allow for duplicate sequences (store as list)
+                        if seq not in startupCmds:
+                            startupCmds[seq] = [(hypervisor, startupcmd["exec"])]
+                        else:
+                            startupCmds[seq].append[(hypervisor, startupcmd["exec"])]
 
                 #get names for clones
                 myBaseOutname = baseOutname
@@ -87,18 +115,18 @@ class ExperimentConfigIO:
                     # vrdp setup, if enabled include the port in the returned json
                     vrdpEnabled = vm["vrdp-enabled"]
                     if vrdpEnabled != None and vrdpEnabled == 'true':
-                        vrdpBaseport = str(int(vrdpBaseport))                       
-                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "ip-address": ipAddress, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones})
+                        vrdpBaseport = str(int(vrdpBaseport))
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "ip-address": ipAddress, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds})
                         vrdpBaseport = int(vrdpBaseport) + 1
                     #otherwise, don't include vrdp port
                     else:
-                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "ip-address": ipAddress, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones})
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "ip-address": ipAddress, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds})
 
                     logging.debug("getExperimentVMRolledOut(): finished setting up clone: " + str(vmRolledOutList))
             return vmRolledOutList, numClones
 
         except Exception:
-            logging.error("Error in getExperimentVMRolledOut(): An error occured ")
+            logging.error("Error in getExperimentVMRolledOut(): An error occured. Check that file exists and that it is properly formatted.")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             return None
