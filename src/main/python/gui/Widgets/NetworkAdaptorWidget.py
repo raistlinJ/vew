@@ -10,16 +10,11 @@ class NetworkAdaptorWidget(QtWidgets.QWidget):
 
         self.networkAdaptorHLayout = QtWidgets.QHBoxLayout()
         self.networkAdaptorHLayout.setObjectName("NetworkAdaptorHLayout")
-        # self.internalnetButton = QtWidgets.QRadioButton(self.layoutWidget)
-        # self.internalnetButton.setObjectName("internalnetButton")
 
         self.internalnetLabel = QtWidgets.QLabel()
         self.internalnetLabel.setObjectName("internalnetButton")
 
         self.networkAdaptorHLayout.addWidget(self.internalnetLabel)
-        # self.udpTunnelButton = QtWidgets.QRadioButton(self.layoutWidget)
-        # self.udpTunnelButton.setObjectName("udpTunnelButton")
-        # self.networkAdaptorHLayout.addWidget(self.udpTunnelButton)
         self.lineEdit = QtWidgets.QLineEdit()
         self.lineEdit.setObjectName("lineEdit")
         self.networkAdaptorHLayout.addWidget(self.lineEdit)
@@ -36,8 +31,6 @@ class NetworkAdaptorWidget(QtWidgets.QWidget):
     def retranslateUi(self):
         logging.debug("NetworkAdaptorWidget: retranslateUi(): instantiated")
         self.internalnetLabel.setText("Adaptor Basename")
-        # self.internalnetButton.setText(_translate("Form", "Internalnet"))
-        # self.udpTunnelButton.setText(_translate("Form", "UDPTunnel"))
         self.lineEdit.setText("intnet")
         self.removeInetButton.setText("X")
 

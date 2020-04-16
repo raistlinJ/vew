@@ -161,43 +161,44 @@ if __name__ == "__main__":
         res = e.execute("experiment status")
     logging.debug("Experiment remove complete.")    
 
-###Connection tests
-    e.execute("conns status")
-    #####---Connection Create Test#####
-    #"sample", "192.168.99.100:8080", "guacadmin", "guacadmin", "/guacamole", "http", maxConnections="1", maxConnectionsPerUser="1", width="1400", height="1050", bitdepth="16"
-    e.execute("conns create sample 192.168.99.100:8080 guacadmin guacadmin /guacamole http 1 1 1400 1050 16")
-    logging.debug("Waiting for connection create to complete...")
-    while e.execute("conns status")["writeStatus"] != ConnectionManageGuacRDP.CONNECTION_MANAGE_COMPLETE:
-        time.sleep(.1)
-        logging.debug("Waiting for connection create to complete...")
-        res = e.execute("conns status")
-    logging.debug("Connection create complete.")
+# ###Connection tests
+# ####Enable if you have a running guacamole instance
+#     e.execute("conns status")
+#     #####---Connection Create Test#####
+#     #"sample", "192.168.99.100:8080", "guacadmin", "guacadmin", "/guacamole", "http", maxConnections="1", maxConnectionsPerUser="1", width="1400", height="1050", bitdepth="16"
+#     e.execute("conns create sample 192.168.99.100:8080 guacadmin guacadmin /guacamole http 1 1 1400 1050 16")
+#     logging.debug("Waiting for connection create to complete...")
+#     while e.execute("conns status")["writeStatus"] != ConnectionManageGuacRDP.CONNECTION_MANAGE_COMPLETE:
+#         time.sleep(.1)
+#         logging.debug("Waiting for connection create to complete...")
+#         res = e.execute("conns status")
+#     logging.debug("Connection create complete.")
 
-    #####---Connection Remove Test#####
-    e.execute("conns remove sample 192.168.99.100:8080 guacadmin guacadmin /guacamole http")
-    logging.debug("Waiting for connection remove to complete...")
-    while e.execute("conns status")["writeStatus"] != ConnectionManageGuacRDP.CONNECTION_MANAGE_COMPLETE:
-        time.sleep(.1)
-        logging.debug("Waiting for connection remove to complete...")
-        res = e.execute("conns status")
-    logging.debug("Connection remove complete.")
+#     #####---Connection Remove Test#####
+#     e.execute("conns remove sample 192.168.99.100:8080 guacadmin guacadmin /guacamole http")
+#     logging.debug("Waiting for connection remove to complete...")
+#     while e.execute("conns status")["writeStatus"] != ConnectionManageGuacRDP.CONNECTION_MANAGE_COMPLETE:
+#         time.sleep(.1)
+#         logging.debug("Waiting for connection remove to complete...")
+#         res = e.execute("conns status")
+#     logging.debug("Connection remove complete.")
 
-    #####---Connection Clear All Test#####
-    e.execute("conns clear 192.168.99.100:8080 guacadmin guacadmin /guacamole http")
-    logging.debug("Waiting for connection clear all to complete...")
-    while e.execute("conns status")["writeStatus"] != ConnectionManageGuacRDP.CONNECTION_MANAGE_COMPLETE:
-        time.sleep(.1)
-        logging.debug("Waiting for connection clear all to complete...")
-        res = e.execute("conns status")
-    logging.debug("Connection create complete.")
+#     #####---Connection Clear All Test#####
+#     e.execute("conns clear 192.168.99.100:8080 guacadmin guacadmin /guacamole http")
+#     logging.debug("Waiting for connection clear all to complete...")
+#     while e.execute("conns status")["writeStatus"] != ConnectionManageGuacRDP.CONNECTION_MANAGE_COMPLETE:
+#         time.sleep(.1)
+#         logging.debug("Waiting for connection clear all to complete...")
+#         res = e.execute("conns status")
+#     logging.debug("Connection create complete.")
 
-    # time.sleep(10) #alternative, check status until connection manager is complete and idle
-    e.execute("conns status")
-    e.execute("conns remove sample")
+#     # time.sleep(10) #alternative, check status until connection manager is complete and idle
+#     e.execute("conns status")
+#     e.execute("conns remove sample")
     
-    # time.sleep(10) #alternative, check status until connection manager is complete and idle
-    e.execute("conns status")
-    e.execute("conns open sample 1 1")
+#     # time.sleep(10) #alternative, check status until connection manager is complete and idle
+#     e.execute("conns status")
+#     e.execute("conns open sample 1 1")
 
     time.sleep(3) #allow some time for observation
     #quit
