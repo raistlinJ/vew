@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QDial, QDialog, QDialogButtonBox, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
-        QVBoxLayout, QWidget, QMessageBox)
+        QVBoxLayout, QWidget, QMessageBox, QScrollArea)
 
 import time
 import logging
@@ -12,7 +12,7 @@ from gui.Widgets.VMStartupCmdWidget import VMStartupCmdWidget
 
 class VMStartupCmdsDialog(QDialog):
 
-    def __init__(self, parent, configname, vmName, vmjsondata=None):
+    def __init__(self, parent, configname, vmName, startupjsondata=None):
         logging.debug("VMStartupCmdsDialog(): instantiated")
         super(VMStartupCmdsDialog, self).__init__(parent)      
         self.parent = parent
@@ -20,41 +20,50 @@ class VMStartupCmdsDialog(QDialog):
         self.setObjectName("VMStartupCmdWidget")
         self.configname = configname
         self.vmName = vmName
+        self.setMinimumSize(600, 600)
 
-        self.setStyleSheet("QGroupBox { font-weight: bold; }")
+        #self.setStyleSheet("QGroupBox { font-weight: normal; }")
 
-        self.startupCommands = {}
+        self.startupCommandsWidgets = {}
 
         self.setObjectName("VMStartupCmdsDialog")
         self.layoutWidget = QWidget(parent)
         self.layoutWidget.setObjectName("layoutWidget")
 
         self.outerVertBox = QVBoxLayout()
-        self.outerVertBox.setContentsMargins(0, 0, 0, 0)
+        #self.outerVertBox.setContentsMargins(0, 0, 0, 0)
         self.outerVertBox.setObjectName("outerVertBox")
         
-        self.startupCommandsGroupBox = QGroupBox("Startup Commands")       
+        self.startupCommandsGroupBox = QGroupBox("Commands for " + vmName + " (correct guest additions required)")
         self.startupCommandsVertBox = QVBoxLayout()
         self.startupCommandsVertBox.setObjectName("startupCommandsVertBox")
         self.startupCommandsVertBox.setAlignment(Qt.AlignTop)
         self.startupCommandsGroupBox.setLayout(self.startupCommandsVertBox)
-        self.outerVertBox.addWidget(self.startupCommandsGroupBox)
-        
+
+        self.commandsScrollArea = QScrollArea()
+        self.commandsScrollArea.setWidget(self.startupCommandsGroupBox)
+        self.commandsScrollArea.setWidgetResizable(True)
+        self.outerVertBox.addWidget(self.commandsScrollArea)
+
         self.addStartupCommandButton = QPushButton()
         self.addStartupCommandButton.setObjectName("addStartupCommandButton")
         self.addStartupCommandButton.setText("Add Command")
         self.addStartupCommandButton.clicked.connect(self.buttonAddStartupCommand)
         self.outerVertBox.addWidget(self.addStartupCommandButton, alignment=Qt.AlignHCenter)
 
-        self.setLayout(self.outerVertBox)
-        self.retranslateUi(vmjsondata)
+        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+        self.outerVertBox.addWidget(self.buttonBox, alignment=Qt.AlignHCenter)
 
-    def retranslateUi(self, vmjsondata):
+        self.setLayout(self.outerVertBox)
+        self.retranslateUi(startupjsondata)
+
+    def retranslateUi(self, startupjsondata):
         logging.debug("VMStartupCmdsDialog: retranslateUi(): instantiated")
 
-        if vmjsondata != None and "startup" in vmjsondata and "cmd" in vmjsondata["startup"]:
-            startupCmds = {}
-            startupcmds = vmjsondata["startup"]["cmd"]
+        if startupjsondata != None and "cmd" in startupjsondata:
+            startupcmds = startupjsondata["cmd"]
             #if this is not a list, make it one (xml to json limitation)
             if isinstance(startupcmds, list) == False:
                 startupcmds = [startupcmds]
@@ -81,46 +90,27 @@ class VMStartupCmdsDialog(QDialog):
 
         #need to keep track for easy removal later
         startupCmdWidget.removeCommandButton.clicked.connect(self.removeStartupCommand)
-        self.startupCommands[startupCmdWidget.removeCommandButton] = startupCmdWidget
+        self.startupCommandsWidgets[startupCmdWidget.removeCommandButton] = startupCmdWidget
     
     def removeStartupCommand(self):
         logging.debug("VMStartupCmdsDialog: removeStartupCommand(): instantiated")
         logging.debug("VMStartupCmdsDialog: sender info: " + str(self.sender()))
-        if self.sender() in self.startupCommands:
-            widgetToRemove = self.startupCommands[self.sender()]
-            logging.debug("commands before: "  + str(self.startupCommands))
-            del self.startupCommands[self.sender()]
-            logging.debug("commands after: "  + str(self.startupCommands))
+        if self.sender() in self.startupCommandsWidgets:
+            widgetToRemove = self.startupCommandsWidgets[self.sender()]
+            logging.debug("commands before: "  + str(self.startupCommandsWidgets))
+            del self.startupCommandsWidgets[self.sender()]
+            logging.debug("commands after: "  + str(self.startupCommandsWidgets))
             self.startupCommandsVertBox.removeWidget(widgetToRemove)
             widgetToRemove.deleteLater()
             widgetToRemove = None
 
     def getWritableData(self):
         logging.debug("VMStartupCmdsDialog: getWritableData(): instantiated")
-        #build JSON from text entry fields
-        logging.debug("VMWidget: getWritableData(): instantiated")
-        #build JSON from text entry fields
         jsondata = {}
-        jsondata["name"] = {}
-        jsondata["name"] = self.nameLineEdit.text()
-        jsondata["vrdp-enabled"] = {}
-        jsondata["vrdp-enabled"] = self.vrdpEnabledComboBox.currentText()
-        jsondata["internalnet-basename"] = [] #may be many
-        for netAdaptor in self.netAdaptors.values():
-            if isinstance(netAdaptor, NetworkAdaptorWidget):
-                jsondata["internalnet-basename"].append(netAdaptor.lineEdit.text())
-        return jsondata
-
-        # jsondata = {}
-        # jsondata["startup"] = {"cmd": [{}]}
-        # jsondata["startup"]["cmd"].append({"seq": 1, 
-        #     "hypervisor": "vbox", 
-        #     "exec": "run --exe \"/bin/bash\" --username researchdev --password toor --wait-stdout --wait-stderr -- -l -c \"echo toor | sudo -S /usr/bin/find /etc/ | tee /tmp/out.txt | cat && sleep 10 && cat /tmp/out.txt\""
-        #     })
-        # jsondata["startup"]["cmd"].append({"seq": 2, 
-        #     "hypervisor": "vbox", 
-        #     "exec": "copyfrom --username researchdev --password toor --verbose --follow -R /tmp/ \"C:\\Users\\Acosta\\Desktop\\tmp\\{{RES_CloneNumber}}\""
-        #     })
+        if len(self.startupCommandsWidgets) > 0:
+            jsondata = {"cmd": []}
+            for startupcmdwidget in self.startupCommandsWidgets.values():
+                jsondata["cmd"].append(startupcmdwidget.getWritableData())
         return jsondata
 
     def exec_(self):
@@ -128,7 +118,5 @@ class VMStartupCmdsDialog(QDialog):
         result = super(VMStartupCmdsDialog, self).exec_()
         if str(result) == str(1):
             logging.debug("dialog_response(): OK was pressed")
-                #self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText(), "1", self.maxConnectionsLineEdit.text(), self.heightLineEdit.text(), self.widthLineEdit.text(), bitDepth]
-#use this is we need a "working" dialog cad = ConnectionActioningDialog(self.parent, self.configname, self.actionname, self.args).exec_()
-            return (QMessageBox.Ok)
-        return (QMessageBox.Cancel)
+            return QMessageBox.Ok, self.getWritableData()
+        return QMessageBox.Cancel, None

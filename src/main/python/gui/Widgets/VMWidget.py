@@ -19,6 +19,7 @@ class VMWidget(QtWidgets.QWidget):
         self.setStyleSheet("QGroupBox { font-weight: bold; }")
 
         self.netAdaptors = {}
+        self.currentStartupCommands = {}
 
         self.setObjectName("VMWidget")
         self.layoutWidget = QtWidgets.QWidget(parent)
@@ -105,6 +106,11 @@ class VMWidget(QtWidgets.QWidget):
                 self.addAdaptor(adaptor)
         else:
             self.addAdaptor(self.vmjsondata["internalnet-basename"])
+        self.startupjsondata = None
+        if "startup" in self.vmjsondata:
+            logging.debug("VMWidget: startup data found; vmjson is:" + str(self.vmjsondata))
+            self.startupjsondata = self.vmjsondata["startup"]
+            logging.debug("VMWidget: startup data found; adding:" + str(self.startupjsondata))
 
     def buttonAddAdaptor(self):
         logging.debug("VMWidget: buttonAddAdaptor(): instantiated")
@@ -134,7 +140,11 @@ class VMWidget(QtWidgets.QWidget):
             widgetToRemove = None
     
     def buttonModifyStartupCommands(self):
-        startCommandResult = VMStartupCmdsDialog(self, self.configname, self.nameLineEdit.text(), self.vmjsondata).exec_()
+        vmStartupCmdsDialog = VMStartupCmdsDialog(self, self.configname, self.nameLineEdit.text(), self.startupjsondata)
+        startCommandResult, commands = vmStartupCmdsDialog.exec_()
+        if startCommandResult == QtWidgets.QMessageBox.Ok:
+            self.startupjsondata = commands
+            logging.debug("VMWidget: buttonModify: OK pressed; reassigning to:" + str(self.startupjsondata))
 
     def getWritableData(self):
         logging.debug("VMWidget: getWritableData(): instantiated")
@@ -148,6 +158,9 @@ class VMWidget(QtWidgets.QWidget):
         for netAdaptor in self.netAdaptors.values():
             if isinstance(netAdaptor, NetworkAdaptorWidget):
                 jsondata["internalnet-basename"].append(netAdaptor.lineEdit.text())
+        #also need to add startup command data if any
+        if self.startupjsondata != None:
+            jsondata["startup"] = self.startupjsondata
         return jsondata
 
     def createDefaultJSONData(self):

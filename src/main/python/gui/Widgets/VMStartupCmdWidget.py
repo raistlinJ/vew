@@ -19,7 +19,7 @@ class VMStartupCmdWidget(QtWidgets.QWidget):
 
         self.lineEdit = QtWidgets.QLineEdit()
         self.lineEdit.setObjectName("lineEdit")
-
+        self.lineEdit.setStyleSheet("QLineEdit { qproperty-cursorPosition: 0; }")
         self.VMStartupCmdsHLayout.addWidget(self.lineEdit)
 
         self.removeCommandButton = QtWidgets.QPushButton()
@@ -44,7 +44,6 @@ class VMStartupCmdWidget(QtWidgets.QWidget):
         if "seq" in cmdjson:
             seq = cmdjson["seq"]
         execText = cmdjson["exec"]
-
         if execText.strip() != "":
             self.lineEdit.setText(execText)
         self.cmdSpinBox.setValue(int(seq))
@@ -64,7 +63,7 @@ class VMStartupCmdWidget(QtWidgets.QWidget):
     def getWritableData(self):
         logging.debug("VMStartupCmdsDialog: getWritableData(): instantiated")
         #build JSON from text entry fields
-        jsondata = {"seq": str(self.cmdSpinBox.value), "hypervisor": "vbox", "exec": self.lineEdit.text}
+        jsondata = {"seq": str(self.cmdSpinBox.value()), "hypervisor": "vbox", "exec": self.lineEdit.text()}
         return jsondata
 
 if __name__ == "__main__":
