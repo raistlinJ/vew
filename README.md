@@ -93,12 +93,12 @@ Start the GUI
 ```
 fbs run
 ```
-A sample RES file can be downloaded [here](http://bit.ly/2TtRLiX). After downloading the file, right-click and select to Import the file.
+A sample RES file can be downloaded [here](https://bit.ly/2wP3Gzc). After downloading the file, right-click and select to Import the file.
 
 ### Run Engine Tests
 A driver program is included that will demonstrate several of the functions provided by RES.
 
-Download the Sample RES file from [here](http://bit.ly/2TtRLiX) and save it into the following directory
+Download the Sample RES file from [here](https://bit.ly/2wP3Gzc) and save it into the following directory
 ```
 res/src/main/python/ExperimentData/samples/
 ```
@@ -115,4 +115,4 @@ python TestEngine.py
 
 ### Troubleshooting
 
-RES is stil under development, please contribute!
+Please contribute!
