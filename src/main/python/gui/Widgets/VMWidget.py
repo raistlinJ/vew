@@ -2,6 +2,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt, QSize
 from PyQt5 import QtWidgets, uic
 from gui.Widgets.NetworkAdaptorWidget import NetworkAdaptorWidget
+from gui.Dialogs.VMStartupCmdsDialog import VMStartupCmdsDialog
 import logging
 
 class VMWidget(QtWidgets.QWidget):
@@ -14,7 +15,7 @@ class VMWidget(QtWidgets.QWidget):
         QtWidgets.QWidget.__init__(self, parent=None)
         self.widgetname = widgetname
         self.configname = configname
-
+        self.vmjsondata = vmjsondata
         self.setStyleSheet("QGroupBox { font-weight: bold; }")
 
         self.netAdaptors = {}
@@ -55,6 +56,19 @@ class VMWidget(QtWidgets.QWidget):
         self.vrdpEnabledHorBox.addWidget(self.vrdpEnabledComboBox)
         self.outerVertBox.addLayout(self.vrdpEnabledHorBox)
 
+        self.startupCommandsHorBox = QtWidgets.QHBoxLayout()
+        self.startupCommandsHorBox.setObjectName("startupCommandsHorBox")
+        self.startupCommandsLabel = QtWidgets.QLabel()
+        self.startupCommandsLabel.setText("VM Startup Commands:")
+        self.startupCommandsLabel.setObjectName("startupCommandsLabel")
+        self.startupCommandsHorBox.addWidget(self.startupCommandsLabel)
+
+        self.startupCommandsPushButton = QtWidgets.QPushButton("...")
+        self.startupCommandsPushButton.setObjectName("startupCommandsPushButton")
+        self.startupCommandsPushButton.clicked.connect(self.buttonModifyStartupCommands)
+        self.startupCommandsHorBox.addWidget(self.startupCommandsPushButton)
+        self.outerVertBox.addLayout(self.startupCommandsHorBox)
+        
         self.iNetGroupBox = QtWidgets.QGroupBox("Internal Network Adaptors")       
         self.iNetVertBox = QtWidgets.QVBoxLayout()
         self.iNetVertBox.setObjectName("iNetVertBox")
@@ -67,31 +81,30 @@ class VMWidget(QtWidgets.QWidget):
         self.addAdaptorButton.setText("Add Network Adaptor")
         self.addAdaptorButton.clicked.connect(self.buttonAddAdaptor)
         self.outerVertBox.addWidget(self.addAdaptorButton, alignment=QtCore.Qt.AlignHCenter)
-        if vmjsondata == None:
-            vmjsondata = self.createDefaultJSONData() 
+        if self.vmjsondata == None:
+            self.vmjsondata = self.createDefaultJSONData() 
 
         self.setLayout(self.outerVertBox)
-        self.retranslateUi(vmjsondata)
+        self.retranslateUi()
 
-    def retranslateUi(self, vmjsondata):
+    def retranslateUi(self):
         logging.debug("VMWidget: retranslateUi(): instantiated")
-        if vmjsondata == None:
-            vmjsondata = {}
-        if "name" not in vmjsondata:
-            vmjsondata["name"] = self.widgetname
-        self.nameLineEdit.setText(vmjsondata["name"])
 
-        if "vrdp-enabled" not in vmjsondata:
-            vmjsondata["vrdp-enabled"] = "false"
-        self.vrdpEnabledComboBox.setCurrentIndex(self.vrdpEnabledComboBox.findText(vmjsondata["vrdp-enabled"]))
+        if "name" not in self.vmjsondata:
+            self.vmjsondata["name"] = self.widgetname
+        self.nameLineEdit.setText(self.vmjsondata["name"])
 
-        if "internalnet-basename" not in vmjsondata:
-            vmjsondata["internalnet-basename"] = "intnet"
-        if isinstance(vmjsondata["internalnet-basename"], list):
-            for adaptor in vmjsondata["internalnet-basename"]:
+        if "vrdp-enabled" not in self.vmjsondata:
+            self.vmjsondata["vrdp-enabled"] = "false"
+        self.vrdpEnabledComboBox.setCurrentIndex(self.vrdpEnabledComboBox.findText(self.vmjsondata["vrdp-enabled"]))
+
+        if "internalnet-basename" not in self.vmjsondata:
+            self.vmjsondata["internalnet-basename"] = "intnet"
+        if isinstance(self.vmjsondata["internalnet-basename"], list):
+            for adaptor in self.vmjsondata["internalnet-basename"]:
                 self.addAdaptor(adaptor)
         else:
-            self.addAdaptor(vmjsondata["internalnet-basename"])
+            self.addAdaptor(self.vmjsondata["internalnet-basename"])
 
     def buttonAddAdaptor(self):
         logging.debug("VMWidget: buttonAddAdaptor(): instantiated")
@@ -119,6 +132,9 @@ class VMWidget(QtWidgets.QWidget):
             self.iNetVertBox.removeWidget(widgetToRemove)
             widgetToRemove.deleteLater()
             widgetToRemove = None
+    
+    def buttonModifyStartupCommands(self):
+        startCommandResult = VMStartupCmdsDialog(self, self.configname, self.nameLineEdit.text(), self.vmjsondata).exec_()
 
     def getWritableData(self):
         logging.debug("VMWidget: getWritableData(): instantiated")

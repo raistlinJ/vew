@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xml>
+	<vbox-setup>
+		<path-to-vboxmanage>VBoxManage</path-to-vboxmanage>
+	</vbox-setup>
+	<testbed-setup>
+		<network-config>
+			<ip-address>11.0.0.2</ip-address>
+		</network-config>
+		<vm-set>
+			<base-groupname>sample</base-groupname>
+			<num-clones>2</num-clones>
+			<linked-clones>true</linked-clones>
+			<clone-snapshots>true</clone-snapshots>
+			<base-outname>_set_</base-outname>
+			<vrdp-baseport>1001</vrdp-baseport>
+			<vm>
+				<name>NetworkMachine_a</name>
+				<vrdp-enabled>false</vrdp-enabled>
+				<internalnet-basename>intnet</internalnet-basename>
+				<startup>
+					<cmd>
+						<seq>1</seq>
+						<hypervisor>vbox</hypervisor>
+						<exec>
+run --exe "/bin/bash" --username researchdev --password toor --wait-stdout --wait-stderr -- -l -c "echo toor | sudo -S /usr/bin/find /etc/ | tee /tmp/out.txt | cat &#038;&#038; sleep 10 &#038;&#038; cat /tmp/out.txt"
+						</exec>
+					</cmd>
+					<cmd>
+						<seq>2</seq>
+						<hypervisor>vbox</hypervisor>
+						<exec>
+copyfrom --username researchdev --password toor --verbose --follow -R /tmp/ "C:\Users\Acosta\Desktop\tmp\{{RES_CloneNumber}}"
+						</exec>
+					</cmd>
+				</startup>
+			</vm>
+		</vm-set>
+	</testbed-setup>
+</xml>

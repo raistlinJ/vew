@@ -60,7 +60,7 @@ if __name__ == "__main__":
     # ####READ/WRITE Test for XML data
     logging.info("Reading XML data for " + str(configname))
     data = e.getExperimentXMLFileData(configname)
-    #logging.info("JSON READ:\r\n"+json.dumps(data))   
+    logging.info("JSON READ:\r\n"+json.dumps(data))   
         
     logging.info("Writing XML data for " + str(configname))
     e.writeExperimentXMLFileData(data, configname)
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     ####READ/WRITE Test for JSON data
     logging.info("Reading JSON data for " + str(configname))
     data = e.getExperimentJSONFileData(configname)
-    logging.info("JSON READ:\r\n"+json.dumps(data))   
+    #logging.info("JSON READ:\r\n"+json.dumps(data))   
 
     logging.info("Writing JSON data for " + str(configname))
     e.writeExperimentJSONFileData(data, configname)

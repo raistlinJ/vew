@@ -1,0 +1,39 @@
+{
+    "xml":{
+       "vbox-setup":{
+          "path-to-vboxmanage":"VBoxManage"
+       },
+       "testbed-setup":{
+          "network-config":{
+             "ip-address":"11.0.0.2"
+          },
+          "vm-set":{
+             "base-groupname":"sample",
+             "num-clones":"2",
+             "linked-clones":"true",
+             "clone-snapshots":"true",
+             "base-outname":"_set_",
+             "vrdp-baseport":"1001",
+             "vm":{
+                "name":"defaulta",
+                "vrdp-enabled":"false",
+                "internalnet-basename":"intnet",
+                "startup":{
+                   "cmd":[
+                      {
+                         "seq":"1",
+                         "hypervisor":"vbox",
+                         "exec":"run --exe \"/bin/bash\" --username researchdev --password toor --wait-stdout --wait-stderr -- -l -c \"echo toor | sudo -S /usr/bin/find /etc/ | tee /tmp/out.txt | cat && sleep 10 && cat /tmp/out.txt\""
+                      },
+                      {
+                         "seq":"2",
+                         "hypervisor":"vbox",
+                         "exec":"copyfrom --username researchdev --password toor --verbose --follow -R /tmp/ \"C:\\Users\\Acosta\\Desktop\\tmp\\{{RES_CloneNumber}}\""
+                      }
+                   ]
+                }
+             }
+          }
+       }
+    }
+ }
