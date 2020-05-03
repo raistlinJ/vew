@@ -98,7 +98,7 @@ class VBoxManageWin(VMManage):
             self.writeStatus -= 1
             logging.debug("runConfigureVMNets(): sub 1 "+ str(self.writeStatus))
 
-    def guestCommands(self, vmName, cmds):
+    def guestCommands(self, vmName, cmds, delay=0):
         logging.debug("VBoxManageWin: guestCommands(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
         exists = False
@@ -109,16 +109,18 @@ class VBoxManageWin(VMManage):
                 logging.error("guestCommands(): " + vmName + " not found in list of known vms: \r\n" + str(vmName))
                 return -1
             self.guestThreadStatus += 1
-            t = threading.Thread(target=self.runGuestCommands, args=(vmName, cmds))
+            t = threading.Thread(target=self.runGuestCommands, args=(vmName, cmds, delay))
             t.start()
             return 0
         finally:
             self.lock.release()
 
-    def runGuestCommands(self, vmName, cmds):
+    def runGuestCommands(self, vmName, cmds, delay):
         try:
             logging.debug("runGuestCommands(): adding 1 "+ str(self.writeStatus))
             cmd = "N/A"
+            #if a delay was specified... wait
+            time.sleep(delay)
             for cmd in cmds:
                 vmCmd = self.vmanage_path + " guestcontrol " + str(self.vms[vmName].UUID) + " " + cmd
                 logging.debug("runGuestCommands(): Running " + vmCmd)

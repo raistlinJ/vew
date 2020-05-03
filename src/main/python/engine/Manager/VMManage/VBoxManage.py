@@ -16,7 +16,7 @@ from engine.Configuration.SystemConfigIO import SystemConfigIO
 from threading import RLock
 
 class VBoxManage(VMManage):
-    def __init__(self, initializeVMManage=False):
+    def __init__(self, initializeVMManage=True):
         logging.info("VBoxManage.__init__(): instantiated")
         VMManage.__init__(self)
         self.cf = SystemConfigIO()
@@ -98,7 +98,7 @@ class VBoxManage(VMManage):
             self.writeStatus -= 1
             logging.debug("runConfigureVMNets(): sub 1 "+ str(self.writeStatus))
 
-    def guestCommands(self, vmName, cmds):
+    def guestCommands(self, vmName, cmds, delay=0):
         logging.debug("VBoxManageWin: guestCommands(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
         exists = False
@@ -108,19 +108,19 @@ class VBoxManage(VMManage):
             if not exists:
                 logging.error("guestCommands(): " + vmName + " not found in list of known vms: \r\n" + str(vmName))
                 return -1
-            self.readStatus = VMManage.MANAGER_READING
-            self.writeStatus += 1
-            t = threading.Thread(target=self.runGuestCommands, args=(vmName, cmds))
+            self.guestThreadStatus += 1
+            t = threading.Thread(target=self.runGuestCommands, args=(vmName, cmds, delay))
             t.start()
             return 0
         finally:
             self.lock.release()
 
-    def runGuestCommands(self, vmName, cmds):
+    def runGuestCommands(self, vmName, cmds, delay):
         try:
-            self.readStatus = VMManage.MANAGER_READING
             logging.debug("runGuestCommands(): adding 1 "+ str(self.writeStatus))
             cmd = "N/A"
+            #if a delay was specified... wait
+            time.sleep(delay)
             for cmd in cmds:
                 vmCmd = self.vmanage_path + " guestcontrol " + str(self.vms[vmName].UUID) + " " + cmd
                 logging.debug("runGuestCommands(): Running " + vmCmd)
@@ -139,9 +139,8 @@ class VBoxManage(VMManage):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
         finally:
-            self.readStatus = VMManage.MANAGER_IDLE
-            self.writeStatus -= 1
-            logging.debug("runGuestCommands(): sub 1 "+ str(self.writeStatus))
+            self.guestThreadStatus -= 1
+            logging.debug("runGuestCommands(): sub thread 1 "+ str(self.writeStatus))
 
     def refreshAllVMInfo(self):
         logging.info("VBoxManage: refreshAllVMInfo(): instantiated")
@@ -456,7 +455,7 @@ class VBoxManage(VMManage):
             self.lock.release()
 
     def exportVM(self, vmName, filepath):
-        logging.debug("VBoxManage: importVM(): instantiated")
+        logging.debug("VBoxManage: exportVM(): instantiated")
         #first remove any quotes that may have been entered before (because we will add some after we add the file and extension)
         try:
             self.lock.acquire()
@@ -503,24 +502,6 @@ class VBoxManage(VMManage):
                 logging.error("pauseVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
                 return -1
             cmd = "controlvm " + str(self.vms[vmName].UUID) + " pause"
-            self.readStatus = VMManage.MANAGER_READING
-            self.writeStatus += 1
-            t = threading.Thread(target=self.runVMCmd, args=(cmd,))
-            t.start()
-            return 0
-        finally:
-            self.lock.release()
-
-    def snapshotVM(self, vmName):
-        logging.debug("VBoxManage: snapshotVM(): instantiated")
-        #check to make sure the vm is known, if not should refresh or check name:
-        try:
-            self.lock.acquire()
-            exists = vmName in self.vms
-            if not exists:
-                logging.error("snapshotVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
-                return -1
-            cmd = "snapshot " + str(self.vms[vmName].UUID) + " snapshot " + " --live"
             self.readStatus = VMManage.MANAGER_READING
             self.writeStatus += 1
             t = threading.Thread(target=self.runVMCmd, args=(cmd,))
@@ -643,6 +624,7 @@ class VBoxManage(VMManage):
     def runCloneVMConfigAll(self, vmName, cloneName, cloneSnapshots, linkedClones, groupName, internalNets, vrdpPort):
         logging.debug("VBoxManage: runCloneVMConfigAll(): instantiated")
         try:
+            self.readStatus = VMManage.MANAGER_READING
             logging.debug("runCloneVMConfigAll(): adding 1 "+ str(self.writeStatus))
             #first clone
             #Check that vm does exist

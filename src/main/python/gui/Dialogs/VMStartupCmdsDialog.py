@@ -40,6 +40,17 @@ class VMStartupCmdsDialog(QDialog):
         self.startupCommandsVertBox.setAlignment(Qt.AlignTop)
         self.startupCommandsGroupBox.setLayout(self.startupCommandsVertBox)
 
+        self.startupDelayHBox = QHBoxLayout()
+        self.startupDelayHBox.setObjectName("startupDelayHBox")
+        self.startupDelayHBox.setAlignment(Qt.AlignLeft)
+        self.delayLabel = QLabel("Startup Commands Delay (in seconds)")
+        self.startupDelayHBox.addWidget(self.delayLabel)
+        self.delaySpinBox = QSpinBox()
+        self.delaySpinBox.setObjectName("delaySpinBox")
+        self.delaySpinBox.setRange(1, 9999)
+        self.startupDelayHBox.addWidget(self.delaySpinBox)
+        self.startupCommandsVertBox.addLayout(self.startupDelayHBox)
+
         self.commandsScrollArea = QScrollArea()
         self.commandsScrollArea.setWidget(self.startupCommandsGroupBox)
         self.commandsScrollArea.setWidgetResizable(True)

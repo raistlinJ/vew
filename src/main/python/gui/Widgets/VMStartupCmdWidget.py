@@ -38,6 +38,7 @@ class VMStartupCmdWidget(QtWidgets.QWidget):
         logging.debug("VMStartupCmdWidget: retranslateUi(): instantiated")
         self.lineEdit.setPlaceholderText("enter your command here, e.g., run --exe \"/bin/bash\" --username user --password pass --wait-stdout --wait-stderr -- -l -c \"echo toor | sudo -S /usr/bin/find /etc/")
         hypervisor = "vbox"
+        delay = 0
         sequence = "0"
         if hypervisor in cmdjson:
             hypervisor = cmdjson["hypervisor"]
