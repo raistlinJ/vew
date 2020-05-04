@@ -125,6 +125,7 @@ class ExperimentManageVBox(ExperimentManage):
                             #put all of the commands into a single list, based on sequence numbers:
                             if cloneinfo["startup-cmds"] != None:
                                 startupCmds = cloneinfo["startup-cmds"]
+                                startupDelay = cloneinfo["startup-cmds-delay"]
                                 #format them into a list; based on execution order
                                 orderedStartupCmds = []
                                 for sequence in sorted(startupCmds):
@@ -133,7 +134,7 @@ class ExperimentManageVBox(ExperimentManage):
                                         #from the tuple, just get the "exec" or command, not hypervisor
                                         orderedStartupCmds.append(mcmd[1].replace("{{RES_CloneNumber}}",str(i)))
                                 logging.debug("runStartExperiment(): sending command(s) for " + str(cloneVMName) + str(orderedStartupCmds))
-                                self.vmManage.guestCommands(cloneVMName, orderedStartupCmds)
+                                self.vmManage.guestCommands(cloneVMName, orderedStartupCmds, startupDelay)
             logging.debug("runStartExperiment(): Complete...")
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
         except Exception:
