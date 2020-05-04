@@ -120,7 +120,7 @@ class VBoxManage(VMManage):
             logging.debug("runGuestCommands(): adding 1 "+ str(self.writeStatus))
             cmd = "N/A"
             #if a delay was specified... wait
-            time.sleep(delay)
+            time.sleep(int(delay))
             for cmd in cmds:
                 vmCmd = self.vmanage_path + " guestcontrol " + str(self.vms[vmName].UUID) + " " + cmd
                 logging.debug("runGuestCommands(): Running " + vmCmd)

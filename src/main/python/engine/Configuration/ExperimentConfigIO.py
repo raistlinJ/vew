@@ -69,9 +69,10 @@ class ExperimentConfigIO:
                 vmRolledOutList[vmName] = []
                 logging.debug("getExperimentVMRolledOut(): adding data for vm: " + str(vmName))
 
-                startupCmds = None
+                startupCmds_reformatted = None
                 #read startup commands
                 if "startup" in vm and "cmd" in vm["startup"]:
+                    startupCmds_reformatted = {}
                     #check if there is a startup-delay
                     startupDelay = 0
                     if "delay" in vm["startup"]:
@@ -94,10 +95,10 @@ class ExperimentConfigIO:
                         if "seq" in startupcmd:
                             seq = startupcmd["seq"]
                         #store the data and allow for duplicate sequences (store as list)
-                        if seq not in startupCmds:
-                            startupCmds[seq] = [(hypervisor, startupcmd["exec"])]
+                        if seq not in startupCmds_reformatted:
+                            startupCmds_reformatted[seq] = [(hypervisor, startupcmd["exec"])]
                         else:
-                            startupCmds[seq].append[(hypervisor, startupcmd["exec"])]
+                            startupCmds_reformatted[seq].append[(hypervisor, startupcmd["exec"])]
 
                 #get names for clones
                 myBaseOutname = baseOutname
@@ -119,11 +120,11 @@ class ExperimentConfigIO:
                     vrdpEnabled = vm["vrdp-enabled"]
                     if vrdpEnabled != None and vrdpEnabled == 'true':
                         vrdpBaseport = str(int(vrdpBaseport))
-                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "ip-address": ipAddress, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds, "startup-cmds-delay": startupDelay})
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "ip-address": ipAddress, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay})
                         vrdpBaseport = int(vrdpBaseport) + 1
                     #otherwise, don't include vrdp port
                     else:
-                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "ip-address": ipAddress, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds, "startup-cmds-delay": startupDelay})
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "ip-address": ipAddress, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay})
 
                     logging.debug("getExperimentVMRolledOut(): finished setting up clone: " + str(vmRolledOutList))
             return vmRolledOutList, numClones

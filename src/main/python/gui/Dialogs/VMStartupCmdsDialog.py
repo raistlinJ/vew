@@ -47,7 +47,7 @@ class VMStartupCmdsDialog(QDialog):
         self.startupDelayHBox.addWidget(self.delayLabel)
         self.delaySpinBox = QSpinBox()
         self.delaySpinBox.setObjectName("delaySpinBox")
-        self.delaySpinBox.setRange(1, 9999)
+        self.delaySpinBox.setRange(0, 9999)
         self.startupDelayHBox.addWidget(self.delaySpinBox)
         self.startupCommandsVertBox.addLayout(self.startupDelayHBox)
 
@@ -74,6 +74,11 @@ class VMStartupCmdsDialog(QDialog):
         logging.debug("VMStartupCmdsDialog: retranslateUi(): instantiated")
 
         if startupjsondata != None and "cmd" in startupjsondata:
+            startupdelay = 0
+            if "delay" in startupjsondata:
+                startupdelay = startupjsondata["delay"]
+            print("STARTUP-DELAY: " + str(startupdelay))
+            self.delaySpinBox.setValue(int(startupdelay))
             startupcmds = startupjsondata["cmd"]
             #if this is not a list, make it one (xml to json limitation)
             if isinstance(startupcmds, list) == False:
@@ -119,7 +124,7 @@ class VMStartupCmdsDialog(QDialog):
         logging.debug("VMStartupCmdsDialog: getWritableData(): instantiated")
         jsondata = {}
         if len(self.startupCommandsWidgets) > 0:
-            jsondata = {"cmd": []}
+            jsondata = {"cmd": [], "delay": str(self.delaySpinBox.value())}
             for startupcmdwidget in self.startupCommandsWidgets.values():
                 jsondata["cmd"].append(startupcmdwidget.getWritableData())
         return jsondata

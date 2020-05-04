@@ -125,7 +125,7 @@ class ExperimentManageVBox(ExperimentManage):
                             #put all of the commands into a single list, based on sequence numbers:
                             if cloneinfo["startup-cmds"] != None:
                                 startupCmds = cloneinfo["startup-cmds"]
-                                startupDelay = cloneinfo["statup-cmds-delay"]
+                                startupDelay = cloneinfo["startup-cmds-delay"]
                                 #format them into a list; based on execution order
                                 orderedStartupCmds = []
                                 for sequence in sorted(startupCmds):
