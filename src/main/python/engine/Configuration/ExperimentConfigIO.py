@@ -70,9 +70,7 @@ class ExperimentConfigIO:
                 logging.debug("getExperimentVMRolledOut(): adding data for vm: " + str(vmName))
 
                 startupCmds_reformatted = None
-                #check if there is a startup-delay
                 startupDelay = 0
-                startupCmds_reformatted = {}
                 #read startup commands
                 if "startup" in vm and "cmd" in vm["startup"]:
 
