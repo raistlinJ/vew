@@ -72,9 +72,10 @@ class ExperimentConfigIO:
                 startupCmds_reformatted = None
                 #check if there is a startup-delay
                 startupDelay = 0
+                startupCmds_reformatted = {}
                 #read startup commands
                 if "startup" in vm and "cmd" in vm["startup"]:
-                    startupCmds_reformatted = {}
+
                     if "delay" in vm["startup"]:
                         startupDelay = vm["startup"]["delay"]
                     startupcmds = vm["startup"]["cmd"]
