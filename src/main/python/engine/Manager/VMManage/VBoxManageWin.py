@@ -723,7 +723,7 @@ class VBoxManageWin(VMManage):
             finally:
                 self.lock.release()
             #Call runVMCommand
-            cloneCmd = self.vmanage_path + " clonevm " + vmUUID + " --register"
+            cloneCmd = self.vmanage_path + " clonevm " + vmUUID + " --register" + " --options=keepallmacs"
             #NOTE, the following logic is not in error. Linked clone can only be created from a snapshot.
             if cloneSnapshots == 'true':
                 #linked Clones option requires a cloneSnapshotUUID to be specified
