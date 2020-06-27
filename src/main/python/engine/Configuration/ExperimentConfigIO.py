@@ -28,24 +28,6 @@ class ExperimentConfigIO:
 
     def getExperimentVMRolledOut(self, configname):
         logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
-        ## Sample RolledOut JSON:
-        # { 
-        # "defaulta" : 
-        #    [
-        #       {
-        #          "name": "defaulta1",
-        #          "group-name": "/sample/Unit1/",
-        #          "nets": ["test1", "test2"],
-        #          "vrdpPort": "1001"
-        #       },
-        #       {
-        #          "name": "defaulta2",
-        #          "group-name": "/sample/Unit1/",
-        #          "nets": ["test1"],
-        #          "vrdpPort": "1002"
-        #       }
-        #    ]
-        # } 
         try:
             vmRolledOutList = {}
             jsondata = self.getExperimentXMLFileData(configname)
