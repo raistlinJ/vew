@@ -26,20 +26,25 @@ class WatchActioningThread(QThread):
         self.watchsignal.emit("Processing Connection " + str(self.actionname) + "...", None, None)
         try:
             e = Engine.getInstance()
+            creds_file = " None "
             if self.actionname == "Add":
-                if len(self.args) != 10:
+                if len(self.args) != 11:
                     logging.error("WatchActioningThread(): invalid number of args for create connections. Skipping...")
                     self.watchsignal.emit("Invalid number of args for create connections. Skipping...", self.status, True)
                     self.status = -1
                     return None
-                cmd = "conns " + " create " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4]) + " " + str(self.args[5]) + " " + str(self.args[6]) + " " + str(self.args[7]) + " " + str(self.args[8]) + " " + str(self.args[9])
+                if str(self.args[10]).strip() != "":
+                    creds_file = " " + str(self.args[10])
+                cmd = "conns " + " create " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4]) + " " + str(self.args[5]) + " " + str(self.args[6]) + " " + str(self.args[7]) + " " + str(self.args[8]) + " " + str(self.args[9]) + creds_file
             if self.actionname == "Remove":
-                if len(self.args) != 5:
+                if len(self.args) != 6:
                     logging.error("WatchActioningThread(): invalid number of args for remove connections. Skipping...")
                     self.watchsignal.emit("Invalid number of args for remove connections. Skipping...", self.status, True)
                     self.status = -1
                     return None
-                cmd = "conns " + " remove " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4])
+                if str(self.args[5]).strip() != "":
+                    creds_file = " " + str(self.args[5])
+                cmd = "conns " + " remove " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4]) + creds_file
             if self.actionname == "Clear":
                 if len(self.args) != 5:
                     logging.error("WatchActioningThread(): invalid number of args for clear connections. Skipping...")

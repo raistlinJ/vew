@@ -9,6 +9,7 @@ from engine.Engine import Engine
 import time
 from engine.Manager.ConnectionManage.ConnectionManage import ConnectionManage
 from gui.Dialogs.ConnectionActioningDialog import ConnectionActioningDialog
+from gui.Widgets.FileSelectorWidget import FileSelectorWidget
 import logging
 import configparser
 
@@ -22,7 +23,7 @@ class ConnectionActionDialog(QDialog):
         self.actionname = actionname
         self.experimentHostname = experimentHostname
         self.cm = ConnectionManage()
-        self.setMinimumWidth(275)
+        self.setMinimumWidth(450)
 
         self.createFormGroupBox()
         
@@ -68,14 +69,19 @@ class ConnectionActionDialog(QDialog):
         self.bitdepthComboBox.addItem("True color (32-bit)")
         self.bitdepthComboBox.setCurrentIndex(1)
 
+        self.fileSelectorWidget = FileSelectorWidget()
+
         if self.actionname == "Add":
             #Need to make a function to create more than one user to a single instance 
             # self.layout.addRow(QLabel("Max Connections Per Instance:"), self.maxConnectionsLineEdit)      
             # self.maxConnectionsLineEdit = QLineEdit("1")
+            self.layout.addRow(QLabel("Usernames/Passwords File (csv): "), self.fileSelectorWidget)
             self.layout.addRow(QLabel("Max Connections Per User:"), self.maxConnectionsLineEdit)      
             self.layout.addRow(QLabel("Display Height:"), self.heightLineEdit)
             self.layout.addRow(QLabel("Display Width:"), self.widthLineEdit)
             self.layout.addRow(QLabel("Bit Depth:"), self.bitdepthComboBox)
+        if self.actionname == "Remove":
+            self.layout.addRow(QLabel("Usernames/Passwords File (csv): "), self.fileSelectorWidget)
 
         self.formGroupBox.setLayout(self.layout)
 
@@ -94,9 +100,12 @@ class ConnectionActionDialog(QDialog):
                     bitDepth = "24"
                 elif bitDepth == "True color (32-bit)":
                     bitDepth = "32"
-                self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText(), "1", self.maxConnectionsLineEdit.text(), self.heightLineEdit.text(), self.widthLineEdit.text(), bitDepth]
+                self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText(), "1", self.maxConnectionsLineEdit.text(), self.heightLineEdit.text(), self.widthLineEdit.text(), bitDepth, self.fileSelectorWidget.getCredsFilename()]
+            elif self.actionname == "Remove":
+                self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText(), self.fileSelectorWidget.getCredsFilename()]
             else:
                 self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText()]
+
             cad = ConnectionActioningDialog(self.parent, self.configname, self.actionname, self.args).exec_()
             return (QMessageBox.Ok)
         return (QMessageBox.Cancel)

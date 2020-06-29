@@ -23,7 +23,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
         t.start()
         return 0
 
-    def runCreateConnections(self, configname, guacHostname, username, password,url_path, method, creds_file, maxConnections, maxConnectionsPerUser, width, height, bitdepth):
+    def runCreateConnections(self, configname, guacHostname, username, password,url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, creds_file):
         logging.debug("runCreateConnections(): instantiated")
         #call guac backend API to make connections as specified in config file and then set the complete status
         #self.guacifx.createGuacEntries(inputFilename, guacHostname, guacUsername, guacPass, guacURLPath, guacConnMethod)
