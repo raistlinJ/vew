@@ -2,6 +2,8 @@ import logging
 import sys, traceback
 import threading
 import json
+import os
+import csv
 from engine.Manager.ConnectionManage.ConnectionManage import ConnectionManage
 from engine.ExternalIFX.GuacIFX import GuacIFX
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
@@ -15,13 +17,13 @@ class ConnectionManageGuacRDP(ConnectionManage):
         self.eco = ExperimentConfigIO()
 
     #abstractmethod
-    def createConnections(self, configname, guacHostname, username, password, url_path, method, maxConnections="", maxConnectionsPerUser="", width="1400", height="1050", bitdepth="16"):
+    def createConnections(self, configname, guacHostname, username, password, url_path, method, creds_file="", maxConnections="", maxConnectionsPerUser="", width="1400", height="1050", bitdepth="16"):
         logging.debug("createConnections(): instantiated")
-        t = threading.Thread(target=self.runCreateConnections, args=(configname, guacHostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth))
+        t = threading.Thread(target=self.runCreateConnections, args=(configname, guacHostname, username, password, url_path, method, creds_file, maxConnections, maxConnectionsPerUser, width, height, bitdepth))
         t.start()
         return 0
 
-    def runCreateConnections(self, configname, guacHostname, username, password,url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth):
+    def runCreateConnections(self, configname, guacHostname, username, password,url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, creds_file):
         logging.debug("runCreateConnections(): instantiated")
         #call guac backend API to make connections as specified in config file and then set the complete status
         #self.guacifx.createGuacEntries(inputFilename, guacHostname, guacUsername, guacPass, guacURLPath, guacConnMethod)
@@ -31,12 +33,19 @@ class ConnectionManageGuacRDP(ConnectionManage):
             logging.debug("runCreateConnection(): guacHostname: " + str(guacHostname) + " username/pass: " + username + " url_path: " + url_path + " method: " + str(method))
             guacConn = Guacamole(guacHostname,username=username,password=password,url_path=url_path,method=method)
             if guacConn == None:
-                logging.error("Error with guac connection... skipping: " + str(guacHostname) + " " + str(username))
+                logging.error("runCreateConnection(): Error with guac connection... skipping: " + str(guacHostname) + " " + str(username))
                 self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
                 return -1
-
+            if creds_file == "":
+                userpool = self.get_user_pass_frombase("user", 20)
+            else:
+                userpool = self.get_user_pass_fromfile(creds_file)
+            if userpool == None:
+                logging.error("runCreateConnection(): User/Pass could not be created from file: " + str(creds_file) + " using default: user")
+                userpool = self.get_user_pass_frombase("user", 20)
             #first create the users for each set of VMs
             createdUsers = []
+            numCreatedUsers = 0
             clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
             for vm in clonevmjson.keys(): 
                 vmName = vm
@@ -46,7 +55,10 @@ class ConnectionManageGuacRDP(ConnectionManage):
                 for cloneinfo in clonevmjson[vm]:
                     # if vrdpPort exists, then we know it's enabled for this vm; let's set it up
                     if "vrdpPort" in cloneinfo:
-                        username = str(cloneinfo["baseGroupName"]) + str(cloneinfo["groupNum"])
+                        if len(userpool) <= 0:
+                            #need to create more users:
+                            userpool = self.get_user_pass_frombase("extra_"+str(numCreatedUsers), 10)
+                        (username, password) = userpool.pop(0)
                         username = ''.join(e for e in username if e.isalnum())
                         ipAddress = cloneinfo["ip-address"]
                         cloneVMName = cloneinfo["name"]
@@ -56,8 +68,9 @@ class ConnectionManageGuacRDP(ConnectionManage):
                         if username not in createdUsers:
                             logging.debug( "Creating Username: " + username)
                             createdUsers.append(username)
+                            numCreatedUsers += 1
                             try:
-                                result = self.createUser(guacConn, username, username)
+                                result = self.createUser(guacConn, username, password)
                                 if result == "already_exists":
                                     logging.debug("User already exists; skipping...")
                             except Exception:
@@ -128,13 +141,13 @@ class ConnectionManageGuacRDP(ConnectionManage):
         self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
 
     #abstractmethod
-    def removeConnections(self, configname, guacHostname, username, password, url_path, method):
+    def removeConnections(self, configname, guacHostname, username, password, url_path, method, creds_file=""):
         logging.debug("removeConnections(): instantiated")
-        t = threading.Thread(target=self.runRemoveConnections, args=(configname,guacHostname, username, password, url_path, method))
+        t = threading.Thread(target=self.runRemoveConnections, args=(configname,guacHostname, username, password, url_path, method, creds_file))
         t.start()
         return 0
 
-    def runRemoveConnections(self, configname, guacHostname, username, password, url_path, method):
+    def runRemoveConnections(self, configname, guacHostname, username, password, url_path, method, creds_file):
         self.writeStatus = ConnectionManage.CONNECTION_MANAGE_REMOVING
         #sample guacConn = Guacamole(192.168.99.102',username='guacadmin',password='guacadmin',url_path='/guacamole',method='http')
         logging.debug("runRemoveConnections(): guacHostname: " + str(guacHostname) + " username/pass: " + username + " url_path: " + url_path + " method: " + str(method))
@@ -143,9 +156,16 @@ class ConnectionManageGuacRDP(ConnectionManage):
             logging.error("Error with guac connection... skipping: " + str(guacHostname) + " " + str(username))
             self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
             return -1
-
+        if creds_file == "":
+            userpool = self.get_user_pass_frombase("user", 20)
+        else:
+            userpool = self.get_user_pass_fromfile(creds_file)
+        if userpool == None:
+            logging.error("runCreateConnection(): User/Pass could not be created from file; using default: user")
+            userpool = self.get_user_pass_frombase("user", 20)
         #first create the users for each set of VMs
         removedUsers = []
+        numRemovedUsers = 0
         clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
         for vm in clonevmjson.keys(): 
             vmName = vm
@@ -155,7 +175,10 @@ class ConnectionManageGuacRDP(ConnectionManage):
             for cloneinfo in clonevmjson[vm]:
                 # if vrdpPort exists, then we know it's enabled for this vm; let's set it up
                 if "vrdpPort" in cloneinfo:
-                    username = str(cloneinfo["baseGroupName"]) + str(cloneinfo["groupNum"])
+                    if len(userpool) <= 0:
+                        #need to create more users:
+                        userpool = self.get_user_pass_frombase("extra_"+str(numRemovedUsers), 10)
+                    (username, password) = userpool.pop(0)
                     username = ''.join(e for e in username if e.isalnum())
                     cloneVMName = cloneinfo["name"]
                     logging.debug( "Removing Username: " + username)
@@ -163,6 +186,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
                     if username not in removedUsers:
                         logging.debug( "Removing Username: " + username)
                         removedUsers.append(username)
+                        numRemovedUsers += 1
                         try:
                             self.removeUser(guacConn, username)
                         except Exception:
@@ -300,3 +324,36 @@ class ConnectionManageGuacRDP(ConnectionManage):
     def getConnectionManageStatus(self):
         logging.debug("getConnectionManageStatus(): instantiated")
         return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus}
+
+    def get_user_pass_frombase(self, base, num_users):
+        logging.debug("get_user_pass_frombase(): instantiated")
+        #not efficient at all, but it's a quick lazy way to do it:
+        answer = []
+        for i in range(1,num_users+1):
+            answer.append(((str(base)+str(i),str(base)+str(i))))
+        return answer
+
+    def get_user_pass_fromfile(self, filename):
+        logging.debug("get_user_pass_fromfile(): instantiated")
+        #not efficient at all, but it's a quick lazy way to do it:
+        answer = []
+        i = 0
+        try:
+            if os.path.exists(filename) == False:
+                logging.error("getConnectionManageStatus(): Filename: " + filename + " does not exists; returning")
+                return None
+            with open(filename) as infile:
+                reader = csv.reader(infile, delimiter=" ")
+                for user, password in reader:
+                    i = i+1
+                    answer.append((user, password))
+            # if len(answer) < num_users:
+            #     logging.error("getConnectionManageStatus(): file does not have enough users: " + len(answer) + "; returning")
+            #     return None
+            return answer
+        except Exception as e:
+            logging.error("Error in getConnectionManageStatus().")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            trace_back = traceback.extract_tb(exc_traceback)
+            #traceback.print_exception(exc_type, exc_value, exc_traceback)
+            return None

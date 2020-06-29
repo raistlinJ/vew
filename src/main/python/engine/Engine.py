@@ -5,6 +5,7 @@ import logging
 import shlex
 import argparse
 import sys
+import os
 from engine.Manager.ConnectionManage.ConnectionManageGuacRDP import ConnectionManageGuacRDP
 from engine.Manager.PackageManage.PackageManageVBox import PackageManageVBox
 from engine.Manager.ExperimentManage.ExperimentManageVBox import ExperimentManageVBox
@@ -109,6 +110,14 @@ class Engine:
         width = args.width
         height = args.height
         bitdepth = args.bitdepth
+        creds_file = args.creds_file
+        if creds_file != None and isinstance(creds_file, str) and creds_file.strip() != "None":
+            full_creds_file = os.path.abspath(creds_file)
+            print ("!!!!!!!!!!CREDSFILE!!!!!!!!!: " + str(full_creds_file))
+            if os.path.exists(full_creds_file):
+                print ("!!!!!!!!!!FROMFILE!!!!!!!!!: " + str(full_creds_file))
+                return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, full_creds_file)
+        print ("!!!!!!!!!!FROMBASE!!!!!!!!!: ")
         return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth)
 
     def connectionRemoveCmd(self, args):
@@ -121,7 +130,11 @@ class Engine:
         password = args.password
         url_path = args.url_path
         method = args.method
-
+        creds_file = args.creds_file
+        if creds_file != None and isinstance(creds_file, str) and creds_file.strip() != "None":
+            full_creds_file = os.path.abspath(creds_file)
+            if os.path.exists(full_creds_file):
+                return self.connectionManage.removeConnections(configname, hostname, username, password, url_path, method, full_creds_file)
         return self.connectionManage.removeConnections(configname, hostname, username, password, url_path, method)
 
     def connectionClearAllCmd(self, args):
@@ -312,9 +325,9 @@ class Engine:
                                           help='URL path to broker service')
         self.connectionManageCreateParser.add_argument('method', metavar='<method>', action="store",
                                           help='Either HTTP or HTTPS, depending on the server\'s configuration')
-        self.connectionManageCreateParser.add_argument('maxConnections', metavar='<maxConnections>', action="store", default="",
+        self.connectionManageCreateParser.add_argument('maxConnections', metavar='<maxConnections>', action="store", default="1",
                                           help='Max number of connections allowed per remote conn')
-        self.connectionManageCreateParser.add_argument('maxConnectionsPerUser', metavar='<maxConnectionsPerUser>', action="store", default="", 
+        self.connectionManageCreateParser.add_argument('maxConnectionsPerUser', metavar='<maxConnectionsPerUser>', action="store", default="1", 
                                           help='Max number of connections allowed per user per remote conn')
         self.connectionManageCreateParser.add_argument('width', metavar='<width>', action="store", default="1400",
                                           help='Width of remote connection display')
@@ -322,6 +335,8 @@ class Engine:
                                           help='Height of remote connection display')
         self.connectionManageCreateParser.add_argument('bitdepth', metavar='<bitdepth>', action="store", default="16",
                                           help='Bit-depth (8, 16, 24, or 32)')
+        self.connectionManageCreateParser.add_argument('creds_file', metavar='<creds_file>', action="store",
+                                          help='File with username/password pairs.')
         self.connectionManageCreateParser.set_defaults(func=self.connectionCreateCmd)
         
         self.connectionManageRemoveParser = self.connectionManageSubParser.add_parser('remove', help='remove conns as specified in config file')
@@ -337,6 +352,8 @@ class Engine:
                                           help='URL path to broker service')
         self.connectionManageRemoveParser.add_argument('method', metavar='<method>', action="store",
                                           help='Either HTTP or HTTPS, depending on the server\'s configuration')
+        self.connectionManageRemoveParser.add_argument('creds_file', metavar='<creds_file>', action="store",
+                                          help='File with username/password pairs.')
         self.connectionManageRemoveParser.set_defaults(func=self.connectionRemoveCmd)
 
         self.connectionManageClearAllParser = self.connectionManageSubParser.add_parser('clear', help='Clear all connections in database')
