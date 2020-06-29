@@ -90,19 +90,8 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         logging.debug("removeExperimentItem(): Completed")
 
     def showContextMenu(self, position):
-        logging.debug("removeExperimentItem(): showContextMenu(): instantiated")
+        logging.debug("ExperimentActionsWidget(): showContextMenu(): instantiated")
         self.experimentMenu.popup(self.treeWidget.mapToGlobal(position))
-
-            # if self.action == "Create Experiment":
-            #     e.execute("experiment create " + str(self.configname))
-            # elif self.action == "Start Experiment":
-            #     e.execute("experiment start " + str(self.configname))
-            # elif self.action == "Stop Experiment":
-            #     e.execute("experiment stop " + str(self.configname))
-            # elif self.action == "Restore Experiment":
-            #     e.execute("experiment restore " + str(self.configname))
-            # elif self.action == "Remove Experiment":
-            #     e.execute("experiment remove " + str(self.configname))
 
     def cloneExperimentActionEvent(self):
         logging.debug("cloneExperimentActionEvent(): showContextMenu(): instantiated")
