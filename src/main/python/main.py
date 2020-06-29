@@ -21,6 +21,7 @@ from gui.Widgets.BaseWidget import BaseWidget
 from gui.Widgets.VMWidget import VMWidget
 from gui.Widgets.MaterialWidget import MaterialWidget
 from gui.Widgets.ExperimentActionsWidget import ExperimentActionsWidget
+from gui.Widgets.ConnectionWidget import ConnectionWidget
 from gui.Widgets.ManagerBox import ManagerBox
 from engine.Configuration.SystemConfigIO import SystemConfigIO
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
@@ -29,7 +30,6 @@ from gui.Dialogs.MaterialRemoveFileDialog import MaterialRemoveFileDialog
 from gui.Dialogs.ExperimentRemoveFileDialog import ExperimentRemoveFileDialog
 from gui.Dialogs.VMRetreiveDialog import VMRetrieveDialog
 from gui.Dialogs.ExperimentAddDialog import ExperimentAddDialog
-from gui.Dialogs.ConnectionActionDialog import ConnectionActionDialog
 from gui.Dialogs.PackageImportDialog import PackageImportDialog
 from gui.Dialogs.PackageExportDialog import PackageExportDialog
 from gui.Dialogs.HypervisorOpenDialog import HypervisorOpenDialog
@@ -93,6 +93,11 @@ class MainApp(QWidget):
         self.experimentActionsWidget.setObjectName("experimentActionsWidget")
         self.tabWidget.addTab(self.experimentActionsWidget, "Experiment Actions")      
 
+        # Remote Connections Tab
+        self.connectionWidget = ConnectionWidget(statusBar=self.statusBar, baseWidgets=self.baseWidgets)
+        self.connectionWidget.setObjectName("connectionsWidget")
+        self.tabWidget.addTab(self.connectionWidget, "Remote Connections")
+
         #Create the bottom layout so that we can access the status bar
         self.bottomLayout = QHBoxLayout()
         self.statusBar.showMessage("Loading GUI...")
@@ -141,16 +146,6 @@ class MainApp(QWidget):
         self.addVM.triggered.connect(self.addVMActionEvent)
         self.addMaterial = self.addVMContextSubMenu.addAction("Material Files")
         self.addMaterial.triggered.connect(self.addMaterialActionEvent)
-        # Add line separator here
-        self.guacContextSubMenu = QtWidgets.QMenu()
-        self.experimentContextMenu.addMenu(self.guacContextSubMenu)
-        self.guacContextSubMenu.setTitle("CIT Remote Access")
-        self.createGuac = self.guacContextSubMenu.addAction("Create Users")
-        self.createGuac.triggered.connect(self.createGuacActionEvent)
-        self.removeGuac = self.guacContextSubMenu.addAction("Remove Users")
-        self.removeGuac.triggered.connect(self.removeGuacActionEvent)
-        self.clearGuac = self.guacContextSubMenu.addAction("Clear All Entries")
-        self.clearGuac.triggered.connect(self.clearGuacActionEvent)
 
         # Add line separator here
         self.removeExperiment = self.experimentContextMenu.addAction("Remove Experiment")
@@ -199,6 +194,7 @@ class MainApp(QWidget):
         configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
         configTreeWidgetItem.setText(0,configname)
         self.experimentActionsWidget.addExperimentItem(configname)
+        self.connectionWidget.addConnectionItem(configname)
         basejsondata = jsondata["xml"]
         # Base Config Widget 
         self.baseWidget = BaseWidget(self, configname, configname, basejsondata)
@@ -396,35 +392,6 @@ class MainApp(QWidget):
             self.basedataStackedWidget.addWidget(materialWidget)
         self.statusBar.showMessage("Added " + str(len(filesChosen)) + " material files to experiment: " + str(selectedItemName))
 
-    def createGuacActionEvent(self):
-        logging.debug("MainApp:addMaterialActionEvent() instantiated")
-        selectedItem = self.experimentTree.currentItem()
-        if selectedItem == None:
-            logging.debug("MainApp:createGuacActionEvent no configuration selected")
-            self.statusBar.showMessage("Could complete connection action. No configuration items selected or available.")
-            return
-        selectedItemName = selectedItem.text(0)
-        connResult = ConnectionActionDialog(self, selectedItemName, "Add", self.baseWidgets[selectedItemName]["BaseWidget"].ipAddressLineEdit.text()).exec_()
-
-    def removeGuacActionEvent(self):
-        logging.debug("MainApp:removeGuacActionEvent() instantiated")
-        selectedItem = self.experimentTree.currentItem()
-        if selectedItem == None:
-            logging.debug("MainApp:removeGuacActionEvent no configuration selected")
-            self.statusBar.showMessage("Could complete connection action. No configuration items selected or available.")
-            return
-        selectedItemName = selectedItem.text(0)
-        connResult = ConnectionActionDialog(self, selectedItemName, "Remove", self.baseWidgets[selectedItemName]["BaseWidget"].ipAddressLineEdit.text()).exec_()
-
-    def clearGuacActionEvent(self):
-        logging.debug("MainApp:clearGuacActionEvent() instantiated")
-        selectedItem = self.experimentTree.currentItem()
-        if selectedItem == None:
-            logging.debug("MainApp:clearGuacActionEvent no configuration selected")
-            self.statusBar.showMessage("Could complete connection action. No configuration items selected or available.")
-            return
-        selectedItemName = selectedItem.text(0)
-        connResult = ConnectionActionDialog(self, selectedItemName, "Clear", self.baseWidgets[selectedItemName]["BaseWidget"].ipAddressLineEdit.text()).exec_()
 
     def removeExperimentItemActionEvent(self):
         logging.debug("MainApp:removeExperimentItemActionEvent() instantiated")
@@ -448,6 +415,7 @@ class MainApp(QWidget):
             self.basedataStackedWidget.removeWidget(self.baseWidgets[selectedItemName]["BaseWidget"])
             del self.baseWidgets[selectedItemName]
             self.experimentActionsWidget.removeExperimentItem(selectedItemName)
+            self.connectionWidget.removeConnectionItem(selectedItemName)
             self.statusBar.showMessage("Removed experiment: " + str(selectedItemName))
         else:
             #Check if it's the case that a VM Name was selected
