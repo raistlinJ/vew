@@ -124,7 +124,7 @@ class VBoxManage(VMManage):
             for cmd in cmds:
                 vmCmd = self.vmanage_path + " guestcontrol " + str(self.vms[vmName].UUID) + " " + cmd
                 logging.debug("runGuestCommands(): Running " + vmCmd)
-                p = Popen(shlex.split(vmCmd, posix=self.POIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
+                p = Popen(shlex.split(vmCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
                 while True:
                     out = p.stdout.readline()
                     if out == '' and p.poll() != None:
