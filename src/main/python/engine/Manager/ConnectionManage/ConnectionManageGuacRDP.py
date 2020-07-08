@@ -44,31 +44,34 @@ class ConnectionManageGuacRDP(ConnectionManage):
                 logging.error("runCreateConnection(): User/Pass could not be created from file: " + str(creds_file) + " using default: user")
                 userpool = self.get_user_pass_frombase("user", 20)
             #first create the users for each set of VMs
-            createdUsers = []
-            numCreatedUsers = 0
+            createdUsers = {}
+            username = ""
+            password = ""
             clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
             for vm in clonevmjson.keys(): 
                 vmName = vm
                 logging.debug("runCreateConnections(): working with vm: " + str(vmName))
-
                 #get names for clones
                 for cloneinfo in clonevmjson[vm]:
                     # if vrdpPort exists, then we know it's enabled for this vm; let's set it up
                     if "vrdpPort" in cloneinfo:
-                        if len(userpool) <= 0:
-                            #need to create more users:
-                            userpool = self.get_user_pass_frombase("extra_"+str(numCreatedUsers), 10)
-                        (username, password) = userpool.pop(0)
-                        username = ''.join(e for e in username if e.isalnum())
+                        #keep track of users/connections using the groupnum
+                        currGroupNum = cloneinfo["groupNum"]                        
                         ipAddress = cloneinfo["ip-address"]
                         cloneVMName = cloneinfo["name"]
                         vrdpPort = cloneinfo["vrdpPort"]
                         logging.debug( "Creating Username: " + username)
                         # Create a User if we haven't done so yet
-                        if username not in createdUsers:
-                            logging.debug( "Creating Username: " + username)
-                            createdUsers.append(username)
-                            numCreatedUsers += 1
+                        if createdUsers == {} or currGroupNum not in createdUsers:
+                            #get new username/pass
+                            if len(userpool) <= 0:
+                                #need to create more users:
+                                userpool = self.get_user_pass_frombase("extra_"+str(len(createdUsers)), 10)
+                            (username, password) = userpool.pop(0)
+                            username = ''.join(e for e in username if e.isalnum())
+                            createdUsers[currGroupNum] = (username, password)
+
+                            logging.debug( "Creating Username in Guac: " + username)
                             try:
                                 result = self.createUser(guacConn, username, password)
                                 if result == "already_exists":
@@ -77,6 +80,9 @@ class ConnectionManageGuacRDP(ConnectionManage):
                                 logging.error("runCreateConnections(): Error in runCreateConnections(): when trying to add user.")
                                 exc_type, exc_value, exc_traceback = sys.exc_info()
                                 #traceback.print_exception(exc_type, exc_value, exc_traceback)
+                        else:
+                            (username, password) = createdUsers[currGroupNum]
+
                         # Associate a User and Connection
                         logging.debug( "Creating Connection for Username: " + username)
                         try:
@@ -161,11 +167,12 @@ class ConnectionManageGuacRDP(ConnectionManage):
         else:
             userpool = self.get_user_pass_fromfile(creds_file)
         if userpool == None:
-            logging.error("runCreateConnection(): User/Pass could not be created from file; using default: user")
+            logging.error("runRemoveConnections(): User/Pass could not be created from file; using default: user")
             userpool = self.get_user_pass_frombase("user", 20)
         #first create the users for each set of VMs
-        removedUsers = []
-        numRemovedUsers = 0
+        removedUsers = {}
+        username = ""
+        password = ""
         clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
         for vm in clonevmjson.keys(): 
             vmName = vm
@@ -175,24 +182,31 @@ class ConnectionManageGuacRDP(ConnectionManage):
             for cloneinfo in clonevmjson[vm]:
                 # if vrdpPort exists, then we know it's enabled for this vm; let's set it up
                 if "vrdpPort" in cloneinfo:
-                    if len(userpool) <= 0:
-                        #need to create more users:
-                        userpool = self.get_user_pass_frombase("extra_"+str(numRemovedUsers), 10)
-                    (username, password) = userpool.pop(0)
-                    username = ''.join(e for e in username if e.isalnum())
+                    #keep track of users/connections using the groupnum
+                    currGroupNum = cloneinfo["groupNum"]                        
+                    ipAddress = cloneinfo["ip-address"]
                     cloneVMName = cloneinfo["name"]
-                    logging.debug( "Removing Username: " + username)
+                    vrdpPort = cloneinfo["vrdpPort"]
+                    logging.debug( "Creating Username: " + username)
                     # Create a User if we haven't done so yet
-                    if username not in removedUsers:
-                        logging.debug( "Removing Username: " + username)
-                        removedUsers.append(username)
-                        numRemovedUsers += 1
+                    if removedUsers == {} or currGroupNum not in removedUsers:
+                        #get new username/pass
+                        if len(userpool) <= 0:
+                            #need to create more users:
+                            userpool = self.get_user_pass_frombase("extra_"+str(len(removedUsers)), 10)
+                        (username, password) = userpool.pop(0)
+                        username = ''.join(e for e in username if e.isalnum())
+                        createdUsers[currGroupNum] = (username, password)
+
+                        logging.debug( "Removing Username in Guac: " + username)
                         try:
-                            self.removeUser(guacConn, username)
+                            result = self.removeUser(guacConn, username)
+                            logging.debug("RemoveUser result: " + str(result))
                         except Exception:
-                            logging.error("runRemoveConnections(): Error in runRemoveConnections(): when trying to remove user.")
+                            logging.error("runRemoveConnections(): Error in runRemoveConnections(): when trying to add user.")
                             exc_type, exc_value, exc_traceback = sys.exc_info()
-                            #traceback.print_exception(exc_type, exc_value, exc_traceback)
+                    else:
+                        (username, password) = removedUsers[currGroupNum]
                     # Remove Connection Associated with VM
                     logging.debug( "Remove Connection to VM: " + cloneVMName)
                     try:
