@@ -35,6 +35,8 @@ from gui.Dialogs.PackageExportDialog import PackageExportDialog
 from gui.Dialogs.HypervisorOpenDialog import HypervisorOpenDialog
 from gui.Dialogs.ConfigurationDialog import ConfigurationDialog
 
+from plugins.ctfi2.gui.CTFi2GUI import CTFi2GUI
+
 # Handle high resolution displays:
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
@@ -121,6 +123,9 @@ class MainApp(QWidget):
         self.tabWidget.setCurrentIndex(0)
 
         #self.statusBar.showMessage("Finished Loading GUI Components")
+
+        # Plugin Section
+        self.tabWidget.addTab(CTFi2GUI(), "CTFi2")
 
     def readSystemConfig(self):
         logging.debug("MainApp:readSystemConfig() instantiated")
