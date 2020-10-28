@@ -1,11 +1,8 @@
 pyinstaller>=3.4
-fbs
 PyQt5>=5.9.2
 configparser
 xmltodict
 guacapy
-ctfcli
 jinja2
 requests>=2.22.0
-PyQt5>=5.9.2
 simplejson>=3.16.0

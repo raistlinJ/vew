@@ -3,7 +3,6 @@ import logging
 import json
 import os
 
-from fbs_runtime.application_context.PyQt5 import ApplicationContext
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtCore import QDateTime, Qt, QTimer
@@ -168,7 +167,10 @@ class MainApp(QWidget):
         self.statusBar.showMessage("Populating UI")
         self.readSystemConfig()
 #####Create the following based on the config file
-        [xmlExperimentFilenames, xmlExperimentNames] = self.ec.getExperimentXMLFilenames()
+        result = self.ec.getExperimentXMLFilenames()
+        if result == None:
+            return
+        [xmlExperimentFilenames, xmlExperimentNames] = result
         if xmlExperimentFilenames == [] or xmlExperimentNames == []:
             self.statusBar.showMessage("No configs found")
             return
@@ -567,8 +569,9 @@ class MainApp(QWidget):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    appctxt = ApplicationContext()
-    app = MainApp()
+    appctxt = QApplication(sys.argv)
+    gui = MainApp()
     QApplication.setStyle(QStyleFactory.create('Fusion')) 
-    app.show()
-    sys.exit(appctxt.app.exec_())
+    gui.show()
+    exit_code = appctxt.exec_()
+    sys.exit(exit_code)

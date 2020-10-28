@@ -57,14 +57,12 @@ docs/_build/
 # PyBuilder
 target/
 
-venv/bin/
+venv/
 
 \.DS_Store
 
-venv/
-
 *.ova
 
-.vscode/
+.vscode
 
-src/main/python/tmp
+tmp
