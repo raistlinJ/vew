@@ -58,7 +58,7 @@ sudo make install
 ```
 Setup and activate the virtualenv container
 ```
-pyvenv-3.6 venv
+python3 -m venv venv
 ```
 Clone RES repo 
 ```  
@@ -68,7 +68,7 @@ cd res
 Activate the venv and install python dependencides
 ```
 source venv/bin/activate
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 To run the GUI, follow the steps in [Run the GUI](#run-the-gui).
@@ -105,7 +105,10 @@ res/src/main/python/ExperimentData/samples/
 Activate the virtualenv container
 ```
 cd res
+(Windows)
 venv\Scripts\activate
+(Linux)
+source venv\bin\activate
 ```
 Run the Engine Tests:
 ```
