@@ -183,8 +183,24 @@ class API(Session):
         return user_csv
 
     @check_output_types
+    def users_get(self) -> dict:
+        return next((user for user in self._get_obj('users')))
+    
+    @check_output_types
+    def teams_get(self) -> dict:
+        return next((team for team in self._get_obj('teams')))
+
+    @check_output_types
+    def teams_members_get(self, team_id: int) -> dict:
+        return next((team for team in self._get_obj('teams', team_id)))
+
+    @check_output_types
     def user_get(self, user_id: int) -> dict:
         return next((user for user in self._get_obj('users', user_id)))
+
+    @check_output_types
+    def team_get(self, team_id: int) -> dict:
+        return next((team for team in self._get_obj('teams', team_id)))
 
     @check_output_types
     def user_add(self, **kwargs) -> dict:

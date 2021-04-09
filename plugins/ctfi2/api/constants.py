@@ -26,6 +26,15 @@ dat: dict = {'users': {'url': {'all': url_api.format("users"),
                                   'search': ['name', 'email', 'id'],
                                   'delete': ['id']}
                        },
+            'teams': {'url': {'all': url_api.format("teams"),
+                               'single': url_api.format("teams/{}")},
+                       'kwargs': {'valid': ["name", "email", "password", "website", "affiliation",
+                                            "country", "type", "verified", "hidden", "banned", 'id'],
+                                  'minimum': ["name", "email", "type", "verified", "hidden", "banned"],
+                                  'search': ['name', 'email', 'id'],
+                                  'delete': ['id']}
+                        },
+
              'challenges': {'url': {'all': url_api.format("challenges"),
                                     'single': url_api.format("challenges/{}")},
                             'kwargs': {'valid': ['name', 'category', 'description', 'value', 'state', 'type', 'id', 'requirements'],
@@ -102,6 +111,7 @@ def check_output_types(function):
         data_obj = function(*args, **kwargs)
         if isinstance(data_obj, dict):
             data_obj: list = [data_obj]
+            
         for obj in data_obj:
             for key in obj.keys():
                 # str
