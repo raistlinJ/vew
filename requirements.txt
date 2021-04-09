@@ -2,7 +2,8 @@ pyinstaller>=3.4
 PyQt5>=5.9.2
 configparser
 xmltodict
-guacapy
 jinja2
 requests>=2.22.0
 simplejson>=3.16.0
+guacapy
+rocketchat-API
