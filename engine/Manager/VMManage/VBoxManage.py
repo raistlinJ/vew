@@ -229,12 +229,7 @@ class VBoxManage(VMManage):
                         if res:
                             # logging.debug("Found vmState: " + out + " added to " + self.tempVMs[aVM].name)
                             state = out.strip().split("\"")[1].split("\"")[0]
-                            if state == "running":
-                                self.tempVMs[aVM].state = VM.VM_STATE_RUNNING
-                            elif state == "poweroff":
-                                self.tempVMs[aVM].state = VM.VM_STATE_OFF
-                            else:
-                                self.tempVMs[aVM].state = VM.VM_STATE_OTHER
+                            self.tempVMs[aVM].state = state
                         res = re.match("CurrentSnapshotUUID=", out)
                         if res:
                             # logging.debug("Found snaps: " + out + " added to " + self.tempVMs[aVM].latestSnapUUID)
@@ -317,12 +312,7 @@ class VBoxManage(VMManage):
                     if res:
                         # logging.debug("Found vmState: " + out + " added to " + self.tempVMs[vmName].name)
                         state = out.strip().split("\"")[1].split("\"")[0]
-                        if state == "running":
-                            self.tempVMs[vmName].state = VM.VM_STATE_RUNNING
-                        elif state == "poweroff":
-                            self.tempVMs[vmName].state = VM.VM_STATE_OFF
-                        else:
-                            self.tempVMs[vmName].state = VM.VM_STATE_OTHER
+                        self.tempVMs[vmName].state = state
                     res = re.match("CurrentSnapshotUUID=", out)
                     if res:
                         # logging.debug("Found snaps: " + out + " added to " + self.tempVMs[vmName].latestSnapUUID)
