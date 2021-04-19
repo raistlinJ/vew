@@ -101,19 +101,26 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
             return
 
         #Check if it's the case that an experiment name was selected
+        parentparentSelectedItem = None
         parentSelectedItem = selectedItem.parent()
-        if(parentSelectedItem == None):
+        if parentSelectedItem != None:
+            parentparentSelectedItem = selectedItem.parent().parent()
+        if parentSelectedItem == None:
             #A base widget was selected
             self.basedataStackedWidget.setCurrentWidget(self.experimentActionsBaseWidgets[selectedItem.text(0)]["ExperimentActionsBaseWidget"])
+            self.experimentTree.resizeColumnToContents(0)
+        elif parentparentSelectedItem == None:
+            #A base widget was selected
+            self.basedataStackedWidget.setCurrentWidget(self.experimentActionsBaseWidgets[parentSelectedItem.text(0)]["ExperimentActionsBaseWidget"])
             self.experimentTree.resizeColumnToContents(0)
         else:
             #Check if it's the case that a VM Name was selected
             if(selectedItem.text(0)[0] == "V"):
-                logging.debug("Setting right widget: " + str(self.experimentActionsBaseWidgets[parentSelectedItem.text(0)]["ExperimentActionsVMWidgets"][selectedItem.text(0)]))
-                self.basedataStackedWidget.setCurrentWidget(self.experimentActionsBaseWidgets[parentSelectedItem.text(0)]["ExperimentActionsVMWidgets"][selectedItem.text(0)])
+                logging.debug("Setting right widget: " + str(self.experimentActionsBaseWidgets[parentparentSelectedItem.text(0)]["ExperimentActionsVMWidgets"][selectedItem.text(0)]))
+                self.basedataStackedWidget.setCurrentWidget(self.experimentActionsBaseWidgets[parentparentSelectedItem.text(0)]["ExperimentActionsVMWidgets"][selectedItem.text(0)])
             if(selectedItem.text(0)[0] == "S"):
-                logging.debug("Setting right widget: " + str(self.experimentActionsBaseWidgets[parentSelectedItem.text(0)]["ExperimentActionsSetWidgets"][selectedItem.text(0)]))
-                self.basedataStackedWidget.setCurrentWidget(self.experimentActionsBaseWidgets[parentSelectedItem.text(0)]["ExperimentActionsSetWidgets"][selectedItem.text(0)])
+                logging.debug("Setting right widget: " + str(self.experimentActionsBaseWidgets[parentparentSelectedItem.text(0)]["ExperimentActionsSetWidgets"][selectedItem.text(0)]))
+                self.basedataStackedWidget.setCurrentWidget(self.experimentActionsBaseWidgets[parentparentSelectedItem.text(0)]["ExperimentActionsSetWidgets"][selectedItem.text(0)])
 
     def addExperimentItem(self, configname, config_jsondata):
         logging.debug("addExperimentItem(): retranslateUi(): instantiated")
@@ -124,6 +131,12 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         ##Now add the item to the tree widget and create the baseWidget
         experimentTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
         experimentTreeWidgetItem.setText(0,configname)
+
+        experimentSetTreeItem = QtWidgets.QTreeWidgetItem(experimentTreeWidgetItem)
+        experimentSetTreeItem.setText(0,"Sets")
+
+        experimentVMTreeItem = QtWidgets.QTreeWidgetItem(experimentTreeWidgetItem)
+        experimentVMTreeItem.setText(0,"VMs")
 
         self.experimentItemNames[configname] = experimentTreeWidgetItem
         #get all rolled out and then get them by VM
@@ -146,7 +159,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 sets[str(clone_num+1)].append(template_vms[template_vm][clone_num]["name"])
 
         for set in sets:
-            set_item = QtWidgets.QTreeWidgetItem(experimentTreeWidgetItem)
+            set_item = QtWidgets.QTreeWidgetItem(experimentSetTreeItem)
             setlabel = "S: Set " + set
             set_item.setText(0,setlabel)
             # Set Widget
@@ -159,7 +172,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         for template_vm in template_vms:
             for cloned_vm in template_vms[template_vm]:
                 vmname = cloned_vm["name"]
-                vm_item = QtWidgets.QTreeWidgetItem(experimentTreeWidgetItem)
+                vm_item = QtWidgets.QTreeWidgetItem(experimentVMTreeItem)
                 vmlabel = "V: " + vmname
                 vm_item.setText(0,vmlabel)
                 # VM Config Widget
