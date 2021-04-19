@@ -26,14 +26,15 @@ class ExperimentConfigIO:
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             return None
 
-    def getExperimentVMRolledOut(self, configname):
+    def getExperimentVMRolledOut(self, configname, config_jsondata=None):
         logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
         try:
             vmRolledOutList = {}
-            jsondata = self.getExperimentXMLFileData(configname)
-            ipAddress = jsondata["xml"]["testbed-setup"]["network-config"]["ip-address"]
-            vmSet = jsondata["xml"]["testbed-setup"]["vm-set"]
-            pathToVirtualBox = jsondata["xml"]["vbox-setup"]["path-to-vboxmanage"]
+            if config_jsondata == None:
+                config_jsondata = self.getExperimentXMLFileData(configname)
+            ipAddress = config_jsondata["xml"]["testbed-setup"]["network-config"]["ip-address"]
+            vmSet = config_jsondata["xml"]["testbed-setup"]["vm-set"]
+            pathToVirtualBox = config_jsondata["xml"]["vbox-setup"]["path-to-vboxmanage"]
             numClones = int(vmSet["num-clones"])
             cloneSnapshots = vmSet["clone-snapshots"]
             linkedClones = vmSet["linked-clones"]

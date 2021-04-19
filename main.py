@@ -90,7 +90,7 @@ class MainApp(QWidget):
         self.tabWidget.addTab(self.windowWidget, "Configuration")
 
         # VBox Actions Tab
-        self.experimentActionsWidget = ExperimentActionsWidget(statusBar=self.statusBar)
+        self.experimentActionsWidget = ExperimentActionsWidget(statusBar=self.statusBar, mainBaseWidgets=self.baseWidgets)
         self.experimentActionsWidget.setObjectName("experimentActionsWidget")
         self.tabWidget.addTab(self.experimentActionsWidget, "Experiment Actions")      
 
@@ -200,7 +200,7 @@ class MainApp(QWidget):
 
         configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
         configTreeWidgetItem.setText(0,configname)
-        self.experimentActionsWidget.addExperimentItem(configname)
+        self.experimentActionsWidget.addExperimentItem(configname, config_jsondata=jsondata)
         self.connectionWidget.addConnectionItem(configname)
         basejsondata = jsondata["xml"]
         # Base Config Widget 
