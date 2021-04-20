@@ -86,7 +86,7 @@ class ExperimentConfigIO:
                 myBaseOutname = baseOutname
                 for i in range(1, numClones + 1):
                     cloneVMName = vmName + myBaseOutname + str(i)
-                    cloneGroupName = "/" + baseGroupname + "/Unit" + str(i)
+                    cloneGroupName = "/" + baseGroupname + "/Set" + str(i)
                   
                     # intnet adaptors
                     internalnets = vm["internalnet-basename"]
@@ -116,6 +116,52 @@ class ExperimentConfigIO:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             return None
+
+    def getExperimentVMsInSetFromRolledOut(self, configname, set_num, rolledout_jsondata=None):
+        logging.debug("ExperimentConfigIO: getExperimentVMsInSetFromRolledOut(): instantiated")
+        sets = self.getExperimentSetDictFromRolledOut(configname, rolledout_jsondata=rolledout_jsondata)
+        set_num_str = str(set_num)
+        if set_num_str not in sets:
+            return []
+        return sets[set_num_str]
+
+    def getExperimentSetDictFromRolledOut(self, configname, rolledout_jsondata=None):
+        logging.debug("ExperimentConfigIO: getExperimentSetListsFromJSON(): instantiated")
+        if rolledout_jsondata == None:
+            logging.debug("ExperimentConfigIO: no json provided, reading from file")
+            rolledout_jsondata = self.getExperimentVMRolledOut(self, configname)
+        (template_vms, num_clones) = rolledout_jsondata
+        sets = {}
+        for template_vm in template_vms:
+            for clone_num in range(num_clones):
+                if str(clone_num+1) not in sets:
+                    sets[str(clone_num+1)] = []
+                sets[str(clone_num+1)].append(template_vms[template_vm][clone_num]["name"])
+        return sets
+
+    def getExperimentVMsFromTemplateFromRolledOut(self, configname, template_name, rolledout_jsondata=None):
+        logging.debug("ExperimentConfigIO: getExperimentVMsFromTemplateFromRolledOut(): instantiated")
+        if rolledout_jsondata == None:
+            logging.debug("getExperimentVMsFromTemplateFromRolledOut(): no json provided, reading from file")
+            rolledout_jsondata = self.getExperimentVMRolledOut(self, configname)
+        (template_vms, num_clones) = rolledout_jsondata
+        vms = []
+        if template_name in template_vms:
+            for cloned_vm in template_vms[template_name]:
+                vms.append(cloned_vm)
+        return vms
+
+    def getExperimentVMListsFromRolledOut(self, configname, rolledout_jsondata=None):
+        logging.debug("ExperimentConfigIO: getExperimentVMListsFromRolledOut(): instantiated")
+        if rolledout_jsondata == None:
+            logging.debug("getExperimentVMListsFromRolledOut(): no json provided, reading from file")
+            rolledout_jsondata = self.getExperimentVMRolledOut(self, configname)
+        (template_vms, num_clones) = rolledout_jsondata
+        vms = []
+        for template_vm in template_vms:
+            for cloned_vm in template_vms[template_vm]:
+                vms.append(cloned_vm)
+        return vms
 
     def getExperimentJSONFileData(self, configname):
         logging.debug("ExperimentConfigIO: getExperimentJSONFileData(): instantiated")

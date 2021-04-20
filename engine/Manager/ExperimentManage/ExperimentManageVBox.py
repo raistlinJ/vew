@@ -79,19 +79,36 @@ class ExperimentManageVBox(ExperimentManage):
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
     #abstractmethod
-    def startExperiment(self, configname):
+    def startExperiment(self, configname, itype="", name=""):
         logging.debug("startExperiment(): instantiated")
-        t = threading.Thread(target=self.runStartExperiment, args=(configname,))
+        t = threading.Thread(target=self.runStartExperiment, args=(configname,itype, name))
         t.start()
         return 0
 
-    def runStartExperiment(self, configname):
+    def runStartExperiment(self, configname, itype, name):
         logging.debug("runStartExperiment(): instantiated")
         try:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_STARTING
             #call vmManage to start clones as specified in config file; wait and query the vmManage status, and then set the complete status
-            clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
-            vmnames = clonevmjson.keys()
+            rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
+            clonevmjson, numclones = rolledoutjson
+            #get VMs or sets that we need to start
+            validvms = []
+            validvmnames = []
+            if itype == "set-number":
+                validvms = self.eco.getExperimentVMsInSetFromRolledOut(configname, name, rolledoutjson)
+                for vm in validvms:
+                    validvmnames.append(vm)                
+            elif itype == "template-vm-name":
+                validvms = self.eco.getExperimentVMsFromTemplateFromRolledOut(configname, name, rolledoutjson)
+                for vm in validvms:
+                    validvmnames.append(vm["name"])                
+            elif itype == "":
+                #if none was specified, just add all vms to the list
+                validvms = self.eco.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
+                for vm in validvms:
+                    validvmnames.append(vm["name"])
+
             for i in range(1, numclones + 1):
                 for vm in clonevmjson.keys(): 
                     vmName = vm
@@ -100,6 +117,8 @@ class ExperimentManageVBox(ExperimentManage):
                     for cloneinfo in clonevmjson[vm]:
                         if cloneinfo["groupNum"] == str(i):
                             cloneVMName = cloneinfo["name"]
+                            if cloneVMName not in validvmnames:
+                                continue
                             #Check if clone exists and then run it if it does
                             if self.vmManage.getVMStatus(vmName) == None:
                                 logging.error("runStartExperiment(): VM Name: " + str(vmName) + " does not exist; skipping...")
