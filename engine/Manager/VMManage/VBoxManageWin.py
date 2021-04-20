@@ -81,7 +81,7 @@ class VBoxManageWin(VMManage):
                 self.lock.acquire()
                 vmUUID = str(self.vms[vmName].UUID)
             finally:
-                self.lock.release()            
+                self.lock.release()
             for internalnet in internalNets:
                 vmConfigVMCmd = self.vmanage_path + " modifyvm " + vmUUID + " --nic" + str(cloneNetNum) + " intnet " + " --intnet" + str(cloneNetNum) + " " + str(internalnet) + " --cableconnected"  + str(cloneNetNum) + " on "
                 logging.debug("runConfigureVMNets(): Running " + vmConfigVMCmd)
@@ -352,7 +352,7 @@ class VBoxManageWin(VMManage):
             vmConfigVMCmd = self.vmanage_path + " modifyvm " + vmUUID + " --nic" + str(netNum) + " intnet " + " --intnet" + str(netNum) + " " + str(netName) + " --cableconnected"  + str(netNum) + " on "
             logging.debug("runConfigureVMNet(): Running " + vmConfigVMCmd)
             subprocess.check_output(vmConfigVMCmd, encoding='utf-8')
-            
+
             logging.debug("runConfigureVMNet(): Thread completed")
         except Exception:
             logging.error("runConfigureVMNet() Error: " + " cmd: " + vmConfigVMCmd)
@@ -403,7 +403,7 @@ class VBoxManageWin(VMManage):
             return {"vmName" : resVM.name, "vmUUID" : resVM.UUID, "setupStatus" : resVM.setupStatus, "vmState" : resVM.state, "adaptorInfo" : resVM.adaptorInfo, "groups" : resVM.groups, "latestSnapUUID": resVM.latestSnapUUID}
         finally:
             self.lock.release()        
-
+        
     def getManagerStatus(self):
         logging.debug("VBoxManageWin: getManagerStatus(): instantiated")
         vmStatus = {}
@@ -580,7 +580,7 @@ class VBoxManageWin(VMManage):
 
             logging.debug("runRemoveVM(): Thread completed")
         except Exception:
-            logging.error("runRemoveVM() Error: " + " cmd: " + cmd)
+            logging.error("runRemoveVM() Error: " + " vmCmd: " + vmCmd)
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
         finally:
@@ -712,6 +712,10 @@ class VBoxManageWin(VMManage):
                     vmLatestSnapUUID = str(self.vms[vmName].latestSnapUUID)
             finally:
                 self.lock.release()
+            ###Only time cloneName is used instead of UUID, because it doesn't yet exist..."
+            tmpCloneName = cloneName
+            if " " in tmpCloneName and not tmpCloneName.startswith("\"") and not tmpCloneName.endswith("\""):
+                tmpCloneName = "\"" + str(tmpCloneName) + "\""
             #Call runVMCommand
             cloneCmd = self.vmanage_path + " clonevm " + vmUUID + " --register" + " --options=keepallmacs"
             #NOTE, the following logic is not in error. Linked clone can only be created from a snapshot.
@@ -727,21 +731,21 @@ class VBoxManageWin(VMManage):
                     cloneCmd += " all "
             #cloneCmd += " --options keepallmacs "                
             cloneCmd += " --name "
-            cloneCmd += str(cloneName)
+            cloneCmd += str(tmpCloneName)
             logging.debug("runCloneVM(): executing: " + str(cloneCmd))
             result = subprocess.check_output(cloneCmd, encoding='utf-8')
 
-            #groupCmd = [self.vmanage_path, "modifyvm", cloneName, "--groups", groupName]
-            groupCmd = self.vmanage_path + " modifyvm " + str(cloneName) + " --groups " + str(groupName)
+            #groupCmd = [self.vmanage_path, "modifyvm", tmpCloneName, "--groups", groupName]
+            groupCmd = self.vmanage_path + " modifyvm " + str(tmpCloneName) + " --groups " + str(groupName)
             logging.debug("runCloneVM(): placing into group: " + str(groupName))
             logging.debug("runCloneVM(): executing: " + str(groupCmd))
             result = subprocess.check_output(groupCmd, encoding='utf-8')
 
-            logging.debug("runCloneVM(): Clone Created: " + str(cloneName) + " and placed into group: " + groupName)
+            logging.debug("runCloneVM(): Clone Created: " + str(tmpCloneName) + " and placed into group: " + groupName)
             #since we added a VM, now we have to add it to the known list
-            logging.debug("runCloneVM(): Adding: " + str(cloneName) + " to known VMs")
+            logging.debug("runCloneVM(): Adding: " + str(tmpCloneName) + " to known VMs")
             self.writeStatus += 1
-            self.runVMInfo(cloneName)
+            self.runVMInfo(tmpCloneName)
 
         except Exception:
             logging.error("runCloneVM(): Error in runCloneVM(): An error occured; it could be due to a missing snapshot for the VM")
@@ -754,7 +758,7 @@ class VBoxManageWin(VMManage):
 
     def enableVRDPVM(self, vmName, vrdpPort):
         logging.debug("VBoxManageWin: enabledVRDP(): instantiated")
-        #check to make sure the vm is known, if not should refresh or check name:       
+        #check to make sure the vm is known, if not should refresh or check name:
         try:
             self.lock.acquire()
             exists = vmName in self.vms

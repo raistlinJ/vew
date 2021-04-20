@@ -286,7 +286,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
     def restoreSnapshotsActionEvent(self):
         logging.debug("restoreSnapshotsActionEvent(): showContextMenu(): instantiated")
         configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
-        ExperimentActionDialog().experimentActionDialog(configname, "Restore Experiment")
+        ExperimentActionDialog().experimentActionDialog(configname, "Restore Experiment", itype, name)
         self.statusBar.showMessage("Finished executing Restore Experiment " + configname)
 
     def deleteClonesActionEvent(self):
