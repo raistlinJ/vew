@@ -101,22 +101,22 @@ if __name__ == "__main__":
 #         res = e.execute("packager status")
 #     logging.debug("Package export complete.")    
 
-# ###Experiment tests
-#     #####---Create Experiment Test#####
-#     logging.info("Creating Experiment")
-#     e.execute("experiment create sample")
-#     res = e.execute("experiment status")
-#     logging.debug("Waiting for experiment create to complete...")
-#     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-#         time.sleep(.1)
-#         logging.debug("Waiting for experiment create to complete...")
-#         res = e.execute("experiment status")
-#     logging.debug("Experiment create complete.")    
+###Experiment tests
+    #####---Create Experiment Test#####
+    logging.info("Creating Experiment")
+    e.execute("experiment create sample clones defaultb")
+    res = e.execute("experiment status")
+    logging.debug("Waiting for experiment create to complete...")
+    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+        time.sleep(.1)
+        logging.debug("Waiting for experiment create to complete...")
+        res = e.execute("experiment status")
+    logging.debug("Experiment create complete.")    
 
     #####---Start Experiment Test#####
     ##Note that any guestcontrol operations will require guest additions to be installed on the VM
     logging.info("Starting Experiment")
-    e.execute("experiment start sample template-vm-name defaulta")
+    e.execute("experiment start sample clones defaultb")
     res = e.execute("experiment status")
     logging.debug("Waiting for experiment start to complete...")
     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
@@ -125,41 +125,41 @@ if __name__ == "__main__":
         res = e.execute("experiment status")
     logging.debug("Experiment start complete.")    
 
-    # #####---Stop Experiment Test#####
-    # time.sleep(15)
-    # logging.info("Stopping Experiment")
-    # e.execute("experiment stop sample")
-    # res = e.execute("experiment status")
-    # logging.debug("Waiting for experiment stop to complete...")
-    # while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-    #     time.sleep(.1)
-    #     logging.debug("Waiting for experiment stop to complete...")
-    #     res = e.execute("experiment status")
-    # logging.debug("Experiment stop complete.")    
+    #####---Stop Experiment Test#####
+    time.sleep(5)
+    logging.info("Stopping Experiment")
+    e.execute("experiment stop sample clones defaultb")
+    res = e.execute("experiment status")
+    logging.debug("Waiting for experiment stop to complete...")
+    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+        time.sleep(.1)
+        logging.debug("Waiting for experiment stop to complete...")
+        res = e.execute("experiment status")
+    logging.debug("Experiment stop complete.")    
 
-    # #####---Restore Experiment Test#####
-    # time.sleep(5)
-    # logging.info("Restore Experiment")
-    # e.execute("experiment restore sample")
-    # res = e.execute("experiment status")
-    # logging.debug("Waiting for experiment restore to complete...")
-    # while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-    #     time.sleep(.1)
-    #     logging.debug("Waiting for experiment restore to complete...")
-    #     res = e.execute("experiment status")
-    # logging.debug("Experiment restore complete.")    
+    #####---Restore Experiment Test#####
+    time.sleep(5)
+    logging.info("Restore Experiment")
+    e.execute("experiment restore sample clones defaultb")
+    res = e.execute("experiment status")
+    logging.debug("Waiting for experiment restore to complete...")
+    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+        time.sleep(.1)
+        logging.debug("Waiting for experiment restore to complete...")
+        res = e.execute("experiment status")
+    logging.debug("Experiment restore complete.")    
 
-    # #####---Remove Experiment Test#####
-    # time.sleep(5)
-    # logging.info("Remove Experiment")
-    # e.execute("experiment remove sample")
-    # res = e.execute("experiment status")
-    # logging.debug("Waiting for experiment remove to complete...")
-    # while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
-    #     time.sleep(.1)
-    #     logging.debug("Waiting for experiment remove to complete...")
-    #     res = e.execute("experiment status")
-    # logging.debug("Experiment remove complete.")    
+    #####---Remove Experiment Test#####
+    time.sleep(5)
+    logging.info("Remove Experiment")
+    e.execute("experiment remove sample clones defaultb")
+    res = e.execute("experiment status")
+    logging.debug("Waiting for experiment remove to complete...")
+    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+        time.sleep(.1)
+        logging.debug("Waiting for experiment remove to complete...")
+        res = e.execute("experiment status")
+    logging.debug("Experiment remove complete.")    
 
 # ###Connection tests
 # ####Enable if you have a running guacamole instance
