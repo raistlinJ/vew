@@ -126,7 +126,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 logging.debug("Setting right widget: " + str(self.experimentActionsBaseWidgets[parentparentSelectedItem.text(0)]["ExperimentActionsTemplateWidgets"][selectedItem.text(0)]))
                 self.basedataStackedWidget.setCurrentWidget(self.experimentActionsBaseWidgets[parentparentSelectedItem.text(0)]["ExperimentActionsTemplateWidgets"][selectedItem.text(0)])
 
-    def addExperimentItem(self, configname, config_jsondata):
+    def addExperimentItem(self, configname, config_jsondata=None):
         logging.debug("addExperimentItem(): retranslateUi(): instantiated")
         if configname in self.experimentItemNames:
             logging.error("addExperimentItem(): Item already exists in tree: " + str(configname))
@@ -155,41 +155,41 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.experimentActionsBaseWidgets[configname]["ExperimentActionsBaseWidget"] = self.experimentActionsBaseWidget
         self.basedataStackedWidget.addWidget(self.experimentActionsBaseWidget)
         #Set-based view
+        if rolledoutjson != None:
+            (template_vms, num_clones) = rolledoutjson
+            #First create the sets from the rolled out data
+            sets = self.eco.getExperimentSetDictFromRolledOut(configname, rolledoutjson)
 
-        (template_vms, num_clones) = rolledoutjson
-        #First create the sets from the rolled out data
-        sets = self.eco.getExperimentSetDictFromRolledOut(configname, rolledoutjson)
+            for set in sets:
+                set_item = QtWidgets.QTreeWidgetItem(experimentSetTreeItem)
+                setlabel = "S: Set " + set
+                set_item.setText(0,setlabel)
+                # Set Widget
+                experimentActionsSetStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=sets[set])
+                self.experimentActionsBaseWidgets[configname]["ExperimentActionsSetWidgets"][setlabel] = experimentActionsSetStatusWidget
+                self.basedataStackedWidget.addWidget(experimentActionsSetStatusWidget)
 
-        for set in sets:
-            set_item = QtWidgets.QTreeWidgetItem(experimentSetTreeItem)
-            setlabel = "S: Set " + set
-            set_item.setText(0,setlabel)
-            # Set Widget
-            experimentActionsSetStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=sets[set])
-            self.experimentActionsBaseWidgets[configname]["ExperimentActionsSetWidgets"][setlabel] = experimentActionsSetStatusWidget
-            self.basedataStackedWidget.addWidget(experimentActionsSetStatusWidget)
+            templates = self.eco.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson)
+            for templatename in templates:
+                template_item = QtWidgets.QTreeWidgetItem(experimentCloneTreeItem)
+                templatelabel = "T: " + templatename
+                template_item.setText(0,templatelabel)
+                # Set Widget
+                experimentActionsTemplateStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=templates[templatename])
+                self.experimentActionsBaseWidgets[configname]["ExperimentActionsTemplateWidgets"][templatelabel] = experimentActionsTemplateStatusWidget
+                self.basedataStackedWidget.addWidget(experimentActionsTemplateStatusWidget)
 
-        templates = self.eco.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson)
-        for templatename in templates:
-            template_item = QtWidgets.QTreeWidgetItem(experimentCloneTreeItem)
-            templatelabel = "T: " + templatename
-            template_item.setText(0,templatelabel)
-            # Set Widget
-            experimentActionsTemplateStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=templates[templatename])
-            self.experimentActionsBaseWidgets[configname]["ExperimentActionsTemplateWidgets"][templatelabel] = experimentActionsTemplateStatusWidget
-            self.basedataStackedWidget.addWidget(experimentActionsTemplateStatusWidget)
-
-        #Individual VM-based view
-        vms_list = self.eco.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
-        for vm in vms_list:
-            vmname = vm["name"]
-            vm_item = QtWidgets.QTreeWidgetItem(experimentVMTreeItem)
-            vmlabel = "V: " + vmname
-            vm_item.setText(0,vmlabel)
-            # VM Config Widget
-            experimentActionsVMStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=[vmname])
-            self.experimentActionsBaseWidgets[configname]["ExperimentActionsVMWidgets"][vmlabel] = experimentActionsVMStatusWidget
-            self.basedataStackedWidget.addWidget(experimentActionsVMStatusWidget)
+            #Individual VM-based view
+            vms_list = self.eco.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
+            for vm in vms_list:
+                vmname = vm["name"]
+                vm_item = QtWidgets.QTreeWidgetItem(experimentVMTreeItem)
+                vmlabel = "V: " + vmname
+                vm_item.setText(0,vmlabel)
+                # VM Config Widget
+                experimentActionsVMStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=[vmname])
+                self.experimentActionsBaseWidgets[configname]["ExperimentActionsVMWidgets"][vmlabel] = experimentActionsVMStatusWidget
+                self.basedataStackedWidget.addWidget(experimentActionsVMStatusWidget)
 
         self.statusBar.showMessage("Added new experiment: " + str(configname))
         logging.debug("addExperimentItem(): retranslateUi(): Completed")

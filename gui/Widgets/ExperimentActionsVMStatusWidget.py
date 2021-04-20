@@ -48,9 +48,9 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
     def retranslateUi(self, rolledoutjson, interest_vmnames):
         logging.debug("BaseWidget: retranslateUi(): instantiated")
         
-        ###Fill in data from json
+        if rolledoutjson == None:
+            return
         (template_vms, num_clones) = rolledoutjson
-        
         for template_vm in template_vms:
             for cloned_vm in template_vms[template_vm]:
                 if interest_vmnames == [] or cloned_vm["name"] in interest_vmnames:
