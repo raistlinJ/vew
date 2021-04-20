@@ -147,7 +147,7 @@ if __name__ == "__main__":
         time.sleep(.1)
         logging.debug("Waiting for experiment restore to complete...")
         res = e.execute("experiment status")
-    logging.debug("Experiment restore complete.")    
+    logging.debug("Experiment restore complete.")
 
     #####---Remove Experiment Test#####
     time.sleep(5)

@@ -203,43 +203,83 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         logging.debug("ExperimentActionsWidget(): showContextMenu(): instantiated")
         self.experimentMenu.popup(self.experimentTree.mapToGlobal(position))
 
+    def getTypeNameFromSelection(self, currentItem):
+        configname = ""
+        itype = ""
+        name = ""
+        #configname selected
+        if self.experimentTree.currentItem().parent() == None:
+            configname = self.experimentTree.currentItem().text(0)
+            itype = "set"
+            name = "all"
+        #sets, clones, or VMs label selected
+        elif self.experimentTree.currentItem().parent().parent() == None:
+            configname = self.experimentTree.currentItem().parent().text(0)
+            itype = "set"
+            name = "all"
+        #specific item selected
+        elif self.experimentTree.currentItem().parent().parent().parent() == None:
+            configname = self.experimentTree.currentItem().parent().parent().text(0)
+            currItemText = self.experimentTree.currentItem().text(0)
+            if currItemText.startswith("S: Set "):
+                itype = "set"
+                name = currItemText.split("S: Set ")[1:]
+                name = " ".join(name)
+            elif currItemText.startswith("V: "):
+                itype = "vm"
+                name = currItemText.split("V: ")[1:]
+                name = "\"" + " ".join(name) + "\""
+            elif currItemText.startswith("C: "):
+                itype = "clone"
+                name = currItemText.split("C: ")[1:]
+                name = "\"" + " ".join(name) + "\""
+        return configname, itype, name
+
     def cloneExperimentActionEvent(self):
         logging.debug("cloneExperimentActionEvent(): showContextMenu(): instantiated")
         #Now allow the user to choose the VM:
-        ExperimentActionDialog().experimentActionDialog(self.experimentTree.currentItem().text(0), "Create Experiment")
-        self.statusBar.showMessage("Finished executing Create Experiment " + str(self.experimentTree.currentItem().text(0)))
+        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
+        ExperimentActionDialog().experimentActionDialog(configname, "Create Experiment", itype, name)
+        self.statusBar.showMessage("Finished executing Create Experiment " + configname)
 
     def startVMsActionEvent(self):
         logging.debug("startVMsActionEvent(): showContextMenu(): instantiated")
-        ExperimentActionDialog().experimentActionDialog(self.experimentTree.currentItem().text(0), "Start Experiment")
-        self.statusBar.showMessage("Finished executing Start Experiment " + str(self.experimentTree.currentItem().text(0)))
+        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
+        ExperimentActionDialog().experimentActionDialog(configname, "Start Experiment", itype, name)
+        self.statusBar.showMessage("Finished executing Start Experiment " + configname)
 
     def suspendVMsActionEvent(self):
         logging.debug("suspendVMsActionEvent(): showContextMenu(): instantiated")
-        ExperimentActionDialog().experimentActionDialog(self.experimentTree.currentItem().text(0), "Suspend Experiment")
-        self.statusBar.showMessage("Finished executing Suspend Experiment " + str(self.experimentTree.currentItem().text(0)))
+        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
+        ExperimentActionDialog().experimentActionDialog(configname, "Suspend Experiment", itype, name)
+        self.statusBar.showMessage("Finished executing Suspend Experiment " + configname)
 
     def pauseVMsActionEvent(self):
         logging.debug("pauseVMsActionEvent(): showContextMenu(): instantiated")
-        ExperimentActionDialog().experimentActionDialog(self.experimentTree.currentItem().text(0), "Pause Experiment")
-        self.statusBar.showMessage("Finished executing Pause Experiment " + str(self.experimentTree.currentItem().text(0)))
+        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
+        ExperimentActionDialog().experimentActionDialog(configname, "Pause Experiment", itype, name)
+        self.statusBar.showMessage("Finished executing Pause Experiment " + configname)
 
     def snapshotVMsActionEvent(self):
         logging.debug("snapshotVMsActionEvent(): showContextMenu(): instantiated")
-        ExperimentActionDialog().experimentActionDialog(self.experimentTree.currentItem().text(0), "Snapshot Experiment")
-        self.statusBar.showMessage("Finished executing Snapshot Experiment " + str(self.experimentTree.currentItem().text(0)))
+        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
+        ExperimentActionDialog().experimentActionDialog(configname, "Snapshot Experiment", itype, name)
+        self.statusBar.showMessage("Finished executing Snapshot Experiment " + configname)
 
     def poweroffVMsActionEvent(self):
         logging.debug("poweroffVMsActionEvent(): showContextMenu(): instantiated")
-        ExperimentActionDialog().experimentActionDialog(self.experimentTree.currentItem().text(0), "Stop Experiment")
-        self.statusBar.showMessage("Finished executing Stop Experiment " + str(self.experimentTree.currentItem().text(0)))
+        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
+        ExperimentActionDialog().experimentActionDialog(configname, "Stop Experiment", itype, name)
+        self.statusBar.showMessage("Finished executing Stop Experiment " + configname)
 
     def restoreSnapshotsActionEvent(self):
         logging.debug("restoreSnapshotsActionEvent(): showContextMenu(): instantiated")
-        ExperimentActionDialog().experimentActionDialog(self.experimentTree.currentItem().text(0), "Restore Experiment")
-        self.statusBar.showMessage("Finished executing Restore Experiment " + str(self.experimentTree.currentItem().text(0)))
+        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
+        ExperimentActionDialog().experimentActionDialog(configname, "Restore Experiment")
+        self.statusBar.showMessage("Finished executing Restore Experiment " + configname)
 
     def deleteClonesActionEvent(self):
         logging.debug("deleteClonesActionEvent(): showContextMenu(): instantiated")
-        ExperimentActionDialog().experimentActionDialog(self.experimentTree.currentItem().text(0), "Remove Experiment")
-        self.statusBar.showMessage("Finished executing Remove Experiment " + str(self.experimentTree.currentItem().text(0)))
+        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
+        ExperimentActionDialog().experimentActionDialog(configname, "Remove Experiment", itype, name)
+        self.statusBar.showMessage("Finished executing Remove Experiment " + configname)

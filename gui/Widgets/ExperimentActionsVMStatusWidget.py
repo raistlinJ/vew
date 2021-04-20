@@ -37,7 +37,7 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
         
         self.vmStatusTable.setRowCount(0)
         self.vmStatusTable.setColumnCount(3)
-        self.vmStatusTable.setHorizontalHeaderLabels(("Name", "UUID", "Status"))
+        self.vmStatusTable.setHorizontalHeaderLabels(("VM Name", "UUID", "Username", "Status"))
         
         self.vmStatusTable.setSortingEnabled(True)
         self.outerVertBox.addWidget(self.vmStatusTable)
