@@ -355,6 +355,14 @@ class MainApp(QWidget):
             vmWidget = VMWidget(self, selectedItemName, vmChosen, vmjsondata)
             self.baseWidgets[selectedItemName]["VMWidgets"][vmlabel] = vmWidget
             self.basedataStackedWidget.addWidget(vmWidget)
+        #Now add data to the experimentActionWidget associated with the current config
+        #Check if it's the case that an experiment name was selected
+        parentSelectedItem = selectedItem.parent()
+        if parentSelectedItem != None:
+            selectedItem = parentSelectedItem
+        configname = selectedItem.text(0)
+        config_jsondata = self.getWritableData(configname)
+        self.experimentActionsWidget.resetExperiment(configname, config_jsondata=config_jsondata)
         self.statusBar.showMessage("Added " + str(len(vmsChosen)) + " VM files to experiment: " + str(selectedItemName))
 
     def startHypervisorActionEvent(self):
@@ -428,9 +436,14 @@ class MainApp(QWidget):
             #Check if it's the case that a VM Name was selected
             if(selectedItem.text(0)[0] == "V"):
                 parentSelectedItem.removeChild(selectedItem)
-                self.basedataStackedWidget.removeWidget(self.baseWidgets[parentSelectedItem.text(0)]["VMWidgets"][selectedItem.text(0)])
-                del self.baseWidgets[parentSelectedItem.text(0)]["VMWidgets"][selectedItem.text(0)]
+                configname = parentSelectedItem.text(0)
+                self.basedataStackedWidget.removeWidget(self.baseWidgets[configname]["VMWidgets"][selectedItem.text(0)])
+                del self.baseWidgets[configname]["VMWidgets"][selectedItem.text(0)]
                 self.statusBar.showMessage("Removed VM: " + str(selectedItemName) + " from experiment: " + str(parentSelectedItem.text(0)))
+                #Also remove from the experiment action widget:
+                config_jsondata = self.getWritableData(configname)
+                self.experimentActionsWidget.resetExperiment(configname, config_jsondata=config_jsondata)
+
             #Check if it's the case that a Material Name was selected
             elif(selectedItem.text(0)[0] == "M"):
                 materialName = selectedItemName.split("M: ")[1]

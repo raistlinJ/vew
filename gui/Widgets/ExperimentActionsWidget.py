@@ -194,11 +194,13 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.statusBar.showMessage("Added new experiment: " + str(configname))
         logging.debug("addExperimentItem(): retranslateUi(): Completed")
 
-    def updateExperimentItem(self, configname):
+    def resetExperiment(self, configname, config_jsondata):
         logging.debug("updateExperimentItem(): retranslateUi(): instantiated")
         if configname not in self.experimentItemNames:
             logging.error("removeExperimentItem(): Item does not exist in tree: " + str(configname))
             return
+        self.removeExperimentItem(configname)
+        self.addExperimentItem(configname, config_jsondata)
 
     def removeExperimentItem(self, configname):
         logging.debug("removeExperimentItem(): retranslateUi(): instantiated")
