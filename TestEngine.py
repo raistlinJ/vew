@@ -40,7 +40,7 @@ if __name__ == "__main__":
     logging.debug("VM-Manage vmstatus complete.")
     
     #Refresh
-    time.sleep(5)
+    # time.sleep(5)
     res = e.execute("vm-manage refresh")    
     res = e.execute("vm-manage mgrstatus")
     logging.debug("Returned: " + str(res))
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     logging.debug("VM-Manage vmstatus complete.")
 
     #Check status after refresh
-    time.sleep(5)
+    # time.sleep(5)
     res = e.execute("vm-manage vmstatus defaulta")
     logging.debug("VM-Manage Status of defaulta: " + str(res))
     res = e.execute("vm-manage mgrstatus")
@@ -64,47 +64,47 @@ if __name__ == "__main__":
         logging.debug("Returned: " + str(res))
     logging.debug("VM-Manage vmstatus complete.")
 
-###Packager tests
-    ###import
-    time.sleep(5)
-    logging.debug("Importing RES file: " + str("samples\sample.res"))
-    e.execute("packager import \"samples\sample.res\"")
-    res = e.execute("packager status")
-    logging.debug("Returned: " + str(res))
-    while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
-        time.sleep(.1)
-        logging.debug("Waiting for package import to complete...")
-        res = e.execute("packager status")
-        logging.debug("Returned: " + str(res))
-    logging.debug("Package import complete.")
+# ###Packager tests
+#     ###import
+#     time.sleep(5)
+#     logging.debug("Importing RES file: " + str("samples\sample.res"))
+#     e.execute("packager import \"samples\sample.res\"")
+#     res = e.execute("packager status")
+#     logging.debug("Returned: " + str(res))
+#     while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
+#         time.sleep(.1)
+#         logging.debug("Waiting for package import to complete...")
+#         res = e.execute("packager status")
+#         logging.debug("Returned: " + str(res))
+#     logging.debug("Package import complete.")
 
-    #Refresh
-    time.sleep(5)
-    res = e.execute("vm-manage refresh")    
-    res = e.execute("vm-manage mgrstatus")
-    logging.debug("Returned: " + str(res))
-    while res["writeStatus"] != VMManage.MANAGER_IDLE:
-        time.sleep(.1)
-        logging.debug("Waiting for vmrefresh to complete...")
-        res = e.execute("vm-manage mgrstatus")
-        logging.debug("Returned: " + str(res))
-    logging.debug("VM-Manage vmstatus complete.")
+#     #Refresh
+#     time.sleep(5)
+#     res = e.execute("vm-manage refresh")    
+#     res = e.execute("vm-manage mgrstatus")
+#     logging.debug("Returned: " + str(res))
+#     while res["writeStatus"] != VMManage.MANAGER_IDLE:
+#         time.sleep(.1)
+#         logging.debug("Waiting for vmrefresh to complete...")
+#         res = e.execute("vm-manage mgrstatus")
+#         logging.debug("Returned: " + str(res))
+#     logging.debug("VM-Manage vmstatus complete.")
 
-    ###export
-    time.sleep(5)
-    logging.debug("Exporting experiment named: sample to " + "\"exported\sample with space\"")
-    e.execute("packager export sample \"exported\sample with space\"")
-    res = e.execute("packager status")
-    while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
-        time.sleep(.1)
-        logging.debug("Waiting for package export to complete...")
-        res = e.execute("packager status")
-    logging.debug("Package export complete.")    
+#     ###export
+#     time.sleep(5)
+#     logging.debug("Exporting experiment named: sample to " + "\"exported\sample with space\"")
+#     e.execute("packager export sample \"exported\sample with space\"")
+#     res = e.execute("packager status")
+#     while res["writeStatus"] != PackageManageVBox.PACKAGE_MANAGE_COMPLETE:
+#         time.sleep(.1)
+#         logging.debug("Waiting for package export to complete...")
+#         res = e.execute("packager status")
+#     logging.debug("Package export complete.")    
 
 ###Experiment tests
     #####---Create Experiment Test#####
     logging.info("Creating Experiment")
-    e.execute("experiment create sample")
+    e.execute("experiment create sample clones defaultb")
     res = e.execute("experiment status")
     logging.debug("Waiting for experiment create to complete...")
     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     #####---Start Experiment Test#####
     ##Note that any guestcontrol operations will require guest additions to be installed on the VM
     logging.info("Starting Experiment")
-    e.execute("experiment start sample")
+    e.execute("experiment start sample clones defaultb")
     res = e.execute("experiment status")
     logging.debug("Waiting for experiment start to complete...")
     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
@@ -126,9 +126,9 @@ if __name__ == "__main__":
     logging.debug("Experiment start complete.")    
 
     #####---Stop Experiment Test#####
-    time.sleep(15)
+    time.sleep(5)
     logging.info("Stopping Experiment")
-    e.execute("experiment stop sample")
+    e.execute("experiment stop sample clones defaultb")
     res = e.execute("experiment status")
     logging.debug("Waiting for experiment stop to complete...")
     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
@@ -140,19 +140,19 @@ if __name__ == "__main__":
     #####---Restore Experiment Test#####
     time.sleep(5)
     logging.info("Restore Experiment")
-    e.execute("experiment restore sample")
+    e.execute("experiment restore sample clones defaultb")
     res = e.execute("experiment status")
     logging.debug("Waiting for experiment restore to complete...")
     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
         time.sleep(.1)
         logging.debug("Waiting for experiment restore to complete...")
         res = e.execute("experiment status")
-    logging.debug("Experiment restore complete.")    
+    logging.debug("Experiment restore complete.")
 
     #####---Remove Experiment Test#####
     time.sleep(5)
     logging.info("Remove Experiment")
-    e.execute("experiment remove sample")
+    e.execute("experiment remove sample clones defaultb")
     res = e.execute("experiment status")
     logging.debug("Waiting for experiment remove to complete...")
     while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:

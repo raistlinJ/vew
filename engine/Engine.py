@@ -165,57 +165,81 @@ class Engine:
         logging.debug("experimentCreateCmd(): instantiated")
         #will create instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
-
-        return self.experimentManage.createExperiment(configname)
+        itype=args.itype
+        name=args.name
+        if name == "all":
+            return self.experimentManage.createExperiment(configname)    
+        return self.experimentManage.createExperiment(configname, itype, name)
 
     def experimentStartCmd(self, args):
         logging.debug("experimentStartCmd(): instantiated")
         #will start instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
-
-        return self.experimentManage.startExperiment(configname)
+        itype=args.itype
+        name=args.name
+        if name == "all":
+            return self.experimentManage.startExperiment(configname)    
+        return self.experimentManage.startExperiment(configname, itype, name)
 
     def experimentSuspendCmd(self, args):
         logging.debug("experimentSuspendCmd(): instantiated")
         #will suspend instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
-
-        return self.experimentManage.suspendExperiment(configname)
+        itype=args.itype
+        name=args.name
+        if name == "all":
+            return self.experimentManage.suspendExperiment(configname)    
+        return self.experimentManage.suspendExperiment(configname, itype, name)
 
     def experimentPauseCmd(self, args):
         logging.debug("experimentPauseCmd(): instantiated")
         #will pause instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
-
-        return self.experimentManage.pauseExperiment(configname)
+        itype=args.itype
+        name=args.name
+        if name == "all":
+            return self.experimentManage.pauseExperiment(configname)    
+        return self.experimentManage.pauseExperiment(configname, itype, name)
 
     def experimentSnapshotCmd(self, args):
         logging.debug("experimentSnapshotCmd(): instantiated")
         #will snapshot instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
-
-        return self.experimentManage.snapshotExperiment(configname)
+        itype=args.itype
+        name=args.name
+        if name == "all":
+            return self.experimentManage.snapshotExperiment(configname)    
+        return self.experimentManage.snapshotExperiment(configname, itype, name)
 
     def experimentStopCmd(self, args):
         logging.debug("experimentStopCmd(): instantiated")
         #will start instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
-
-        return self.experimentManage.stopExperiment(configname)
+        itype=args.itype
+        name=args.name
+        if name == "all":
+            return self.experimentManage.stopExperiment(configname)    
+        return self.experimentManage.stopExperiment(configname, itype, name)
 
     def experimentRemoveCmd(self, args):
         logging.debug("experimentRemoveCmd(): instantiated")
         #will remove instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
-
-        return self.experimentManage.removeExperiment(configname)
+        itype=args.itype
+        name=args.name
+        if name == "all":
+            return self.experimentManage.removeExperiment(configname)    
+        return self.experimentManage.removeExperiment(configname, itype, name)
 
     def experimentRestoreCmd(self, args):
         logging.debug("experimentRestoreCmd(): instantiated")
         #will restore state of the experiment (latest snapshots of vms) as specified in configfile
         configname = args.configname
-
-        return self.experimentManage.restoreExperiment(configname)
+        itype=args.itype
+        name=args.name
+        if name == "all":
+            return self.experimentManage.restoreExperiment(configname)    
+        return self.experimentManage.restoreExperiment(configname, itype, name)
   
     def vmConfigCmd(self, args):
         logging.debug("vmConfigCmd(): instantiated")
@@ -388,41 +412,73 @@ class Engine:
         self.experimentManageCreateParser = self.experimentManageSubParser.add_parser('create', help='create clones aka instances of experiment')
         self.experimentManageCreateParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
+        self.experimentManageCreateParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.experimentManageCreateParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')                                   
         self.experimentManageCreateParser.set_defaults(func=self.experimentCreateCmd)
 
         self.experimentManageStartParser = self.experimentManageSubParser.add_parser('start', help='start (headless) clones aka instances of experiment')
         self.experimentManageStartParser.add_argument('configname', metavar='<config filename>', action="store",
-                                          help='path to config file')                                          
+                                          help='path to config file')
+        self.experimentManageStartParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.experimentManageStartParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')
         self.experimentManageStartParser.set_defaults(func=self.experimentStartCmd)
 
         self.experimentManageStopParser = self.experimentManageSubParser.add_parser('stop', help='stop clones aka instances of experiment')
         self.experimentManageStopParser.add_argument('configname', metavar='<config filename>', action="store",
-                                          help='path to config file')                                          
+                                          help='path to config file')
+        self.experimentManageStopParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.experimentManageStopParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')                                          
         self.experimentManageStopParser.set_defaults(func=self.experimentStopCmd)
 
         self.experimentManageSuspendParser = self.experimentManageSubParser.add_parser('suspend', help='save state for clones aka instances of experiment')
         self.experimentManageSuspendParser.add_argument('configname', metavar='<config filename>', action="store",
-                                          help='path to config file')                                          
+                                          help='path to config file')
+        self.experimentManageSuspendParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.experimentManageSuspendParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')                                                                      
         self.experimentManageSuspendParser.set_defaults(func=self.experimentSuspendCmd)
 
         self.experimentManagePauseParser = self.experimentManageSubParser.add_parser('pause', help='pause clones aka instances of experiment')
         self.experimentManagePauseParser.add_argument('configname', metavar='<config filename>', action="store",
-                                          help='path to config file')                                          
+                                          help='path to config file')                                
+        self.experimentManagePauseParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.experimentManagePauseParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')                                                    
         self.experimentManagePauseParser.set_defaults(func=self.experimentPauseCmd)
 
         self.experimentManageSnapshotParser = self.experimentManageSubParser.add_parser('snapshot', help='snapshot clones aka instances of experiment')
         self.experimentManageSnapshotParser.add_argument('configname', metavar='<config filename>', action="store",
-                                          help='path to config file')                                          
+                                          help='path to config file')
+        self.experimentManageSnapshotParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.experimentManageSnapshotParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')                                              
         self.experimentManageSnapshotParser.set_defaults(func=self.experimentSnapshotCmd)
 
         self.experimentManageRestoreParser = self.experimentManageSubParser.add_parser('restore', help='restore experiment to latest snapshot')
         self.experimentManageRestoreParser.add_argument('configname', metavar='<config filename>', action="store",
-                                          help='path to config file')                                          
+                                          help='path to config file')
+        self.experimentManageRestoreParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.experimentManageRestoreParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')          
         self.experimentManageRestoreParser.set_defaults(func=self.experimentRestoreCmd)
 
         self.experimentManageRemoveParser = self.experimentManageSubParser.add_parser('remove', help='remove clones aka instances of experiment')
         self.experimentManageRemoveParser.add_argument('configname', metavar='<config filename>', action="store",
-                                          help='path to config file')                                          
+                                          help='path to config file')
+        self.experimentManageRemoveParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.experimentManageRemoveParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')                                                    
         self.experimentManageRemoveParser.set_defaults(func=self.experimentRemoveCmd)
 
     def execute(self, cmd):
