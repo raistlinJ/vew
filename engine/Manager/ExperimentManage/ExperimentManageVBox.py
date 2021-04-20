@@ -28,10 +28,12 @@ class ExperimentManageVBox(ExperimentManage):
             validvms = self.eco.getExperimentVMsInSetFromRolledOut(configname, name, rolledoutjson)
             for vm in validvms:
                 validvmnames.append(vm)                
-        elif itype == "clones":
-            validvms = self.eco.getExperimentVMsFromTemplateFromRolledOut(configname, name, rolledoutjson)
+        elif itype == "template":
+            validvms = []
+            if name in self.eco.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson):
+                validvms = self.eco.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson)[name]
             for vm in validvms:
-                validvmnames.append(vm["name"])
+                validvmnames.append(vm)
         elif itype == "vm":
             validvmnames.append(name)
         elif itype == "":

@@ -413,7 +413,7 @@ class Engine:
         self.experimentManageCreateParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
         self.experimentManageCreateParser.add_argument('itype', metavar='<instance-type>', action="store",
-                                          help='set, clones, or vm')
+                                          help='set, template, or vm')
         self.experimentManageCreateParser.add_argument('name', metavar='<instance-name>', action="store",
                                           help='all, set-number, template-vm-name, or clone-vm-name')                                   
         self.experimentManageCreateParser.set_defaults(func=self.experimentCreateCmd)
@@ -422,7 +422,7 @@ class Engine:
         self.experimentManageStartParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
         self.experimentManageStartParser.add_argument('itype', metavar='<instance-type>', action="store",
-                                          help='set, clones, or vm')
+                                          help='set, template, or vm')
         self.experimentManageStartParser.add_argument('name', metavar='<instance-name>', action="store",
                                           help='all, set-number, template-vm-name, or clone-vm-name')
         self.experimentManageStartParser.set_defaults(func=self.experimentStartCmd)
@@ -431,7 +431,7 @@ class Engine:
         self.experimentManageStopParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
         self.experimentManageStopParser.add_argument('itype', metavar='<instance-type>', action="store",
-                                          help='set, clones, or vm')
+                                          help='set, template, or vm')
         self.experimentManageStopParser.add_argument('name', metavar='<instance-name>', action="store",
                                           help='all, set-number, template-vm-name, or clone-vm-name')                                          
         self.experimentManageStopParser.set_defaults(func=self.experimentStopCmd)
@@ -440,7 +440,7 @@ class Engine:
         self.experimentManageSuspendParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
         self.experimentManageSuspendParser.add_argument('itype', metavar='<instance-type>', action="store",
-                                          help='set, clones, or vm')
+                                          help='set, template, or vm')
         self.experimentManageSuspendParser.add_argument('name', metavar='<instance-name>', action="store",
                                           help='all, set-number, template-vm-name, or clone-vm-name')                                                                      
         self.experimentManageSuspendParser.set_defaults(func=self.experimentSuspendCmd)
@@ -449,7 +449,7 @@ class Engine:
         self.experimentManagePauseParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')                                
         self.experimentManagePauseParser.add_argument('itype', metavar='<instance-type>', action="store",
-                                          help='set, clones, or vm')
+                                          help='set, template, or vm')
         self.experimentManagePauseParser.add_argument('name', metavar='<instance-name>', action="store",
                                           help='all, set-number, template-vm-name, or clone-vm-name')                                                    
         self.experimentManagePauseParser.set_defaults(func=self.experimentPauseCmd)
@@ -458,7 +458,7 @@ class Engine:
         self.experimentManageSnapshotParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
         self.experimentManageSnapshotParser.add_argument('itype', metavar='<instance-type>', action="store",
-                                          help='set, clones, or vm')
+                                          help='set, template, or vm')
         self.experimentManageSnapshotParser.add_argument('name', metavar='<instance-name>', action="store",
                                           help='all, set-number, template-vm-name, or clone-vm-name')                                              
         self.experimentManageSnapshotParser.set_defaults(func=self.experimentSnapshotCmd)
@@ -467,7 +467,7 @@ class Engine:
         self.experimentManageRestoreParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
         self.experimentManageRestoreParser.add_argument('itype', metavar='<instance-type>', action="store",
-                                          help='set, clones, or vm')
+                                          help='set, template, or vm')
         self.experimentManageRestoreParser.add_argument('name', metavar='<instance-name>', action="store",
                                           help='all, set-number, template-vm-name, or clone-vm-name')          
         self.experimentManageRestoreParser.set_defaults(func=self.experimentRestoreCmd)
@@ -476,7 +476,7 @@ class Engine:
         self.experimentManageRemoveParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
         self.experimentManageRemoveParser.add_argument('itype', metavar='<instance-type>', action="store",
-                                          help='set, clones, or vm')
+                                          help='set, template, or vm')
         self.experimentManageRemoveParser.add_argument('name', metavar='<instance-name>', action="store",
                                           help='all, set-number, template-vm-name, or clone-vm-name')                                                    
         self.experimentManageRemoveParser.set_defaults(func=self.experimentRemoveCmd)
