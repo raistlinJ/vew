@@ -90,7 +90,7 @@ class MainApp(QWidget):
         self.tabWidget.addTab(self.windowWidget, "Configuration")
 
         # VBox Actions Tab
-        self.experimentActionsWidget = ExperimentActionsWidget(statusBar=self.statusBar, mainBaseWidgets=self.baseWidgets)
+        self.experimentActionsWidget = ExperimentActionsWidget(statusBar=self.statusBar)
         self.experimentActionsWidget.setObjectName("experimentActionsWidget")
         self.tabWidget.addTab(self.experimentActionsWidget, "Experiment Actions")      
 
@@ -197,6 +197,9 @@ class MainApp(QWidget):
             jsondata["xml"]["testbed-setup"] = {}
         if "vm-set" not in jsondata["xml"]["testbed-setup"]:
             jsondata["xml"]["testbed-setup"]["vm-set"] = {}
+        #Temporary fix for older xml/json files.
+        if "users-filename" not in jsondata["xml"]["testbed-setup"]["vm-set"]:
+            jsondata["xml"]["testbed-setup"]["vm-set"]["users-filename"] = ""
 
         configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
         configTreeWidgetItem.setText(0,configname)
@@ -355,6 +358,14 @@ class MainApp(QWidget):
             vmWidget = VMWidget(self, selectedItemName, vmChosen, vmjsondata)
             self.baseWidgets[selectedItemName]["VMWidgets"][vmlabel] = vmWidget
             self.basedataStackedWidget.addWidget(vmWidget)
+        #Now add data to the experimentActionWidget associated with the current config
+        #Check if it's the case that an experiment name was selected
+        parentSelectedItem = selectedItem.parent()
+        if parentSelectedItem != None:
+            selectedItem = parentSelectedItem
+        configname = selectedItem.text(0)
+        config_jsondata = self.getWritableData(configname)
+        self.experimentActionsWidget.resetExperiment(configname, config_jsondata=config_jsondata)
         self.statusBar.showMessage("Added " + str(len(vmsChosen)) + " VM files to experiment: " + str(selectedItemName))
 
     def startHypervisorActionEvent(self):
@@ -428,9 +439,14 @@ class MainApp(QWidget):
             #Check if it's the case that a VM Name was selected
             if(selectedItem.text(0)[0] == "V"):
                 parentSelectedItem.removeChild(selectedItem)
-                self.basedataStackedWidget.removeWidget(self.baseWidgets[parentSelectedItem.text(0)]["VMWidgets"][selectedItem.text(0)])
-                del self.baseWidgets[parentSelectedItem.text(0)]["VMWidgets"][selectedItem.text(0)]
+                configname = parentSelectedItem.text(0)
+                self.basedataStackedWidget.removeWidget(self.baseWidgets[configname]["VMWidgets"][selectedItem.text(0)])
+                del self.baseWidgets[configname]["VMWidgets"][selectedItem.text(0)]
                 self.statusBar.showMessage("Removed VM: " + str(selectedItemName) + " from experiment: " + str(parentSelectedItem.text(0)))
+                #Also remove from the experiment action widget:
+                config_jsondata = self.getWritableData(configname)
+                self.experimentActionsWidget.resetExperiment(configname, config_jsondata=config_jsondata)
+
             #Check if it's the case that a Material Name was selected
             elif(selectedItem.text(0)[0] == "M"):
                 materialName = selectedItemName.split("M: ")[1]
@@ -565,6 +581,8 @@ class MainApp(QWidget):
         
         self.ec.writeExperimentXMLFileData(jsondata, configname)
         self.ec.writeExperimentJSONFileData(jsondata, configname)
+        #Now reset the experimentActions view
+        self.experimentActionsWidget.resetExperiment(configname, jsondata)
         self.statusBar.showMessage("Succesfully saved experiment file for " + str(configname), 2000)
 
 if __name__ == '__main__':

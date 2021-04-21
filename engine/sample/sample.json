@@ -14,6 +14,7 @@
           "base-outname":"601",
           "vrdp-baseport":"6011",
           "vagrant-provision-path":null,
+          "users-filename":"<unspecified>",
           "vm":[ 
              { 
                 "name":"defaulta",

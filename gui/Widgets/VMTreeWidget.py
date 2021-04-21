@@ -33,11 +33,7 @@ class VMTreeWidget(QTableWidget):
         for vm in self.vmList:
             logging.debug("populateTreeStore(): working with: " + str(vm))
             #adaptor = str("1 - " + self.vmList[vm]["adaptorInfo"]["1"])
-            res = self.vmList[vm]["vmState"]
-            if res == 2:
-                status = "Running"
-            else:
-                status = "Not Running"
+            status = self.vmList[vm]["vmState"]
             #adaptors = []
             #QMessageBox.question(self, 'PyQt5 message', str(self.vmList[vm]["adaptorInfo"]), QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                                
