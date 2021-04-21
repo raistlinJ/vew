@@ -72,6 +72,17 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
                     self.vmStatusTable.setItem(rowPos, 3, statusCell)
                     self.vmStatusTable.resizeColumnToContents(0)
 
+    def updateVMStatus(self, vmStatus):
+        logging.debug("updateVMStatus(): instantiated")
+        
+        for cell in range(0,self.vmStatusTable.rowCount()):
+            tableVMName = self.vmStatusTable.item(cell, 0).text()
+            tmpCellItem = self.vmStatusTable.item(cell, 3)
+            if tableVMName in vmStatus:
+                tmpCellItem.setText(vmStatus[tableVMName]["vmState"])
+            else:
+                tmpCellItem.setText("missing")
+
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)

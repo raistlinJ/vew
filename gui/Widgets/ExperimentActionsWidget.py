@@ -1,3 +1,5 @@
+from gui.Dialogs.VMRetrievingDialog import VMRetrievingDialog
+from gui.Dialogs.VMRetreiveDialog import VMRetrieveDialog
 from PyQt5 import QtCore, QtGui, QtWidgets
 import logging
 from gui.Dialogs.ExperimentActionDialog import ExperimentActionDialog
@@ -22,7 +24,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.userpool = UserPool()
 
         self.setObjectName("ExperimentActionsWidget")
-#######NEW-TEST
+
         self.windowWidget = QtWidgets.QWidget()
         self.windowWidget.setObjectName("windowWidget")
         self.windowBoxHLayout = QtWidgets.QHBoxLayout()
@@ -43,10 +45,20 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.experimentTree.setSortingEnabled(False)
         self.windowBoxHLayout.addWidget(self.experimentTree)
 
+        self.windowBoxVLayout = QtWidgets.QVBoxLayout()
+        #self.windowBoxHLayout.setContentsMargins(0, 0, 0, 0)
+        self.windowBoxVLayout.setObjectName("windowBoxVLayout")
+
         self.basedataStackedWidget = QStackedWidget()
         self.basedataStackedWidget.setObjectName("basedataStackedWidget")
-        self.windowBoxHLayout.addWidget(self.basedataStackedWidget)
-#######END NEW-TEST
+        self.windowBoxVLayout.addWidget(self.basedataStackedWidget)
+
+        self.refreshVMsButton = QtWidgets.QPushButton("Refresh Status")
+        self.refreshVMsButton.clicked.connect(self.refreshVMStatus)
+        self.refreshVMsButton.setEnabled(True)
+        self.windowBoxVLayout.addWidget(self.refreshVMsButton)
+
+        self.windowBoxHLayout.addLayout(self.windowBoxVLayout)
 
         # Context menu for blank space
         self.experimentMenu = QtWidgets.QMenu()
@@ -304,3 +316,38 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
         ExperimentActionDialog().experimentActionDialog(configname, "Remove Experiment", itype, name)
         self.statusBar.showMessage("Finished executing Remove Experiment " + configname)
+
+    def refreshVMStatus(self):
+        logging.debug("refreshVMStatus(): instantiated")
+
+        #Get the configname based on selected item:
+        selectedItem = self.experimentTree.currentItem()
+        #Check if an experiment name is selected
+        if selectedItem == None:
+            logging.error("No experiment label was selected.")
+            return
+
+        #If so, get the configname associated with it
+        while selectedItem.parent() != None:
+            selectedItem = selectedItem.parent()
+        configname = selectedItem.text(0)
+        s = VMRetrievingDialog(self).exec_()
+        self.vms = s["vmstatus"]
+
+        #Update all vm status in the subtrees
+        #First the "all" view
+        for widget in self.experimentActionsBaseWidgets[configname].values():
+            if isinstance(widget, ExperimentActionsVMStatusWidget):
+                widget.updateVMStatus(self.vms)
+        #The Sets:
+        for widget in self.experimentActionsBaseWidgets[configname]["ExperimentActionsSetWidgets"].values():
+            if isinstance(widget, ExperimentActionsVMStatusWidget):
+                widget.updateVMStatus(self.vms)
+        #The Templates:
+        for widget in self.experimentActionsBaseWidgets[configname]["ExperimentActionsTemplateWidgets"].values():
+            if isinstance(widget, ExperimentActionsVMStatusWidget):
+                widget.updateVMStatus(self.vms)
+        #The VMs
+        for widget in self.experimentActionsBaseWidgets[configname]["ExperimentActionsVMWidgets"].values():
+            if isinstance(widget, ExperimentActionsVMStatusWidget):
+                widget.updateVMStatus(self.vms)
