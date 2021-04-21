@@ -208,7 +208,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
                         else:
                             (username, password) = removedUsers[currGroupNum]
 
-                        # Associate a User and Connection
+                        # DisAssociate a User and Connection
                         logging.debug( "Removing Connection for Username: " + username)
                         try:
                             result = self.removeConnAssociation(guacConn, cloneVMName)
@@ -219,10 +219,10 @@ class ConnectionManageGuacRDP(ConnectionManage):
                                 exc_type, exc_value, exc_traceback = sys.exc_info()
                                 traceback.print_exception(exc_type, exc_value, exc_traceback)
 
-            logging.debug("runCreateConnections(): Complete...")
+            logging.debug("runRemoveConnections(): Complete...")
             self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
         except Exception:
-            logging.error("runCreateConnections(): Error in runCreateConnections(): An error occured ")
+            logging.error("runRemoveConnections(): Error in runRemoveConnections(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
