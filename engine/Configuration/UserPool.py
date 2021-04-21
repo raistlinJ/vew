@@ -2,10 +2,12 @@ import logging
 import os
 import sys, traceback
 import csv
+from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 
 class UserPool():
     def __init__(self):
         logging.debug("UserPool(): instantiated")
+        self.eco = ExperimentConfigIO()
         self.filepool = []
         self.basepool = []
         self.num_created_fromfile = 0
@@ -17,7 +19,7 @@ class UserPool():
         i = 0
         try:
             if os.path.exists(csvfilename) == False:
-                logging.error("getConnectionManageStatus(): Filename: " + csvfilename + " does not exists; returning")
+                logging.error("addFromCSV(): Filename: " + csvfilename + " does not exists; cannot create users from file")
                 return None
             with open(csvfilename) as infile:
                 reader = csv.reader(infile, delimiter=" ")
@@ -27,14 +29,14 @@ class UserPool():
                         user = ''.join(e for e in user if e.isalnum())
                     self.filepool.append((user, password))
         except Exception as e:
-            logging.error("Error in getConnectionManageStatus().")
+            logging.error("Error in addFromCSV().")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             trace_back = traceback.extract_tb(exc_traceback)
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             return None
 
     def addFromBase(self, base="user", num=20):
-        logging.debug("createUserPassPoolFromCSV(): instantiated")
+        logging.debug("addFromBase(): instantiated")
         for i in range(1,num+1):
             self.basepool.append(((str(base)+str(i),str(base)+str(i))))
 
@@ -66,3 +68,47 @@ class UserPool():
             else:
                 return None
     
+    def generateUsersConns(self, configname, creds_file="", rolledout_json=None):
+        logging.debug("generateUsersConns(): instantiated")
+        if rolledout_json == None:
+            rolledout_json = self.eco.getExperimentVMRolledOut(configname)
+        clonevmjson, numclones = rolledout_json
+
+        if creds_file == "":
+            self.addFromBase()
+        else:
+            self.addFromCSV(creds_file)
+
+        usersConns = {}
+        #first create the users for each set of VMs
+        createdUsers = {}
+        username = ""
+        password = ""
+        
+        for vm in clonevmjson.keys(): 
+            vmName = vm
+            logging.debug("generateUsersConns(): working with vm: " + str(vmName))
+            #get names for clones
+            for cloneinfo in clonevmjson[vm]:
+                # if vrdpPort exists, then we know it's enabled for this vm; let's set it up
+                if "vrdpPort" in cloneinfo:
+                    #keep track of users/connections using the groupnum
+                    currGroupNum = cloneinfo["groupNum"]
+                    ipAddress = cloneinfo["ip-address"]
+                    cloneVMName = cloneinfo["name"]
+                    vrdpPort = cloneinfo["vrdpPort"]
+
+                    # Create a User if we haven't done so for this group/set and it doesn't exist
+                    if createdUsers == {} or currGroupNum not in createdUsers:
+                        (username, password) = self.popUserPass()
+                        logging.debug( "Generating Username: " + username)
+                        createdUsers[currGroupNum] = (username, password)
+                        usersConns[(username, password)] = []
+                    #otherwise add it to the list known created users
+                    else:
+                        (username, password) = createdUsers[currGroupNum]
+                    # Associate a User and Connection
+                    logging.debug( "Generating Connection for Username: " + username)
+                    usersConns[(username, password)].append((cloneVMName, ipAddress, vrdpPort))
+        logging.debug("generateUsersConns(): Complete...")
+        return usersConns

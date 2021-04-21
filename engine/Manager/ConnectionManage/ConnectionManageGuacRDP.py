@@ -27,8 +27,8 @@ class ConnectionManageGuacRDP(ConnectionManage):
     def runCreateConnections(self, configname, guacHostname, username, password,url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, creds_file):
         logging.debug("runCreateConnections(): instantiated")
         #call guac backend API to make connections as specified in config file and then set the complete status
-        #self.guacifx.createGuacEntries(inputFilename, guacHostname, guacUsername, guacPass, guacURLPath, guacConnMethod)
         userpool = UserPool()
+        usersConns = userpool.generateUsersConns(configname, creds_file=creds_file)
         try:
             self.writeStatus = ConnectionManage.CONNECTION_MANAGE_CREATING
             logging.debug("runCreateConnection(): guacHostname: " + str(guacHostname) + " username/pass: " + username + " url_path: " + url_path + " method: " + str(method) + " creds_file: " + creds_file)
@@ -37,62 +37,32 @@ class ConnectionManageGuacRDP(ConnectionManage):
                 logging.error("runCreateConnection(): Error with guac connection... skipping: " + str(guacHostname) + " " + str(username))
                 self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
                 return -1
-            if creds_file == "":
-                userpool.addFromBase()
-            else:
-                userpool.addFromCSV(creds_file)
-            if userpool == None:
-                logging.error("runCreateConnection(): User/Pass could not be created from file: " + str(creds_file) + " using default: user")
-                userpool.addFromBase()
 
-            #first create the users for each set of VMs
-            createdUsers = {}
-            username = ""
-            password = ""
-            clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
-            for vm in clonevmjson.keys(): 
-                vmName = vm
-                logging.debug("runCreateConnections(): working with vm: " + str(vmName))
-                #get names for clones
-                for cloneinfo in clonevmjson[vm]:
-                    # if vrdpPort exists, then we know it's enabled for this vm; let's set it up
-                    if "vrdpPort" in cloneinfo:
-                        #keep track of users/connections using the groupnum
-                        currGroupNum = cloneinfo["groupNum"]                        
-                        ipAddress = cloneinfo["ip-address"]
-                        cloneVMName = cloneinfo["name"]
-                        vrdpPort = cloneinfo["vrdpPort"]
+            for (username, password) in usersConns:
 
-                        # Create a User if we haven't done so for this group/set and it doesn't exist
-                        if createdUsers == {} or currGroupNum not in createdUsers:
-                            (username, password) = userpool.popUserPass()
-                            logging.debug( "Creating Username: " + username)
-                            createdUsers[currGroupNum] = (username, password)
+                logging.debug( "Creating User: " + username)                
+                try:
+                    result = self.createUser(guacConn, username, password)
+                    if result == "already_exists":
+                        logging.debug("User already exists; skipping...")
+                except Exception:
+                    logging.error("runCreateConnections(): Error in runCreateConnections(): when trying to add user.")
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    traceback.print_exception(exc_type, exc_value, exc_traceback)
 
-                            logging.debug( "Creating Username in Guac: " + username)
-                            try:
-                                result = self.createUser(guacConn, username, password)
-                                if result == "already_exists":
-                                    logging.debug("User already exists; skipping...")
-                            except Exception:
-                                logging.error("runCreateConnections(): Error in runCreateConnections(): when trying to add user.")
-                                exc_type, exc_value, exc_traceback = sys.exc_info()
-                                traceback.print_exception(exc_type, exc_value, exc_traceback)
-                        #otherwise add it to the list known created users
-                        else:
-                            (username, password) = createdUsers[currGroupNum]
-
-                        # Associate a User and Connection
-                        logging.debug( "Creating Connection for Username: " + username)
-                        try:
-                            result = self.createConnAssociation(guacConn, cloneVMName, username, ipAddress, vrdpPort, maxConnections, maxConnectionsPerUser, width, height, bitdepth)
-                            if result == "already_exists":
-                                logging.debug("Connection already exists; skipping...")
-                        except Exception:
-                                logging.error("runCreateConnections(): Error in runCreateConnections(): when trying to add connection.")
-                                exc_type, exc_value, exc_traceback = sys.exc_info()
-                                #traceback.print_exception(exc_type, exc_value, exc_traceback)
-
+                logging.debug( "Creating Connection for Username: " + username)
+                try:
+                    for conn in usersConns[(username, password)]:
+                        cloneVMName = conn[0]
+                        ipAddress = conn[1]
+                        vrdpPort = conn[2]
+                        result = self.createConnAssociation(guacConn, cloneVMName, username, ipAddress, vrdpPort, maxConnections, maxConnectionsPerUser, width, height, bitdepth)
+                        if result == "already_exists":
+                            logging.debug("Connection already exists; skipping...")
+                except Exception:
+                        logging.error("runCreateConnections(): Error in runCreateConnections(): when trying to add connection.")
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        traceback.print_exception(exc_type, exc_value, exc_traceback)
             logging.debug("runCreateConnections(): Complete...")
             self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
         except Exception:
@@ -158,67 +128,38 @@ class ConnectionManageGuacRDP(ConnectionManage):
         #call guac backend API to make connections as specified in config file and then set the complete status
         userpool = UserPool()
         try:
+            usersConns = userpool.generateUsersConns(configname, creds_file=creds_file)
             self.writeStatus = ConnectionManage.CONNECTION_MANAGE_CREATING
-            #sample guacConn = Guacamole(192.168.99.102',username='guacadmin',password='guacadmin',url_path='/guacamole',method='http')
-            logging.debug("runRemoveConnections(): guacHostname: " + str(guacHostname) + " username/pass: " + username + " url_path: " + url_path + " method: " + str(method))
+            logging.debug("runRemoveConnections(): guacHostname: " + str(guacHostname) + " username/pass: " + username + " url_path: " + url_path + " method: " + str(method) + " creds_file: " + creds_file)
             guacConn = Guacamole(guacHostname,username=username,password=password,url_path=url_path,method=method)
             if guacConn == None:
                 logging.error("runRemoveConnections(): Error with guac connection... skipping: " + str(guacHostname) + " " + str(username))
                 self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
                 return -1
-            if creds_file == "":
-                userpool.addFromBase()
-            else:
-                userpool.addFromCSV(creds_file)
-            if userpool == None:
-                logging.error("runRemoveConnections(): User/Pass could not be generated from file: " + str(creds_file) + " using default: user")
-                userpool.addFromBase()
 
-            #first generate the users for each set of VMs
-            removedUsers = {}
-            username = ""
-            password = ""
-            clonevmjson, numclones = self.eco.getExperimentVMRolledOut(configname)
-            for vm in clonevmjson.keys(): 
-                vmName = vm
-                logging.debug("runRemoveConnections(): working with vm: " + str(vmName))
-                #get names for clones
-                for cloneinfo in clonevmjson[vm]:
-                    # if vrdpPort exists, then we know it's enabled for this vm; let's set it up
-                    if "vrdpPort" in cloneinfo:
-                        #keep track of users/connections using the groupnum
-                        currGroupNum = cloneinfo["groupNum"]                        
-                        ipAddress = cloneinfo["ip-address"]
-                        cloneVMName = cloneinfo["name"]
-                        vrdpPort = cloneinfo["vrdpPort"]
-                        # Generate a User if we haven't done so yet
-                        if removedUsers == {} or currGroupNum not in removedUsers:
-                            (username, password) = userpool.popUserPass()
-                            removedUsers[currGroupNum] = (username, password)
-                            logging.debug( "Removing Username in Guac: " + username)
-                            try:
-                                result = self.removeUser(guacConn, username)
-                                if result == "already_exists":
-                                    logging.debug("User already exists; skipping...")
-                            except Exception:
-                                logging.error("runRemoveConnections(): Error in runRemoveConnections(): when trying to remove user.")
-                                exc_type, exc_value, exc_traceback = sys.exc_info()
-                                #traceback.print_exception(exc_type, exc_value, exc_traceback)
-                        #otherwise add it to the list known removed users
-                        else:
-                            (username, password) = removedUsers[currGroupNum]
+            for (username, password) in usersConns:
 
-                        # DisAssociate a User and Connection
-                        logging.debug( "Removing Connection for Username: " + username)
-                        try:
-                            result = self.removeConnAssociation(guacConn, cloneVMName)
-                            if result == "":
-                                logging.debug("Connection could not be removed; skipping...")
-                        except Exception:
-                                logging.error("runRemoveConnections(): Error in runRemoveConnections(): when trying to remove connection.")
-                                exc_type, exc_value, exc_traceback = sys.exc_info()
-                                traceback.print_exception(exc_type, exc_value, exc_traceback)
+                logging.debug( "Removing User: " + username)                
+                try:
+                    result = self.removeUser(guacConn, username)
+                    if result == "Does not Exist":
+                        logging.debug("User doesn't exist; skipping...")
+                except Exception:
+                    logging.error("runRemoveConnections(): Error in runRemoveConnections(): when trying to remove user.")
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    traceback.print_exception(exc_type, exc_value, exc_traceback)
 
+                logging.debug( "Removing Connection for Username: " + username)
+                try:
+                    for conn in usersConns[(username, password)]:
+                        cloneVMName = conn[0]
+                        result = self.removeConnAssociation(guacConn, cloneVMName)
+                        if result == "Does not Exist":
+                            logging.debug("Connection doesn't exists; skipping...")
+                except Exception:
+                        logging.error("runRemoveConnections(): Error in runRemoveConnections(): when trying to remove connection.")
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        traceback.print_exception(exc_type, exc_value, exc_traceback)
             logging.debug("runRemoveConnections(): Complete...")
             self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
         except Exception:
