@@ -1,3 +1,4 @@
+from engine.Configuration.UserPool import UserPool
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QDateTime, Qt, QTimer, QThread, pyqtSignal, QObject
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
@@ -10,7 +11,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
 import logging
 
 class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None, configname=None, widgetname="", rolledoutjson=None, interest_vmnames = []):
+    def __init__(self, parent=None, configname=None, widgetname="", rolledoutjson=None, interest_vmnames = [], vmuser_mapping={}):
         logging.debug("ExperimentActionsBaseWidgets instantiated")
         if configname == None:
             logging.error("configname cannot be empty")
@@ -37,15 +38,15 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
         
         self.vmStatusTable.setRowCount(0)
         self.vmStatusTable.setColumnCount(4)
-        self.vmStatusTable.setHorizontalHeaderLabels(("VM Name", "UUID", "Username", "Status"))
+        self.vmStatusTable.setHorizontalHeaderLabels(("VM Name", "UUID", "Generated User", "Status"))
         
         self.vmStatusTable.setSortingEnabled(True)
         self.outerVertBox.addWidget(self.vmStatusTable)
 
         self.setLayout(self.outerVertBox)
-        self.retranslateUi(rolledoutjson, interest_vmnames)
+        self.retranslateUi(rolledoutjson, interest_vmnames, vmuser_mapping)
 
-    def retranslateUi(self, rolledoutjson, interest_vmnames):
+    def retranslateUi(self, rolledoutjson, interest_vmnames, vmuser_mapping):
         logging.debug("BaseWidget: retranslateUi(): instantiated")
         
         if rolledoutjson == None:
@@ -56,13 +57,19 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
                 if interest_vmnames == [] or cloned_vm["name"] in interest_vmnames:
                     rowPos = self.vmStatusTable.rowCount()
                     self.vmStatusTable.insertRow(rowPos)
-                    vmCell = QTableWidgetItem(str(cloned_vm["name"]))
+                    vmName = str(cloned_vm["name"])
+                    vmCell = QTableWidgetItem(vmName)
                     uuidCell = QTableWidgetItem(str("refresh req."))
+                    username = "vrdp disabled"
+                    if vmuser_mapping != {} and vmName in vmuser_mapping:
+                        username = vmuser_mapping[vmName]
+                    usernameCell = QTableWidgetItem(username)
                     statusCell = QTableWidgetItem(str("refresh req."))
-                    statusCell.setFlags(Qt.ItemIsEnabled)
+                    # statusCell.setFlags(Qt.ItemIsEnabled)
                     self.vmStatusTable.setItem(rowPos, 0, vmCell)
                     self.vmStatusTable.setItem(rowPos, 1, uuidCell)
-                    self.vmStatusTable.setItem(rowPos, 2, statusCell)
+                    self.vmStatusTable.setItem(rowPos, 2, usernameCell)
+                    self.vmStatusTable.setItem(rowPos, 3, statusCell)
                     self.vmStatusTable.resizeColumnToContents(0)
 
 if __name__ == "__main__":

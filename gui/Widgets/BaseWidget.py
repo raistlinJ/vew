@@ -126,6 +126,19 @@ class BaseWidget(QtWidgets.QWidget):
         self.vrdpBaseportHorBox.addWidget(self.vrdpBaseportLineEdit)
         self.outerVertBox.addLayout(self.vrdpBaseportHorBox)
 
+        self.usersFilenameHorBox = QtWidgets.QHBoxLayout()
+        self.usersFilenameHorBox.setObjectName("usersFilenameHorBox")
+        self.usersFilenameLabel = QtWidgets.QLabel()
+        self.usersFilenameLabel.setObjectName("usersFilenameLabel")
+        self.usersFilenameLabel.setText("Users Filename:")
+        self.usersFilenameHorBox.addWidget(self.usersFilenameLabel)
+
+        self.usersFilenameLineEdit = QtWidgets.QLineEdit()
+        self.usersFilenameLineEdit.setObjectName("usersFilenameLineEdit")
+        self.usersFilenameLineEdit.setText("<unspecified>")
+        self.usersFilenameHorBox.addWidget(self.usersFilenameLineEdit)
+        self.outerVertBox.addLayout(self.usersFilenameHorBox)
+
         self.paddingWidget1 = QtWidgets.QWidget()
         self.paddingWidget1.setObjectName("paddingWidget1")
         self.outerVertBox.addWidget(self.paddingWidget1)
@@ -185,6 +198,10 @@ class BaseWidget(QtWidgets.QWidget):
         if "vrdp-baseport" not in basejsondata["testbed-setup"]["vm-set"]:
             basejsondata["testbed-setup"]["vm-set"]["vrdp-baseport"] = "1001"
         self.vrdpBaseportLineEdit.setText(basejsondata["testbed-setup"]["vm-set"]["vrdp-baseport"])
+        ###
+        if "users-filename" not in basejsondata["testbed-setup"]["vm-set"]:
+            basejsondata["testbed-setup"]["vm-set"]["users-filename"] = "<unspecified>"
+        self.usersFilenameLineEdit.setText(basejsondata["testbed-setup"]["vm-set"]["users-filename"])
 
     def getWritableData(self):
         logging.debug("BaseWidget: getWritableData(): instantiated")
@@ -202,6 +219,7 @@ class BaseWidget(QtWidgets.QWidget):
         jsondata["testbed-setup"]["vm-set"]["clone-snapshots"] = self.cloneSnapshotComboBox.currentText()
         jsondata["testbed-setup"]["vm-set"]["base-outname"] = self.baseOutnameLineEdit.text()
         jsondata["testbed-setup"]["vm-set"]["vrdp-baseport"] = self.vrdpBaseportLineEdit.text()
+        jsondata["testbed-setup"]["vm-set"]["users-filename"] = str(self.usersFilenameLineEdit.text())
         return jsondata
 
 if __name__ == "__main__":

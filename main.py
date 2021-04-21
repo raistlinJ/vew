@@ -90,7 +90,7 @@ class MainApp(QWidget):
         self.tabWidget.addTab(self.windowWidget, "Configuration")
 
         # VBox Actions Tab
-        self.experimentActionsWidget = ExperimentActionsWidget(statusBar=self.statusBar, mainBaseWidgets=self.baseWidgets)
+        self.experimentActionsWidget = ExperimentActionsWidget(statusBar=self.statusBar)
         self.experimentActionsWidget.setObjectName("experimentActionsWidget")
         self.tabWidget.addTab(self.experimentActionsWidget, "Experiment Actions")      
 
@@ -197,6 +197,9 @@ class MainApp(QWidget):
             jsondata["xml"]["testbed-setup"] = {}
         if "vm-set" not in jsondata["xml"]["testbed-setup"]:
             jsondata["xml"]["testbed-setup"]["vm-set"] = {}
+        #Temporary fix for older xml/json files.
+        if "users-filename" not in jsondata["xml"]["testbed-setup"]["vm-set"]:
+            jsondata["xml"]["testbed-setup"]["vm-set"]["users-filename"] = ""
 
         configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
         configTreeWidgetItem.setText(0,configname)
@@ -578,6 +581,8 @@ class MainApp(QWidget):
         
         self.ec.writeExperimentXMLFileData(jsondata, configname)
         self.ec.writeExperimentJSONFileData(jsondata, configname)
+        #Now reset the experimentActions view
+        self.experimentActionsWidget.resetExperiment(configname, jsondata)
         self.statusBar.showMessage("Succesfully saved experiment file for " + str(configname), 2000)
 
 if __name__ == '__main__':

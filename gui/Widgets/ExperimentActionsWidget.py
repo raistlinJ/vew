@@ -3,6 +3,7 @@ import logging
 from gui.Dialogs.ExperimentActionDialog import ExperimentActionDialog
 from gui.Widgets.ExperimentActionsVMStatusWidget import ExperimentActionsVMStatusWidget
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
+from engine.Configuration.UserPool import UserPool
 from PyQt5.QtWidgets import (QApplication, qApp, QAction, QCheckBox, QComboBox, QDateTimeEdit,
         QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
@@ -11,14 +12,14 @@ from PyQt5.QtWidgets import (QApplication, qApp, QAction, QCheckBox, QComboBox, 
 
 
 class ExperimentActionsWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None, statusBar=None, mainBaseWidgets=None):
+    def __init__(self, parent=None, statusBar=None):
         logging.debug("ExperimentActionsWidget instantiated")
         QtWidgets.QWidget.__init__(self, parent=None)
         self.statusBar = statusBar
         self.experimentItemNames = {}
-        self.mainBaseWidgets = mainBaseWidgets
         self.experimentActionsBaseWidgets = {}
         self.eco = ExperimentConfigIO()
+        self.userpool = UserPool()
 
         self.setObjectName("ExperimentActionsWidget")
 #######NEW-TEST
@@ -149,23 +150,30 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         #get all rolled out and then get them by VM
         
         rolledoutjson = self.eco.getExperimentVMRolledOut(configname, config_jsondata)
-        #Base Config Widget ("all view")
-        self.experimentActionsBaseWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=[])
-        self.experimentActionsBaseWidgets[configname] = {"ExperimentActionsBaseWidget": {}, "ExperimentActionsSetWidgets": {}, "ExperimentActionsTemplateWidgets": {}, "ExperimentActionsVMWidgets": {} }
-        self.experimentActionsBaseWidgets[configname]["ExperimentActionsBaseWidget"] = self.experimentActionsBaseWidget
-        self.basedataStackedWidget.addWidget(self.experimentActionsBaseWidget)
-        #Set-based view
         if rolledoutjson != None:
+            #get the usersConn associations first:
+            usersConns = self.userpool.generateUsersConns(configname, config_jsondata["xml"]["testbed-setup"]["vm-set"]["users-filename"], rolledout_json=rolledoutjson)
+            vmuser_mapping = {}
+            for (username, password) in usersConns:
+                for conn in usersConns[(username, password)]:
+                    cloneVMName = conn[0]
+                    vmuser_mapping[cloneVMName] = username
+
+            #create the status widgets (tables)
+            self.experimentActionsBaseWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=[], vmuser_mapping=vmuser_mapping)
+            self.experimentActionsBaseWidgets[configname] = {"ExperimentActionsBaseWidget": {}, "ExperimentActionsSetWidgets": {}, "ExperimentActionsTemplateWidgets": {}, "ExperimentActionsVMWidgets": {} }
+            self.experimentActionsBaseWidgets[configname]["ExperimentActionsBaseWidget"] = self.experimentActionsBaseWidget
+            self.basedataStackedWidget.addWidget(self.experimentActionsBaseWidget)
+            #Set-based view
             (template_vms, num_clones) = rolledoutjson
             #First create the sets from the rolled out data
             sets = self.eco.getExperimentSetDictFromRolledOut(configname, rolledoutjson)
-
             for set in sets:
                 set_item = QtWidgets.QTreeWidgetItem(experimentSetTreeItem)
                 setlabel = "S: Set " + set
                 set_item.setText(0,setlabel)
                 # Set Widget
-                experimentActionsSetStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=sets[set])
+                experimentActionsSetStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=sets[set], vmuser_mapping=vmuser_mapping)
                 self.experimentActionsBaseWidgets[configname]["ExperimentActionsSetWidgets"][setlabel] = experimentActionsSetStatusWidget
                 self.basedataStackedWidget.addWidget(experimentActionsSetStatusWidget)
 
@@ -175,7 +183,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 templatelabel = "T: " + templatename
                 template_item.setText(0,templatelabel)
                 # Set Widget
-                experimentActionsTemplateStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=templates[templatename])
+                experimentActionsTemplateStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=templates[templatename], vmuser_mapping=vmuser_mapping)
                 self.experimentActionsBaseWidgets[configname]["ExperimentActionsTemplateWidgets"][templatelabel] = experimentActionsTemplateStatusWidget
                 self.basedataStackedWidget.addWidget(experimentActionsTemplateStatusWidget)
 
@@ -187,7 +195,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 vmlabel = "V: " + vmname
                 vm_item.setText(0,vmlabel)
                 # VM Config Widget
-                experimentActionsVMStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=[vmname])
+                experimentActionsVMStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=[vmname], vmuser_mapping=vmuser_mapping)
                 self.experimentActionsBaseWidgets[configname]["ExperimentActionsVMWidgets"][vmlabel] = experimentActionsVMStatusWidget
                 self.basedataStackedWidget.addWidget(experimentActionsVMStatusWidget)
 

@@ -27,6 +27,7 @@ class UserPool():
                     i = i+1
                     if remove_invalid_chars:
                         user = ''.join(e for e in user if e.isalnum())
+                    self.num_created_fromfile+=1
                     self.filepool.append((user, password))
         except Exception as e:
             logging.error("Error in addFromCSV().")
@@ -38,18 +39,17 @@ class UserPool():
     def addFromBase(self, base="user", num=20):
         logging.debug("addFromBase(): instantiated")
         for i in range(1,num+1):
-            self.basepool.append(((str(base)+str(i),str(base)+str(i))))
+            self.num_created_frombase += 1
+            self.basepool.append(((str(base)+str(self.num_created_frombase),str(base)+str(self.num_created_frombase))))
 
     def popUser(self, genIfEmpty=True):
         logging.debug("popUser(): instantiated")
         if len(self.filepool) > 0:
-            self.num_created_fromfile += 1
             return self.filepool.pop(0)[0]
         else:
             if genIfEmpty == True:
                 if len(self.basepool) == 0:
                     self.addFromBase(base="extra_")
-                self.num_created_frombase += 1
                 return self.basepool.pop(0)[0]
             else:
                 return None
@@ -57,13 +57,11 @@ class UserPool():
     def popUserPass(self, genIfEmpty=True):
         logging.debug("popUserPass(): instantiated")
         if len(self.filepool) > 0:
-            self.num_created_fromfile += 1
             return self.filepool.pop(0)
         else:
             if genIfEmpty==True:
                 if len(self.basepool) == 0:
                     self.addFromBase(base="extra_")
-                self.num_created_frombase += 1
                 return self.basepool.pop(0)
             else:
                 return None
