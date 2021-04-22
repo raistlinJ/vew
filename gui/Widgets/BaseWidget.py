@@ -1,4 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QFileDialog
 import logging
 
 class BaseWidget(QtWidgets.QWidget):
@@ -137,6 +138,11 @@ class BaseWidget(QtWidgets.QWidget):
         self.usersFilenameLineEdit.setObjectName("usersFilenameLineEdit")
         self.usersFilenameLineEdit.setText("<unspecified>")
         self.usersFilenameHorBox.addWidget(self.usersFilenameLineEdit)
+
+        self.usersFilenamePushButton = QtWidgets.QPushButton("...")
+        self.usersFilenamePushButton.setObjectName("usersFilenamePushButton")
+        self.usersFilenamePushButton.clicked.connect(self.getUsersFilename)
+        self.usersFilenameHorBox.addWidget(self.usersFilenamePushButton)
         self.outerVertBox.addLayout(self.usersFilenameHorBox)
 
         self.paddingWidget1 = QtWidgets.QWidget()
@@ -221,6 +227,14 @@ class BaseWidget(QtWidgets.QWidget):
         jsondata["testbed-setup"]["vm-set"]["vrdp-baseport"] = self.vrdpBaseportLineEdit.text()
         jsondata["testbed-setup"]["vm-set"]["users-filename"] = str(self.usersFilenameLineEdit.text())
         return jsondata
+
+    def getUsersFilename(self):
+        logging.debug("BaseWidget: getUsersFilename(): instantiated")
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getOpenFileName(self,"Select Users File", "","All Files (*);;Creds Files (*.csv)", options=options)
+        if fileName:
+            self.usersFilenameLineEdit.setText(fileName)
 
 if __name__ == "__main__":
     import sys
