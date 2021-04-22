@@ -21,7 +21,6 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.experimentItemNames = {}
         self.experimentActionsBaseWidgets = {}
         self.eco = ExperimentConfigIO()
-        self.userpool = UserPool()
 
         self.setObjectName("ExperimentActionsWidget")
 
@@ -51,11 +50,12 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
 
         self.basedataStackedWidget = QStackedWidget()
         self.basedataStackedWidget.setObjectName("basedataStackedWidget")
+        self.basedataStackedWidget.setEnabled(False)
         self.windowBoxVLayout.addWidget(self.basedataStackedWidget)
 
         self.refreshVMsButton = QtWidgets.QPushButton("Refresh Status")
         self.refreshVMsButton.clicked.connect(self.refreshVMStatus)
-        self.refreshVMsButton.setEnabled(True)
+        self.refreshVMsButton.setEnabled(False)
         self.windowBoxVLayout.addWidget(self.refreshVMsButton)
 
         self.windowBoxHLayout.addLayout(self.windowBoxVLayout)
@@ -106,6 +106,8 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
     
     def onItemSelected(self):
         logging.debug("MainApp:onItemSelected instantiated")
+        self.basedataStackedWidget.setEnabled(True)
+        self.refreshVMsButton.setEnabled(True)
     	# Get the selected item
         selectedItem = self.experimentTree.currentItem()
         if selectedItem == None:
@@ -144,7 +146,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         if configname in self.experimentItemNames:
             logging.error("addExperimentItem(): Item already exists in tree: " + str(configname))
             return
-        
+        userpool = UserPool()
         ##Now add the item to the tree widget and create the baseWidget
         experimentTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
         experimentTreeWidgetItem.setText(0,configname)
@@ -164,7 +166,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         rolledoutjson = self.eco.getExperimentVMRolledOut(configname, config_jsondata)
         if rolledoutjson != None:
             #get the usersConn associations first:
-            usersConns = self.userpool.generateUsersConns(configname, config_jsondata["xml"]["testbed-setup"]["vm-set"]["users-filename"], rolledout_json=rolledoutjson)
+            usersConns = userpool.generateUsersConns(configname, config_jsondata["xml"]["testbed-setup"]["vm-set"]["users-filename"], rolledout_json=rolledoutjson)
             vmuser_mapping = {}
             for (username, password) in usersConns:
                 for conn in usersConns[(username, password)]:

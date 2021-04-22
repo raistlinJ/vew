@@ -86,6 +86,7 @@ class MainApp(QWidget):
         
         self.basedataStackedWidget = QStackedWidget()
         self.basedataStackedWidget.setObjectName("basedataStackedWidget")
+        self.basedataStackedWidget.setEnabled(False)
         self.windowBoxHLayout.addWidget(self.basedataStackedWidget)
         self.tabWidget.addTab(self.windowWidget, "Configuration")
 
@@ -263,6 +264,7 @@ class MainApp(QWidget):
             logging.debug("MainApp:onItemSelected no configurations left")
             self.statusBar.showMessage("No configuration items selected or available.")
             return
+        self.basedataStackedWidget.setEnabled(True)
         # Now enable the save button
         self.saveButton.setEnabled(True)
         self.saveExperimentMenuButton.setEnabled(True)
