@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (QApplication, qApp, QAction, QCheckBox, QComboBox, 
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QMessageBox, QTableWidget, QTabWidget, QTextEdit,
         QVBoxLayout, QWidget, QStackedWidget, QStatusBar, QMenuBar)
-
+from gui.Helpers.ExperimentActions import ExperimentActions
 
 class ExperimentActionsWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, statusBar=None):
@@ -60,7 +60,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
 
         self.windowBoxHLayout.addLayout(self.windowBoxVLayout)
 
-        # Context menu for blank space
+        # Context menus
         self.experimentMenu = QtWidgets.QMenu()
         self.startupContextMenu = QtWidgets.QMenu("Startup")
         self.shutdownContextMenu = QtWidgets.QMenu("Shutdown")
@@ -70,30 +70,29 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.experimentMenu.addMenu(self.stateContextMenu)
 
         self.cloneExperiment = self.startupContextMenu.addAction("Signal - Create Clones")
-        self.cloneExperiment.triggered.connect(self.cloneExperimentActionEvent)
+        self.cloneExperiment.triggered.connect(self.menuItemSelected)
         
         self.startVMs = self.startupContextMenu.addAction("Signal - Start VMs (headless)")
-        self.startVMs.triggered.connect(self.startVMsActionEvent)
+        self.startVMs.triggered.connect(self.menuItemSelected)
 
         self.restoreSnapshots = self.startupContextMenu.addAction("Signal - Restore Snapshots")
-        self.restoreSnapshots.triggered.connect(self.restoreSnapshotsActionEvent)
+        self.restoreSnapshots.triggered.connect(self.menuItemSelected)
 
         self.pauseVMs = self.shutdownContextMenu.addAction("Signal - Pause VMs")
-        self.pauseVMs.triggered.connect(self.pauseVMsActionEvent)
-        self.shutdownContextMenu.addAction(self.pauseVMs)
+        self.pauseVMs.triggered.connect(self.menuItemSelected)
 
-        self.suspendVMs = self.shutdownContextMenu.addAction("Signal - Suspend & Save State")
-        self.suspendVMs.triggered.connect(self.suspendVMsActionEvent)
-        self.shutdownContextMenu.addAction(self.suspendVMs)
+        self.suspendVMs = self.shutdownContextMenu.addAction("Signal - Suspend & Save States")
+        self.suspendVMs.triggered.connect(self.menuItemSelected)
 
         self.poweroffVMs = self.shutdownContextMenu.addAction("Signal - Power Off VMs")
-        self.poweroffVMs.triggered.connect(self.poweroffVMsActionEvent)
+        self.poweroffVMs.triggered.connect(self.menuItemSelected)
 
         self.deleteClones = self.shutdownContextMenu.addAction("Signal - Delete Clones")
-        self.deleteClones.triggered.connect(self.deleteClonesActionEvent)
+        self.deleteClones.triggered.connect(self.menuItemSelected)
+        self.shutdownContextMenu.addAction(self.deleteClones)
 
         self.snapshotVMs = self.stateContextMenu.addAction("Signal - Snapshot VMs")
-        self.snapshotVMs.triggered.connect(self.snapshotVMsActionEvent)
+        self.snapshotVMs.triggered.connect(self.menuItemSelected)
 
         self.setLayout(self.windowBoxHLayout)
         self.retranslateUi()
@@ -174,7 +173,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                     vmuser_mapping[cloneVMName] = username
 
             #create the status widgets (tables)
-            self.experimentActionsBaseWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=[], vmuser_mapping=vmuser_mapping)
+            self.experimentActionsBaseWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=[], vmuser_mapping=vmuser_mapping, status_bar=self.statusBar)
             self.experimentActionsBaseWidgets[configname] = {"ExperimentActionsBaseWidget": {}, "ExperimentActionsSetWidgets": {}, "ExperimentActionsTemplateWidgets": {}, "ExperimentActionsVMWidgets": {} }
             self.experimentActionsBaseWidgets[configname]["ExperimentActionsBaseWidget"] = self.experimentActionsBaseWidget
             self.basedataStackedWidget.addWidget(self.experimentActionsBaseWidget)
@@ -187,7 +186,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 setlabel = "S: Set " + set
                 set_item.setText(0,setlabel)
                 # Set Widget
-                experimentActionsSetStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=sets[set], vmuser_mapping=vmuser_mapping)
+                experimentActionsSetStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=sets[set], vmuser_mapping=vmuser_mapping, status_bar=self.statusBar)
                 self.experimentActionsBaseWidgets[configname]["ExperimentActionsSetWidgets"][setlabel] = experimentActionsSetStatusWidget
                 self.basedataStackedWidget.addWidget(experimentActionsSetStatusWidget)
 
@@ -197,7 +196,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 templatelabel = "T: " + templatename
                 template_item.setText(0,templatelabel)
                 # Set Widget
-                experimentActionsTemplateStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=templates[templatename], vmuser_mapping=vmuser_mapping)
+                experimentActionsTemplateStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=templates[templatename], vmuser_mapping=vmuser_mapping, status_bar=self.statusBar)
                 self.experimentActionsBaseWidgets[configname]["ExperimentActionsTemplateWidgets"][templatelabel] = experimentActionsTemplateStatusWidget
                 self.basedataStackedWidget.addWidget(experimentActionsTemplateStatusWidget)
 
@@ -209,7 +208,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 vmlabel = "V: " + vmname
                 vm_item.setText(0,vmlabel)
                 # VM Config Widget
-                experimentActionsVMStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=[vmname], vmuser_mapping=vmuser_mapping)
+                experimentActionsVMStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=[vmname], vmuser_mapping=vmuser_mapping, status_bar=self.statusBar)
                 self.experimentActionsBaseWidgets[configname]["ExperimentActionsVMWidgets"][vmlabel] = experimentActionsVMStatusWidget
                 self.basedataStackedWidget.addWidget(experimentActionsVMStatusWidget)
 
@@ -270,54 +269,12 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 name = "\"" + " ".join(name) + "\""
         return configname, itype, name
 
-    def cloneExperimentActionEvent(self):
-        logging.debug("cloneExperimentActionEvent(): showContextMenu(): instantiated")
-        #Now allow the user to choose the VM:
+    def menuItemSelected(self):
+        logging.debug("menuItemSelected(): instantiated")
+        actionlabelname = self.sender().text()
         configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
-        ExperimentActionDialog().experimentActionDialog(configname, "Create Experiment", itype, name)
-        self.statusBar.showMessage("Finished executing Create Experiment " + configname)
-
-    def startVMsActionEvent(self):
-        logging.debug("startVMsActionEvent(): showContextMenu(): instantiated")
-        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
-        ExperimentActionDialog().experimentActionDialog(configname, "Start Experiment", itype, name)
-        self.statusBar.showMessage("Finished executing Start Experiment " + configname)
-
-    def suspendVMsActionEvent(self):
-        logging.debug("suspendVMsActionEvent(): showContextMenu(): instantiated")
-        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
-        ExperimentActionDialog().experimentActionDialog(configname, "Suspend Experiment", itype, name)
-        self.statusBar.showMessage("Finished executing Suspend Experiment " + configname)
-
-    def pauseVMsActionEvent(self):
-        logging.debug("pauseVMsActionEvent(): showContextMenu(): instantiated")
-        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
-        ExperimentActionDialog().experimentActionDialog(configname, "Pause Experiment", itype, name)
-        self.statusBar.showMessage("Finished executing Pause Experiment " + configname)
-
-    def snapshotVMsActionEvent(self):
-        logging.debug("snapshotVMsActionEvent(): showContextMenu(): instantiated")
-        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
-        ExperimentActionDialog().experimentActionDialog(configname, "Snapshot Experiment", itype, name)
-        self.statusBar.showMessage("Finished executing Snapshot Experiment " + configname)
-
-    def poweroffVMsActionEvent(self):
-        logging.debug("poweroffVMsActionEvent(): showContextMenu(): instantiated")
-        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
-        ExperimentActionDialog().experimentActionDialog(configname, "Stop Experiment", itype, name)
-        self.statusBar.showMessage("Finished executing Stop Experiment " + configname)
-
-    def restoreSnapshotsActionEvent(self):
-        logging.debug("restoreSnapshotsActionEvent(): showContextMenu(): instantiated")
-        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
-        ExperimentActionDialog().experimentActionDialog(configname, "Restore Experiment", itype, name)
-        self.statusBar.showMessage("Finished executing Restore Experiment " + configname)
-
-    def deleteClonesActionEvent(self):
-        logging.debug("deleteClonesActionEvent(): showContextMenu(): instantiated")
-        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
-        ExperimentActionDialog().experimentActionDialog(configname, "Remove Experiment", itype, name)
-        self.statusBar.showMessage("Finished executing Remove Experiment " + configname)
+        ExperimentActions().experimentActionEvent(configname, actionlabelname, itype, name)
+        self.statusBar.showMessage("Executed " + str(actionlabelname) + " on " + configname)
 
     def refreshVMStatus(self):
         logging.debug("refreshVMStatus(): instantiated")

@@ -1,3 +1,4 @@
+from gui.Helpers.ExperimentActions import ExperimentActions
 from engine.Configuration.UserPool import UserPool
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QDateTime, Qt, QTimer, QThread, pyqtSignal, QObject
@@ -11,12 +12,13 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
 import logging
 
 class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None, configname=None, widgetname="", rolledoutjson=None, interest_vmnames = [], vmuser_mapping={}):
+    def __init__(self, parent=None, configname=None, widgetname="", rolledoutjson=None, interest_vmnames = [], vmuser_mapping={}, status_bar=None):
         logging.debug("ExperimentActionsBaseWidgets instantiated")
         if configname == None:
             logging.error("configname cannot be empty")
             return None
         QtWidgets.QWidget.__init__(self, parent=None)
+        self.statusBar = status_bar
         self.widgetname = widgetname
         self.configname = configname
         self.rolledoutjson = rolledoutjson
@@ -35,11 +37,48 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
         self.vmStatusTable.setObjectName("vmStatusTable")
         self.vmStatusTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.vmStatusTable.setSelectionBehavior(QTableView.SelectRows)
+        self.vmStatusTable.setSelectionMode(QTableView.SingleSelection)
         
         self.vmStatusTable.setRowCount(0)
         self.vmStatusTable.setColumnCount(4)
         self.vmStatusTable.setHorizontalHeaderLabels(("VM Name", "UUID", "Generated User", "Status"))
+
+        # Context menus
+        self.vmStatusTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.vmStatusTable.customContextMenuRequested.connect(self.showContextMenu)
+        self.experimentMenu = QtWidgets.QMenu()
+        self.startupContextMenu = QtWidgets.QMenu("Startup")
+        self.shutdownContextMenu = QtWidgets.QMenu("Shutdown")
+        self.stateContextMenu = QtWidgets.QMenu("State")
+        self.experimentMenu.addMenu(self.startupContextMenu)
+        self.experimentMenu.addMenu(self.shutdownContextMenu)
+        self.experimentMenu.addMenu(self.stateContextMenu)
+
+        self.cloneExperiment = self.startupContextMenu.addAction("Signal - Create Clone")
+        self.cloneExperiment.triggered.connect(self.menuItemSelected)
         
+        self.startVMs = self.startupContextMenu.addAction("Signal - Start VM (headless)")
+        self.startVMs.triggered.connect(self.menuItemSelected)
+
+        self.restoreSnapshots = self.startupContextMenu.addAction("Signal - Restore Snapshot")
+        self.restoreSnapshots.triggered.connect(self.menuItemSelected)
+
+        self.pauseVMs = self.shutdownContextMenu.addAction("Signal - Pause VM")
+        self.pauseVMs.triggered.connect(self.menuItemSelected)
+
+        self.suspendVMs = self.shutdownContextMenu.addAction("Signal - Suspend & Save State")
+        self.suspendVMs.triggered.connect(self.menuItemSelected)
+
+        self.poweroffVMs = self.shutdownContextMenu.addAction("Signal - Power Off VM")
+        self.poweroffVMs.triggered.connect(self.menuItemSelected)
+
+        self.deleteClones = self.shutdownContextMenu.addAction("Signal - Delete Clone")
+        self.deleteClones.triggered.connect(self.menuItemSelected)
+        self.shutdownContextMenu.addAction(self.deleteClones)
+
+        self.snapshotVMs = self.stateContextMenu.addAction("Signal - Snapshot VM")
+        self.snapshotVMs.triggered.connect(self.menuItemSelected)
+
         self.vmStatusTable.setSortingEnabled(True)
         self.outerVertBox.addWidget(self.vmStatusTable)
 
@@ -47,7 +86,7 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
         self.retranslateUi(rolledoutjson, interest_vmnames, vmuser_mapping)
 
     def retranslateUi(self, rolledoutjson, interest_vmnames, vmuser_mapping):
-        logging.debug("BaseWidget: retranslateUi(): instantiated")
+        logging.debug("ExperimentActionsVMStatusWidget: retranslateUi(): instantiated")
         
         if rolledoutjson == None:
             return
@@ -71,6 +110,21 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
                     self.vmStatusTable.setItem(rowPos, 2, usernameCell)
                     self.vmStatusTable.setItem(rowPos, 3, statusCell)
                     self.vmStatusTable.resizeColumnToContents(0)
+
+    def showContextMenu(self, position):
+        logging.debug("showContextMenu() instantiated")
+        self.experimentMenu.popup(self.vmStatusTable.mapToGlobal(position))
+
+    def menuItemSelected(self):
+        logging.debug("menuItemSelected(): instantiated")
+        vmRow = self.vmStatusTable.currentRow()
+        if vmRow == None:
+            logging.error("menuItemSelected(): No Row is Selected.")
+            return
+        vmName = self.vmStatusTable.item(vmRow,0).text()
+        actionlabelname = self.sender().text()
+        ExperimentActions().experimentActionEvent(self.configname, actionlabelname, "vm", vmName)
+        self.statusBar.showMessage("Executed " + str(actionlabelname) + " on " + self.configname)
 
     def updateVMStatus(self, vmStatus):
         logging.debug("updateVMStatus(): instantiated")
