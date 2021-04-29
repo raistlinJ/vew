@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (QApplication, qApp, QAction, QCheckBox, QComboBox, 
         QSlider, QSpinBox, QStyleFactory, QMessageBox, QTableWidget, QTabWidget, QTextEdit,
         QVBoxLayout, QWidget, QStackedWidget, QStatusBar, QMenuBar)
 from gui.Helpers.ExperimentActions import ExperimentActions
+import os
 
 class ExperimentActionsWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, statusBar=None):
@@ -165,13 +166,23 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         rolledoutjson = self.eco.getExperimentVMRolledOut(configname, config_jsondata)
         if rolledoutjson != None:
             #get the usersConn associations first:
-            usersConns = userpool.generateUsersConns(configname, config_jsondata["xml"]["testbed-setup"]["vm-set"]["users-filename"], rolledout_json=rolledoutjson)
+            # if file was specified, but it doesn't exist, prepend usernames
+            invalid_userfile = False
+            users_filename = config_jsondata["xml"]["testbed-setup"]["vm-set"]["users-filename"]
+            if users_filename != None and users_filename.strip() != "":
+                if os.path.exists(users_filename) == False:
+                    invalid_userfile = True
+            
+            usersConns = userpool.generateUsersConns(configname, users_filename, rolledout_json=rolledoutjson)
             vmuser_mapping = {}
             for (username, password) in usersConns:
                 for conn in usersConns[(username, password)]:
                     cloneVMName = conn[0]
-                    vmuser_mapping[cloneVMName] = username
-
+                    if invalid_userfile == False:
+                        vmuser_mapping[cloneVMName] = username
+                    else:
+                        vmuser_mapping[cloneVMName] = "userfile_not_found"
+                    
             #create the status widgets (tables)
             self.experimentActionsBaseWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=[], vmuser_mapping=vmuser_mapping, status_bar=self.statusBar)
             self.experimentActionsBaseWidgets[configname] = {"ExperimentActionsBaseWidget": {}, "ExperimentActionsSetWidgets": {}, "ExperimentActionsTemplateWidgets": {}, "ExperimentActionsVMWidgets": {} }
