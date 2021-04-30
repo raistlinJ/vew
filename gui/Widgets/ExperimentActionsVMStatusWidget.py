@@ -23,8 +23,6 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
         self.configname = configname
         self.rolledoutjson = rolledoutjson
 
-        self.eco = ExperimentConfigIO()
-
         self.setWindowTitle("ExperimentActionsBaseWidgets")
         self.setObjectName("ExperimentActionsBaseWidgets")
         self.layoutWidget = QtWidgets.QWidget()

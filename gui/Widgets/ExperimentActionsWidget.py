@@ -1,3 +1,4 @@
+from gui.Dialogs.GUIFunctionExecutingDialog import GUIFunctionExecutingDialog
 from gui.Dialogs.VMRetrievingDialog import VMRetrievingDialog
 from gui.Dialogs.VMRetreiveDialog import VMRetrieveDialog
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -22,6 +23,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.experimentItemNames = {}
         self.experimentActionsBaseWidgets = {}
         self.eco = ExperimentConfigIO()
+        self.rolledoutjson = None
 
         self.setObjectName("ExperimentActionsWidget")
 
@@ -141,6 +143,10 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 logging.debug("Setting right widget: " + str(self.experimentActionsBaseWidgets[parentparentSelectedItem.text(0)]["ExperimentActionsTemplateWidgets"][selectedItem.text(0)]))
                 self.basedataStackedWidget.setCurrentWidget(self.experimentActionsBaseWidgets[parentparentSelectedItem.text(0)]["ExperimentActionsTemplateWidgets"][selectedItem.text(0)])
 
+    def getExperimentVMRolledOut(self, configname, config_json):
+        logging.debug("ExperimentActionsWidget(): getExperimentVMRolledOut(): retranslateUi(): instantiated")
+        self.rolledoutjson = self.eco.getExperimentVMRolledOut(configname, config_json)
+
     def addExperimentItem(self, configname, config_jsondata=None):
         logging.debug("addExperimentItem(): retranslateUi(): instantiated")
         if configname in self.experimentItemNames:
@@ -162,8 +168,11 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
 
         self.experimentItemNames[configname] = experimentTreeWidgetItem
         #get all rolled out and then get them by VM
-        
-        rolledoutjson = self.eco.getExperimentVMRolledOut(configname, config_jsondata)
+        funcs = []
+        funcs.append((self.getExperimentVMRolledOut, configname, config_jsondata))
+        GUIFunctionExecutingDialog(None, "Processing Experiment:  " + str(configname), funcs).exec_()
+        rolledoutjson = self.rolledoutjson
+        #rolledoutjson = self.eco.getExperimentVMRolledOut(configname, config_jsondata)
         if rolledoutjson != None:
             #get the usersConn associations first:
             # if file was specified, but it doesn't exist, prepend usernames
