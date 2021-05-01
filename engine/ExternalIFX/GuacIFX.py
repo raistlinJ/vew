@@ -95,7 +95,7 @@ class GuacIFX:
         vmset = root.find('testbed-setup').find('vm-set')
 
         # ---get ip address information
-        ipAddress = netConfig.find('ip-address').text
+        vmServerIP = netConfig.find('vm-server-ip').text
 
         # ---here we look at each vmset
         numClones = int(vmset.find('num-clones').text)
@@ -114,7 +114,7 @@ class GuacIFX:
             username = baseGroupname+str(i)
             username = ''.join(e for e in username if e.isalnum())
             logging.info( "Creating Username: " + username)
-            createUser(guacConn, username, username)
+            self.createUser(guacConn, username, username)
 
         for vm in vmset.findall('vm'):
             vrdpEnabled = vm.find('vrdp-enabled').text
@@ -132,7 +132,7 @@ class GuacIFX:
                 # vrdp setup
                 if vrdpEnabled and vrdpEnabled == 'true':
                     #guacConn, connName, username, password, ip, port):
-                    createConnAssociation(guacConn, newvmName, username, ipAddress, vrdpBaseport)
+                    self.createConnAssociation(guacConn, newvmName, username, vmServerIP, vrdpBaseport)
                     vrdpBaseport = str(int(vrdpBaseport) + 1)
         logging.info( """
         **************************************************************************************
@@ -184,7 +184,7 @@ class GuacIFX:
         vmset = root.find('testbed-setup').find('vm-set')
 
         # ---get ip address information
-        ipAddress = netConfig.find('ip-address').text
+        vmServerIP = netConfig.find('vm-server-ip').text
 
         # ---here we look at each vmset
         numClones = int(vmset.find('num-clones').text)
@@ -202,7 +202,7 @@ class GuacIFX:
             #username = "user"+str(i)
             username = baseGroupname+str(i)
             username = ''.join(e for e in username if e.isalnum())
-            removeUser(guacConn, username)
+            self.removeUser(guacConn, username)
 
         for vm in vmset.findall('vm'):
             vrdpEnabled = vm.find('vrdp-enabled').text
@@ -215,26 +215,26 @@ class GuacIFX:
                 # vrdp setup
                 if vrdpEnabled and vrdpEnabled == 'true':
                     #guacConn, connName
-                    removeConnAssociation(guacConn, newvmName)
+                    self.removeConnAssociation(guacConn, newvmName)
         logging.info( """
         **************************************************************************************
         Guacamole User and Connection removal script complete
         **************************************************************************************
         """)
 
-    if __name__ == "__main__":
-        if len(sys.argv) < 6:
-            logging.error("Usage: python GuacIFX.py <input xml file> <guac-server-hostname> <guac-username> <guac-pass> <guac-url-path> <guac-conn-method>")
-            exit()
-            logging.info("GuacIFX.py: Creating Connections, Users and associations")
-        inputFilename = sys.argv[1]
-        guacHostname = sys.argv[2]
-        guacUsername = sys.argv[3]
-        guacPass = sys.argv[4]
-        guacURLPath = sys.argv[5]
-        guacConnMethod = sys.argv[6]
-        
-        g = GuacIFX()
-        g.createGuacEntries(inputFilename, guacHostname, guacUsername, guacPass, guacURLPath, guacConnMethod)
-        g.removeGuacEntries(inputFilename, guacHostname, guacUsername, guacPass, guacURLPath, guacConnMethod)
-        
+if __name__ == "__main__":
+    if len(sys.argv) < 6:
+        logging.error("Usage: python GuacIFX.py <input xml file> <guac-server-hostname> <guac-username> <guac-pass> <guac-url-path> <guac-conn-method>")
+        exit()
+        logging.info("GuacIFX.py: Creating Connections, Users and associations")
+    inputFilename = sys.argv[1]
+    guacHostname = sys.argv[2]
+    guacUsername = sys.argv[3]
+    guacPass = sys.argv[4]
+    guacURLPath = sys.argv[5]
+    guacConnMethod = sys.argv[6]
+    
+    g = GuacIFX()
+    g.createGuacEntries(inputFilename, guacHostname, guacUsername, guacPass, guacURLPath, guacConnMethod)
+    g.removeGuacEntries(inputFilename, guacHostname, guacUsername, guacPass, guacURLPath, guacConnMethod)
+    

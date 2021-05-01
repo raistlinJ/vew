@@ -4,7 +4,7 @@
   </vbox-setup>
   <testbed-setup>
     <network-config>
-      <ip-address>11.0.0.2</ip-address>
+      <vm-server-ip>11.0.0.2</vm-server-ip>
     </network-config>
     <vm-set>
       <base-groupname>Sample</base-groupname>

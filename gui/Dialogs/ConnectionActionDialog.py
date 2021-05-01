@@ -15,13 +15,18 @@ import configparser
 
 class ConnectionActionDialog(QDialog):
 
-    def __init__(self, parent, configname, actionname, experimentHostname):
+    def __init__(self, parent, configname, actionname, experimentHostname, rdpBrokerHostname="<unspecified>"):
         logging.debug("ConnectionActionDialog(): instantiated")
-        super(ConnectionActionDialog, self).__init__(parent)      
+        super(ConnectionActionDialog, self).__init__(parent)
         self.parent = parent
         self.configname = configname
         self.actionname = actionname
         self.experimentHostname = experimentHostname
+        if rdpBrokerHostname.strip() == "":
+            self.rdpBrokerHostname = "<unspecified>"
+            self.setEnabled(False)
+        else:
+            self.rdpBrokerHostname = rdpBrokerHostname
         self.cm = ConnectionManage()
         self.setMinimumWidth(450)
 
@@ -43,8 +48,9 @@ class ConnectionActionDialog(QDialog):
         self.layout = QFormLayout()
         self.experimentHostnameLineEdit = QLineEdit(self.experimentHostname)
         self.experimentHostnameLineEdit.setEnabled(False)
-        self.layout.addRow(QLabel("Experiment Hostname/IP:"), self.experimentHostnameLineEdit)
-        self.hostnameLineEdit = QLineEdit("11.0.0.2:8080")
+        self.layout.addRow(QLabel("VM Server IP:"), self.experimentHostnameLineEdit)
+        self.hostnameLineEdit = QLineEdit(self.rdpBrokerHostname)
+        self.hostnameLineEdit.setEnabled(False)
         self.layout.addRow(QLabel("RDP Broker Hostname/IP:"), self.hostnameLineEdit)
         self.usernameLineEdit = QLineEdit()
         self.layout.addRow(QLabel("Username:"), self.usernameLineEdit)

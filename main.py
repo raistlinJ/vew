@@ -53,7 +53,7 @@ class MainApp(QWidget):
         self.ec = ExperimentConfigIO()
         self.statusBar = QStatusBar()
         
-        self.setFixedSize(670,565)
+        self.setMinimumSize(670,565)
         quit = QAction("Quit", self)
         quit.triggered.connect(self.closeEvent)
         self.setWindowTitle("ARL South RES v0.1")
@@ -78,7 +78,8 @@ class MainApp(QWidget):
         self.experimentTree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.experimentTree.customContextMenuRequested.connect(self.showContextMenu)
         self.experimentTree.setEnabled(True)
-        self.experimentTree.setMaximumSize(200,521)
+        self.experimentTree.setMinimumSize(200,521)
+        self.experimentTree.setMaximumWidth(350)
         self.experimentTree.setObjectName("experimentTree")
         self.experimentTree.headerItem().setText(0, "Experiments")
         self.experimentTree.setSortingEnabled(False)
@@ -201,6 +202,10 @@ class MainApp(QWidget):
         #Temporary fix for older xml/json files.
         if "users-filename" not in jsondata["xml"]["testbed-setup"]["vm-set"]:
             jsondata["xml"]["testbed-setup"]["vm-set"]["users-filename"] = ""
+        if "rdp-broker-ip" not in jsondata["xml"]["testbed-setup"]["vm-set"]:
+            jsondata["xml"]["testbed-setup"]["vm-set"]["rdp-broker-ip"] = ""
+        if "chat-server-ip" not in jsondata["xml"]["testbed-setup"]["vm-set"]:
+            jsondata["xml"]["testbed-setup"]["vm-set"]["chat-server-ip"] = ""
 
         configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
         configTreeWidgetItem.setText(0,configname)
