@@ -72,7 +72,7 @@ class ConnectionWidget(QtWidgets.QWidget):
             self.statusBar.showMessage("Could complete connection action. No configuration items selected or available.")
             return
         selectedItemName = selectedItem.text(0)
-        connResult = ConnectionActionDialog(self, selectedItemName, "Add", self.baseWidgets[selectedItemName]["BaseWidget"].ipAddressLineEdit.text()).exec_()
+        connResult = ConnectionActionDialog(self, selectedItemName, "Add", self.baseWidgets[selectedItemName]["BaseWidget"].vmServerIPLineEdit.text(), self.baseWidgets[selectedItemName]["BaseWidget"].rdpBrokerLineEdit.text()).exec_()
 
     def removeGuacActionEvent(self):
         logging.debug("MainApp:removeGuacActionEvent() instantiated")
@@ -82,7 +82,7 @@ class ConnectionWidget(QtWidgets.QWidget):
             self.statusBar.showMessage("Could complete connection action. No configuration items selected or available.")
             return
         selectedItemName = selectedItem.text(0)
-        connResult = ConnectionActionDialog(self, selectedItemName, "Remove", self.baseWidgets[selectedItemName]["BaseWidget"].ipAddressLineEdit.text()).exec_()
+        connResult = ConnectionActionDialog(self, selectedItemName, "Remove", self.baseWidgets[selectedItemName]["BaseWidget"].vmServerIPLineEdit.text(), self.baseWidgets[selectedItemName]["BaseWidget"].rdpBrokerLineEdit.text()).exec_()
 
     def clearGuacActionEvent(self):
         logging.debug("MainApp:clearGuacActionEvent() instantiated")
@@ -92,4 +92,4 @@ class ConnectionWidget(QtWidgets.QWidget):
             self.statusBar.showMessage("Could complete connection action. No configuration items selected or available.")
             return
         selectedItemName = selectedItem.text(0)
-        connResult = ConnectionActionDialog(self, selectedItemName, "Clear", self.baseWidgets[selectedItemName]["BaseWidget"].ipAddressLineEdit.text()).exec_()
+        connResult = ConnectionActionDialog(self, selectedItemName, "Clear", self.baseWidgets[selectedItemName]["BaseWidget"].vmServerIPLineEdit.text(), self.baseWidgets[selectedItemName]["BaseWidget"].rdpBrokerLineEdit.text()).exec_()

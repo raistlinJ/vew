@@ -254,7 +254,7 @@ class Engine:
         logging.debug("vmConfigCmd(): VM found, configuring VM")
         #TODO
         #Need to configure the vm adaptors accordingly
-        # self.vmManage.configureVM(vmName, args.srcIPAddress, args.dstIPAddress, args.srcPort, args.dstPort, args.adaptorNum)
+        # self.vmManage.configureVM(vmName, args.srcvmServerIP, args.dstvmServerIP, args.srcPort, args.dstPort, args.adaptorNum)
                 
     def vmManageStartCmd(self, args):
         logging.debug("vmManageStartCmd(): instantiated")

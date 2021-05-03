@@ -54,9 +54,9 @@ class ConnectionManageGuacRDP(ConnectionManage):
                 try:
                     for conn in usersConns[(username, password)]:
                         cloneVMName = conn[0]
-                        ipAddress = conn[1]
+                        vmServerIP = conn[1]
                         vrdpPort = conn[2]
-                        result = self.createConnAssociation(guacConn, cloneVMName, username, ipAddress, vrdpPort, maxConnections, maxConnectionsPerUser, width, height, bitdepth)
+                        result = self.createConnAssociation(guacConn, cloneVMName, username, vmServerIP, vrdpPort, maxConnections, maxConnectionsPerUser, width, height, bitdepth)
                         if result == "already_exists":
                             logging.debug("Connection already exists; skipping...")
                 except Exception:

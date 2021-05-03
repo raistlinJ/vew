@@ -41,7 +41,8 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.experimentTree.customContextMenuRequested.connect(self.showContextMenu)
         self.experimentTree.itemSelectionChanged.connect(self.onItemSelected)
         self.experimentTree.setEnabled(True)
-        self.experimentTree.setMaximumSize(200,521)
+        self.experimentTree.setMinimumSize(200,521)
+        self.experimentTree.setMaximumWidth(350)
         self.experimentTree.setObjectName("experimentTree")
         self.experimentTree.headerItem().setText(0, "Experiments New")
         self.experimentTree.setSortingEnabled(False)
@@ -142,6 +143,10 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
             if(selectedItem.text(0)[0] == "T"):
                 logging.debug("Setting right widget: " + str(self.experimentActionsBaseWidgets[parentparentSelectedItem.text(0)]["ExperimentActionsTemplateWidgets"][selectedItem.text(0)]))
                 self.basedataStackedWidget.setCurrentWidget(self.experimentActionsBaseWidgets[parentparentSelectedItem.text(0)]["ExperimentActionsTemplateWidgets"][selectedItem.text(0)])
+            if(selectedItem.text(0)[0] == "U"):
+                logging.debug("Setting right widget: " + str(self.experimentActionsBaseWidgets[parentparentSelectedItem.text(0)]["ExperimentActionsUserWidgets"][selectedItem.text(0)]))
+                self.basedataStackedWidget.setCurrentWidget(self.experimentActionsBaseWidgets[parentparentSelectedItem.text(0)]["ExperimentActionsUserWidgets"][selectedItem.text(0)])
+
 
     def getExperimentVMRolledOut(self, configname, config_json):
         logging.debug("ExperimentActionsWidget(): getExperimentVMRolledOut(): retranslateUi(): instantiated")
@@ -165,6 +170,9 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
 
         experimentVMTreeItem = QtWidgets.QTreeWidgetItem(experimentTreeWidgetItem)
         experimentVMTreeItem.setText(0,"VMs")
+
+        experimentUserTreeItem = QtWidgets.QTreeWidgetItem(experimentTreeWidgetItem)
+        experimentUserTreeItem.setText(0,"Users")
 
         self.experimentItemNames[configname] = experimentTreeWidgetItem
         #get all rolled out and then get them by VM
@@ -194,7 +202,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                     
             #create the status widgets (tables)
             self.experimentActionsBaseWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=[], vmuser_mapping=vmuser_mapping, status_bar=self.statusBar)
-            self.experimentActionsBaseWidgets[configname] = {"ExperimentActionsBaseWidget": {}, "ExperimentActionsSetWidgets": {}, "ExperimentActionsTemplateWidgets": {}, "ExperimentActionsVMWidgets": {} }
+            self.experimentActionsBaseWidgets[configname] = {"ExperimentActionsBaseWidget": {}, "ExperimentActionsSetWidgets": {}, "ExperimentActionsTemplateWidgets": {}, "ExperimentActionsVMWidgets": {}, "ExperimentActionsUserWidgets": {} }
             self.experimentActionsBaseWidgets[configname]["ExperimentActionsBaseWidget"] = self.experimentActionsBaseWidget
             self.basedataStackedWidget.addWidget(self.experimentActionsBaseWidget)
             #Set-based view
@@ -231,6 +239,17 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 experimentActionsVMStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=[vmname], vmuser_mapping=vmuser_mapping, status_bar=self.statusBar)
                 self.experimentActionsBaseWidgets[configname]["ExperimentActionsVMWidgets"][vmlabel] = experimentActionsVMStatusWidget
                 self.basedataStackedWidget.addWidget(experimentActionsVMStatusWidget)
+
+            #Individual Users-based view
+            for (username, password) in usersConns:
+                vmnames = [tuple[0] for tuple in usersConns[(username, password)] ]
+                user_item = QtWidgets.QTreeWidgetItem(experimentUserTreeItem)
+                user_label = "U: " + username
+                user_item.setText(0,user_label)
+                # VM Config Widget
+                experimentActionsUserStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=vmnames, vmuser_mapping=vmuser_mapping, status_bar=self.statusBar)
+                self.experimentActionsBaseWidgets[configname]["ExperimentActionsUserWidgets"][user_label] = experimentActionsUserStatusWidget
+                self.basedataStackedWidget.addWidget(experimentActionsUserStatusWidget)
 
         self.statusBar.showMessage("Added new experiment: " + str(configname))
         logging.debug("addExperimentItem(): retranslateUi(): Completed")
@@ -328,5 +347,9 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 widget.updateVMStatus(self.vms)
         #The VMs
         for widget in self.experimentActionsBaseWidgets[configname]["ExperimentActionsVMWidgets"].values():
+            if isinstance(widget, ExperimentActionsVMStatusWidget):
+                widget.updateVMStatus(self.vms)
+        #The Users
+        for widget in self.experimentActionsBaseWidgets[configname]["ExperimentActionsUserWidgets"].values():
             if isinstance(widget, ExperimentActionsVMStatusWidget):
                 widget.updateVMStatus(self.vms)

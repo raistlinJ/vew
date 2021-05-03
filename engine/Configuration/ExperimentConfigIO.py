@@ -9,6 +9,7 @@ import os
 class ExperimentConfigIO:
     def __init__(self):
         self.s = SystemConfigIO()
+        self.rolledoutjson = {}
 
     def getExperimentXMLFileData(self, configname):
         logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
@@ -26,13 +27,19 @@ class ExperimentConfigIO:
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             return None
 
-    def getExperimentVMRolledOut(self, configname, config_jsondata=None):
+    def getExperimentVMRolledOut(self, configname, config_jsondata=None, forceRefresh="False"):
         logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
         try:
+            if configname in self.rolledoutjson:
+                if forceRefresh == False:
+                    return self.rolledoutjson[configname]
+
             vmRolledOutList = {}
             if config_jsondata == None:
                 config_jsondata = self.getExperimentXMLFileData(configname)
-            ipAddress = config_jsondata["xml"]["testbed-setup"]["network-config"]["ip-address"]
+            vmServerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["vm-server-ip"]
+            # rdpBrokerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["rdp-broker-ip"]
+            # chatServerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["chat-server-ip"]
             vmSet = config_jsondata["xml"]["testbed-setup"]["vm-set"]
             pathToVirtualBox = config_jsondata["xml"]["vbox-setup"]["path-to-vboxmanage"]
             numClones = int(vmSet["num-clones"])
@@ -103,13 +110,16 @@ class ExperimentConfigIO:
                     vrdpEnabled = vm["vrdp-enabled"]
                     if vrdpEnabled != None and vrdpEnabled == 'true':
                         vrdpBaseport = str(int(vrdpBaseport))
-                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "ip-address": ipAddress, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
+                        #vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "rdp-broker-ip": rdpBrokerIP, "chat-server-ip": chatServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
                         vrdpBaseport = int(vrdpBaseport) + 1
                     #otherwise, don't include vrdp port
                     else:
-                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "ip-address": ipAddress, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
+                        #vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
 
                     logging.debug("getExperimentVMRolledOut(): finished setting up clone: " + str(vmRolledOutList))
+            self.rolledoutjson[configname] = vmRolledOutList, numClones
             return vmRolledOutList, numClones
 
         except Exception:

@@ -37,18 +37,39 @@ class BaseWidget(QtWidgets.QWidget):
         self.vBoxManageHorBox.addWidget(self.vBoxMangeLineEdit)
         #self.outerVertBox.addLayout(self.vBoxManageHorBox)
 
-        self.ipAddressHorBox = QtWidgets.QHBoxLayout()
-        self.ipAddressHorBox.setObjectName("ipAddressHorBox")
-        self.ipAddressLabel = QtWidgets.QLabel()
-        self.ipAddressLabel.setObjectName("ipAddressLabel")
-        self.ipAddressLabel.setText("Experiment Hostname/IP:")
+        self.vmServerIPHorBox = QtWidgets.QHBoxLayout()
+        self.vmServerIPHorBox.setObjectName("vmServerIPHorBox")
+        self.vmServerIPLabel = QtWidgets.QLabel()
+        self.vmServerIPLabel.setObjectName("vmServerIPLabel")
+        self.vmServerIPLabel.setText("VM Server IP:")
+        self.vmServerIPHorBox.addWidget(self.vmServerIPLabel)
+        self.vmServerIPLineEdit = QtWidgets.QLineEdit() 
+        self.vmServerIPLineEdit.setObjectName("vmServerIPLineEdit")
+        self.vmServerIPHorBox.addWidget(self.vmServerIPLineEdit)
+        self.outerVertBox.addLayout(self.vmServerIPHorBox)
 
-        self.ipAddressHorBox.addWidget(self.ipAddressLabel)
-        self.ipAddressLineEdit = QtWidgets.QLineEdit()
+        self.rdpBrokerHorBox = QtWidgets.QHBoxLayout()
+        self.rdpBrokerHorBox.setObjectName("rdpBrokerHorBox")
+        self.rdpBrokerLabel = QtWidgets.QLabel()
+        self.rdpBrokerLabel.setObjectName("rdpBrokerLabel")
+        self.rdpBrokerLabel.setText("RDP Broker URL:")
+        self.rdpBrokerHorBox.addWidget(self.rdpBrokerLabel)
+        self.rdpBrokerLineEdit = QtWidgets.QLineEdit() 
+        self.rdpBrokerLineEdit.setObjectName("rdpBrokerLineEdit")
+        self.rdpBrokerHorBox.addWidget(self.rdpBrokerLineEdit)
+        self.outerVertBox.addLayout(self.rdpBrokerHorBox)
 
-        self.ipAddressLineEdit.setObjectName("ipAddressLineEdit")
-        self.ipAddressHorBox.addWidget(self.ipAddressLineEdit)
-        self.outerVertBox.addLayout(self.ipAddressHorBox)
+        self.chatServerHorBox = QtWidgets.QHBoxLayout()
+        self.chatServerHorBox.setObjectName("chatServerHorBox")
+        self.chatServerLabel = QtWidgets.QLabel()
+        self.chatServerLabel.setObjectName("chatServerLabel")
+        self.chatServerLabel.setText("Chat Server URL:")
+        self.chatServerHorBox.addWidget(self.chatServerLabel)
+        self.chatServerLineEdit = QtWidgets.QLineEdit() 
+        self.chatServerLineEdit.setObjectName("chatServerLineEdit")
+        self.chatServerHorBox.addWidget(self.chatServerLineEdit)
+        self.outerVertBox.addLayout(self.chatServerHorBox)
+
         self.baseGroupNameHorBox = QtWidgets.QHBoxLayout()
         self.baseGroupNameHorBox.setObjectName("baseGroupNameHorBox")
         self.baseGroupNameLabel = QtWidgets.QLabel()
@@ -177,9 +198,17 @@ class BaseWidget(QtWidgets.QWidget):
             basejsondata["vbox-setup"]["path-to-vboxmanage"] = "VBoxManage"
         self.vBoxMangeLineEdit.setText(basejsondata["vbox-setup"]["path-to-vboxmanage"])
         ###
-        if "ip-address" not in basejsondata["testbed-setup"]["network-config"]:
-            basejsondata["testbed-setup"]["network-config"]["ip-address"] = "11.0.0.2"
-        self.ipAddressLineEdit.setText(basejsondata["testbed-setup"]["network-config"]["ip-address"])
+        if "vm-server-ip" not in basejsondata["testbed-setup"]["network-config"]:
+            basejsondata["testbed-setup"]["network-config"]["vm-server-ip"] = "11.0.0.2"
+        self.vmServerIPLineEdit.setText(basejsondata["testbed-setup"]["network-config"]["vm-server-ip"])
+        ###
+        if "rdp-broker-ip" not in basejsondata["testbed-setup"]["network-config"]:
+            basejsondata["testbed-setup"]["network-config"]["rdp-broker-ip"] = ""
+        self.rdpBrokerLineEdit.setText(basejsondata["testbed-setup"]["network-config"]["rdp-broker-ip"])
+        ###
+        if "chat-server-ip" not in basejsondata["testbed-setup"]["network-config"]:
+            basejsondata["testbed-setup"]["network-config"]["chat-server-ip"] = ""
+        self.chatServerLineEdit.setText(basejsondata["testbed-setup"]["network-config"]["chat-server-ip"])
         ###
         if "base-groupname" not in basejsondata["testbed-setup"]["vm-set"]:
             basejsondata["testbed-setup"]["vm-set"]["base-groupname"] = self.configname
@@ -217,7 +246,9 @@ class BaseWidget(QtWidgets.QWidget):
         jsondata["vbox-setup"]["path-to-vboxmanage"] = self.vBoxMangeLineEdit.text()
         jsondata["testbed-setup"] = {}
         jsondata["testbed-setup"]["network-config"] = {}
-        jsondata["testbed-setup"]["network-config"]["ip-address"] = self.ipAddressLineEdit.text()
+        jsondata["testbed-setup"]["network-config"]["vm-server-ip"] = self.vmServerIPLineEdit.text()
+        jsondata["testbed-setup"]["network-config"]["rdp-broker-ip"] = self.rdpBrokerLineEdit.text()
+        jsondata["testbed-setup"]["network-config"]["chat-server-ip"] = self.rdpBrokerLineEdit.text()
         jsondata["testbed-setup"]["vm-set"] = {}
         jsondata["testbed-setup"]["vm-set"]["base-groupname"] = self.baseGroupNameLineEdit.text()
         jsondata["testbed-setup"]["vm-set"]["num-clones"] = str(self.numClonesEntry.value())

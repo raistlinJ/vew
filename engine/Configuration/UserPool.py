@@ -92,7 +92,9 @@ class UserPool():
                 if "vrdpPort" in cloneinfo:
                     #keep track of users/connections using the groupnum
                     currGroupNum = cloneinfo["groupNum"]
-                    ipAddress = cloneinfo["ip-address"]
+                    vmServerIP = cloneinfo["vm-server-ip"]
+                    # rdpBrokerIP = cloneinfo["rdp-broker-ip"]
+                    # chatServerIP = cloneinfo["chat-server-ip"]
                     cloneVMName = cloneinfo["name"]
                     vrdpPort = cloneinfo["vrdpPort"]
 
@@ -107,6 +109,6 @@ class UserPool():
                         (username, password) = createdUsers[currGroupNum]
                     # Associate a User and Connection
                     logging.debug( "Generating Connection for Username: " + username)
-                    usersConns[(username, password)].append((cloneVMName, ipAddress, vrdpPort))
+                    usersConns[(username, password)].append((cloneVMName, vmServerIP, vrdpPort))
         logging.debug("generateUsersConns(): Complete...")
         return usersConns
