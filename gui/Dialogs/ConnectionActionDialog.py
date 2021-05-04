@@ -109,9 +109,10 @@ class ConnectionActionDialog(QDialog):
                 self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText(), "1", self.maxConnectionsLineEdit.text(), self.heightLineEdit.text(), self.widthLineEdit.text(), bitDepth, self.fileSelectorWidget.getCredsFilename()]
             elif self.actionname == "Remove":
                 self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText(), self.fileSelectorWidget.getCredsFilename()]
-            else:
+            elif self.actionname == "RemoveAll":
                 self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText()]
-
+            else:
+                pass
             cad = ConnectionActioningDialog(self.parent, self.configname, self.actionname, self.args).exec_()
             return (QMessageBox.Ok)
         return (QMessageBox.Cancel)

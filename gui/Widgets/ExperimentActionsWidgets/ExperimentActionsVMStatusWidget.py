@@ -39,7 +39,7 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
         
         self.vmStatusTable.setRowCount(0)
         self.vmStatusTable.setColumnCount(4)
-        self.vmStatusTable.setHorizontalHeaderLabels(("VM Name", "UUID", "Generated User", "Status"))
+        self.vmStatusTable.setHorizontalHeaderLabels(("VM Name", "Generated User", "Status", "UUID"))
 
         # Context menus
         self.vmStatusTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -104,9 +104,9 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
                     statusCell = QTableWidgetItem(str("refresh req."))
                     # statusCell.setFlags(Qt.ItemIsEnabled)
                     self.vmStatusTable.setItem(rowPos, 0, vmCell)
-                    self.vmStatusTable.setItem(rowPos, 1, uuidCell)
-                    self.vmStatusTable.setItem(rowPos, 2, usernameCell)
-                    self.vmStatusTable.setItem(rowPos, 3, statusCell)
+                    self.vmStatusTable.setItem(rowPos, 1, usernameCell)
+                    self.vmStatusTable.setItem(rowPos, 2, statusCell)
+                    self.vmStatusTable.setItem(rowPos, 3, uuidCell)
                     self.vmStatusTable.resizeColumnToContents(0)
 
     def showContextMenu(self, position):
