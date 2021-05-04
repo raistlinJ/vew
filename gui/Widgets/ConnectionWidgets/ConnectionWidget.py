@@ -155,7 +155,7 @@ class ConnectionWidget(QtWidgets.QWidget):
         #get all rolled out and then get them by VM
         funcs = []
         funcs.append((self.getExperimentVMRolledOut, configname, config_jsondata))
-        GUIFunctionExecutingDialog(None, "Processing Experiment:  " + str(configname), funcs).exec_()
+        GUIFunctionExecutingDialog(None, "Processing Conns for " + str(configname), funcs).exec_()
         rolledoutjson = self.rolledoutjson
         #rolledoutjson = self.eco.getExperimentVMRolledOut(configname, config_jsondata)
         if rolledoutjson != None:
@@ -167,7 +167,7 @@ class ConnectionWidget(QtWidgets.QWidget):
                 if os.path.exists(users_filename) == False:
                     invalid_userfile = True
             
-            usersConns = userpool.generateUsersConns(configname, users_filename, rolledout_json=rolledoutjson)
+            usersConns = userpool.generateUsersConns(configname, creds_file=users_filename, rolledout_json=rolledoutjson)
             vmuser_mapping = {}
             for (username, password) in usersConns:
                 for conn in usersConns[(username, password)]:
@@ -218,10 +218,12 @@ class ConnectionWidget(QtWidgets.QWidget):
                 self.basedataStackedWidget.addWidget(connectionStatusWidget)
 
             #Individual Users-based view
+            num = 1
             for (username, password) in usersConns:
                 vmnames = [tuple[0] for tuple in usersConns[(username, password)] ]
                 user_item = QtWidgets.QTreeWidgetItem(experimentUserTreeItem)
-                user_label = "U: " + username
+                user_label = "U: " + username + " (Set " + str(num) + ")"
+                num+=1
                 user_item.setText(0,user_label)
                 # VM Config Widget
                 experimentActionsUserStatusWidget = ConnectionStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=vmnames, vmuser_mapping=vmuser_mapping, status_bar=self.statusBar)
@@ -283,6 +285,10 @@ class ConnectionWidget(QtWidgets.QWidget):
                 itype = "template"
                 name = currItemText.split("T: ")[1:]
                 name = "\"" + " ".join(name) + "\""
+            elif currItemText.startswith("U: "):
+                itype = "set"
+                name = currItemText.split("(Set ")[1].split(")")[0]
+                name = " ".join(name)
         return configname, itype, name
 
     def menuItemSelected(self):
@@ -291,9 +297,12 @@ class ConnectionWidget(QtWidgets.QWidget):
         configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
         
         ##get server info
-        vmHostname, rdpBrokerHostname, chatServerIP = self.eco.getExperimentServerInfo(configname)
+        vmHostname, rdpBrokerHostname, chatServerIP, users_file = self.eco.getExperimentServerInfo(configname)
         if vmHostname != None and rdpBrokerHostname != None:
-            ConnectionActions().connectionActionEvent(self, configname, actionlabelname, vmHostname, rdpBrokerHostname, itype, name)
+            if users_file == None:
+                ConnectionActions().connectionActionEvent(self, configname, actionlabelname, vmHostname, rdpBrokerHostname, users_file="", itype=itype, name=name)
+            else:
+                ConnectionActions().connectionActionEvent(self, configname, actionlabelname, vmHostname, rdpBrokerHostname, users_file, itype, name)
         self.statusBar.showMessage("Executed " + str(actionlabelname) + " for " + configname)
 
     def refreshVMStatus(self):

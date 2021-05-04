@@ -591,8 +591,11 @@ class MainApp(QWidget):
         
         self.ec.writeExperimentXMLFileData(jsondata, configname)
         self.ec.writeExperimentJSONFileData(jsondata, configname)
+        self.ec.getExperimentVMRolledOut(configname, jsondata, force_refresh=True)
+        res = self.ec.getExperimentServerInfo(configname)
         #Now reset the experimentActions view
         self.experimentActionsWidget.resetExperiment(configname, jsondata)
+        self.connectionWidget.resetExperiment(configname, jsondata)
         self.statusBar.showMessage("Succesfully saved experiment file for " + str(configname), 2000)
 
 if __name__ == '__main__':

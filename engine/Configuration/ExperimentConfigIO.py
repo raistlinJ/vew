@@ -38,6 +38,7 @@ class ExperimentConfigIO:
         vmserverip=None
         rdpbroker=None
         chatserver=None
+        users_file=None
         if "xml" in jsondata:
             if "testbed-setup" in jsondata["xml"]:
                 if "network-config" in jsondata["xml"]["testbed-setup"]:
@@ -47,18 +48,23 @@ class ExperimentConfigIO:
                         rdpbroker = jsondata["xml"]["testbed-setup"]["network-config"]["rdp-broker-ip"]
                     if "chat-server-ip" in jsondata["xml"]["testbed-setup"]["network-config"]:
                         chatserver = jsondata["xml"]["testbed-setup"]["network-config"]["chat-server-ip"]
-        return vmserverip, rdpbroker, chatserver
+                if "vm-set" in jsondata["xml"]["testbed-setup"]:
+                    if "vm-set" in jsondata["xml"]["testbed-setup"]:
+                        if "users-filename" in jsondata["xml"]["testbed-setup"]["vm-set"]:
+                            users_file = jsondata["xml"]["testbed-setup"]["vm-set"]["users-filename"]
+                    
+        return vmserverip, rdpbroker, chatserver, users_file
 
-    def getExperimentVMRolledOut(self, configname, config_jsondata=None, forceRefresh="False"):
+    def getExperimentVMRolledOut(self, configname, config_jsondata=None, force_refresh="False"):
         logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
         try:
             if configname in self.rolledoutjson:
-                if forceRefresh == False:
+                if force_refresh == False:
                     return self.rolledoutjson[configname]
 
             vmRolledOutList = {}
-            if config_jsondata == None:
-                config_jsondata = self.getExperimentXMLFileData(configname)
+            if config_jsondata == None or force_refresh:
+                config_jsondata = self.getExperimentXMLFileData(configname, force_refresh=True)
             vmServerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["vm-server-ip"]
             rdpBrokerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["rdp-broker-ip"]
             chatServerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["chat-server-ip"]

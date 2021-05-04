@@ -116,7 +116,7 @@ class Engine:
         if creds_file != None and isinstance(creds_file, str) and creds_file.strip() != "None":
             full_creds_file = os.path.abspath(creds_file)
             if os.path.exists(full_creds_file):
-                return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, itype, name, full_creds_file)
+                return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, full_creds_file, itype, name)
         return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth)
 
     def connectionRemoveCmd(self, args):
@@ -135,7 +135,7 @@ class Engine:
         if creds_file != None and isinstance(creds_file, str) and creds_file.strip() != "None":
             full_creds_file = os.path.abspath(creds_file)
             if os.path.exists(full_creds_file):
-                return self.connectionManage.removeConnections(configname, hostname, username, password, url_path, method, itype, name, full_creds_file)
+                return self.connectionManage.removeConnections(configname, hostname, username, password, url_path, method, full_creds_file, itype, name)
         return self.connectionManage.removeConnections(configname, hostname, username, password, url_path, method)
 
     def connectionClearAllCmd(self, args):
@@ -146,10 +146,8 @@ class Engine:
         password = args.password
         url_path = args.url_path
         method = args.method
-        itype = args.itype
-        name = args.name
         
-        return self.connectionManage.clearAllConnections(hostname, username, password, url_path, method, itype, name)
+        return self.connectionManage.clearAllConnections(hostname, username, password, url_path, method)
 
     def connectionOpenCmd(self, args):
         logging.debug("connectionOpenCmd(): instantiated")
@@ -399,10 +397,6 @@ class Engine:
                                           help='URL path to broker service')
         self.connectionManageClearAllParser.add_argument('method', metavar='<method>', action="store",
                                           help='Either HTTP or HTTPS, depending on the server\'s configuration')
-        self.connectionManageClearAllParser.add_argument('itype', metavar='<instance-type>', action="store",
-                                          help='set, template, or vm')
-        self.connectionManageClearAllParser.add_argument('name', metavar='<instance-name>', action="store",
-                                          help='all, set-number, template-vm-name, or clone-vm-name')
         self.connectionManageClearAllParser.set_defaults(func=self.connectionClearAllCmd)
 
         self.connectionManageOpenParser = self.connectionManageSubParser.add_parser('open', help='start connection to specified experiment instance and vrdp-enabled vm as specified in config file')

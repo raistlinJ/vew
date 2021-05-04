@@ -55,7 +55,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
         t.start()
         return 0
 
-    def runCreateConnections(self, configname, guacHostname, username, password,url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, creds_file, itype, name):
+    def runCreateConnections(self, configname, guacHostname, musername, mpassword,url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, creds_file, itype, name):
         logging.debug("runCreateConnections(): instantiated")
         #call guac backend API to make connections as specified in config file and then set the complete status
         rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
@@ -66,40 +66,42 @@ class ConnectionManageGuacRDP(ConnectionManage):
 
         try:
             self.writeStatus = ConnectionManage.CONNECTION_MANAGE_CREATING
-            logging.debug("runCreateConnection(): guacHostname: " + str(guacHostname) + " username/pass: " + username + " url_path: " + url_path + " method: " + str(method) + " creds_file: " + creds_file)
-            guacConn = Guacamole(guacHostname,username=username,password=password,url_path=url_path,method=method)
+            logging.debug("runCreateConnection(): guacHostname: " + str(guacHostname) + " username/pass: " + musername + " url_path: " + url_path + " method: " + str(method) + " creds_file: " + creds_file)
+            guacConn = Guacamole(guacHostname,username=musername,password=mpassword,url_path=url_path,method=method)
             if guacConn == None:
-                logging.error("runCreateConnection(): Error with guac connection... skipping: " + str(guacHostname) + " " + str(username))
+                logging.error("runCreateConnection(): Error with guac connection... skipping: " + str(guacHostname) + " " + str(musername))
                 self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
                 return -1
             user_dict = guacConn.get_users()
-            for (username, password) in usersConns:
-                if username not in user_dict:
-                    logging.debug( "Creating User: " + username)                
-                    try:
-                        result = self.createUser(guacConn, username, password)
-                        if result == "already_exists":
-                            logging.debug("User already exists; skipping...")
-                    except Exception:
-                        logging.error("runCreateConnections(): Error in runCreateConnections(): when trying to add user.")
-                        exc_type, exc_value, exc_traceback = sys.exc_info()
-                        traceback.print_exception(exc_type, exc_value, exc_traceback)
-
-                logging.debug( "Creating Connection for Username: " + username)
-                try:
+            try:
+                for (username, password) in usersConns:
                     for conn in usersConns[(username, password)]:
                         cloneVMName = conn[0]
                         vmServerIP = conn[1]
                         vrdpPort = conn[2]
                         #only if this is a specific connection to create; based on itype and name
                         if cloneVMName in validconnsnames:
+                            #if user doesn't exist, create it
+                            if username not in user_dict:
+                                logging.debug( "Creating User: " + username)
+                                try:
+                                    result = self.createUser(guacConn, username, password)
+                                    if result == "already_exists":
+                                        logging.debug("User already exists; skipping...")
+                                    #add to the list of known users
+                                    user_dict[username] = ""
+                                except Exception:
+                                    logging.error("runCreateConnections(): Error in runCreateConnections(): when trying to add user.")
+                                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                                    traceback.print_exception(exc_type, exc_value, exc_traceback)
+                            #add the connection association
                             result = self.createConnAssociation(guacConn, cloneVMName, username, vmServerIP, vrdpPort, maxConnections, maxConnectionsPerUser, width, height, bitdepth)
                             if result == "already_exists":
                                 logging.debug("Connection already exists; skipping...")
-                except Exception:
-                        logging.error("runCreateConnections(): Error in runCreateConnections(): when trying to add connection.")
-                        exc_type, exc_value, exc_traceback = sys.exc_info()
-                        traceback.print_exception(exc_type, exc_value, exc_traceback)
+            except Exception:
+                    logging.error("runCreateConnections(): Error in runCreateConnections(): when trying to add connection.")
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    traceback.print_exception(exc_type, exc_value, exc_traceback)
             logging.debug("runCreateConnections(): Complete...")
             self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
         except Exception:

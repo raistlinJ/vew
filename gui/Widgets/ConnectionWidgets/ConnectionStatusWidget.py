@@ -1,4 +1,4 @@
-from gui.Helpers.ExperimentActions import ExperimentActions
+from gui.Helpers.ConnectionActions import ConnectionActions
 from engine.Configuration.UserPool import UserPool
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QDateTime, Qt, QTimer, QThread, pyqtSignal, QObject
@@ -13,7 +13,7 @@ import logging
 
 class ConnectionStatusWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, configname=None, widgetname="", rolledoutjson=None, interest_vmnames = [], vmuser_mapping={}, status_bar=None):
-        logging.debug("ExperimentActionsBaseWidgets instantiated")
+        logging.debug("ConnectionStatusWidget instantiated")
         if configname == None:
             logging.error("configname cannot be empty")
             return None
@@ -23,8 +23,8 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
         self.configname = configname
         self.rolledoutjson = rolledoutjson
 
-        self.setWindowTitle("ExperimentActionsBaseWidgets")
-        self.setObjectName("ExperimentActionsBaseWidgets")
+        self.setWindowTitle("ConnectionStatusWidget")
+        self.setObjectName("ConnectionStatusWidget")
         self.layoutWidget = QtWidgets.QWidget()
         self.layoutWidget.setObjectName("layoutWidget")
         self.outerVertBox = QtWidgets.QVBoxLayout()
@@ -121,7 +121,7 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
             return
         vmName = self.vmStatusTable.item(vmRow,0).text()
         actionlabelname = self.sender().text()
-        ExperimentActions().experimentActionEvent(self.configname, actionlabelname, "vm", vmName)
+        ConnectionActions().connectionActionEvent(self.configname, actionlabelname, "vm", vmName)
         self.statusBar.showMessage("Executed " + str(actionlabelname) + " on " + self.configname)
 
     def updateVMStatus(self, vmStatus):

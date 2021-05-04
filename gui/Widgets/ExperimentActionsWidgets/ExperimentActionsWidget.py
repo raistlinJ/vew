@@ -178,19 +178,17 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         #get all rolled out and then get them by VM
         funcs = []
         funcs.append((self.getExperimentVMRolledOut, configname, config_jsondata))
-        GUIFunctionExecutingDialog(None, "Processing Experiment:  " + str(configname), funcs).exec_()
+        GUIFunctionExecutingDialog(None, "Processing VMs for " + str(configname), funcs).exec_()
         rolledoutjson = self.rolledoutjson
-        #rolledoutjson = self.eco.getExperimentVMRolledOut(configname, config_jsondata)
         if rolledoutjson != None:
-            #get the usersConn associations first:
             # if file was specified, but it doesn't exist, prepend usernames
             invalid_userfile = False
             users_filename = config_jsondata["xml"]["testbed-setup"]["vm-set"]["users-filename"]
             if users_filename != None and users_filename.strip() != "":
                 if os.path.exists(users_filename) == False:
                     invalid_userfile = True
-            
-            usersConns = userpool.generateUsersConns(configname, users_filename, rolledout_json=rolledoutjson)
+            #get the usersConn associations first:            
+            usersConns = userpool.generateUsersConns(configname, creds_file=users_filename, rolledout_json=rolledoutjson)
             vmuser_mapping = {}
             for (username, password) in usersConns:
                 for conn in usersConns[(username, password)]:
@@ -241,10 +239,12 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 self.basedataStackedWidget.addWidget(experimentActionsVMStatusWidget)
 
             #Individual Users-based view
+            num = 1
             for (username, password) in usersConns:
                 vmnames = [tuple[0] for tuple in usersConns[(username, password)] ]
                 user_item = QtWidgets.QTreeWidgetItem(experimentUserTreeItem)
-                user_label = "U: " + username
+                user_label = "U: " + username + " (Set " + str(num) + ")"
+                num+=1
                 user_item.setText(0,user_label)
                 # VM Config Widget
                 experimentActionsUserStatusWidget = ExperimentActionsVMStatusWidget(self, configname, rolledoutjson=rolledoutjson, interest_vmnames=vmnames, vmuser_mapping=vmuser_mapping, status_bar=self.statusBar)
@@ -306,6 +306,10 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 itype = "template"
                 name = currItemText.split("T: ")[1:]
                 name = "\"" + " ".join(name) + "\""
+            elif currItemText.startswith("U: "):
+                itype = "set"
+                name = currItemText.split("(Set ")[1].split(")")[0]
+                name = " ".join(name)
         return configname, itype, name
 
     def menuItemSelected(self):
