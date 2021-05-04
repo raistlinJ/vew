@@ -17,18 +17,53 @@ class ConnectionManageGuacRDP(ConnectionManage):
         self.guacifx = GuacIFX()
         self.eco = ExperimentConfigIO()
 
+    def getValidConnsFromTypeName(self, configname, itype, name, rolledoutjson=None):
+        logging.debug("getValidConnsFromTypeName(): instantiated")
+        if rolledoutjson == None:
+            rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
+        #get VMs or sets that we need to start
+        validconns = []
+        validconnnames = []
+        if name == "all":
+            #if all was specified, just add all vms to the list
+            validconns = self.eco.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
+            for vm in validconns:
+                validconnnames.append(vm["name"])
+        elif itype == "set":
+            validconns = self.eco.getExperimentVMsInSetFromRolledOut(configname, name, rolledoutjson)
+            for vm in validconns:
+                validconnnames.append(vm)                
+        elif itype == "template":
+            validconns = []
+            if name in self.eco.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson):
+                validconns = self.eco.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson)[name]
+            for vm in validconns:
+                validconnnames.append(vm)
+        elif itype == "vm":
+            validconnnames.append(name)
+        elif itype == "":
+            #if none was specified, just add all vms to the list
+            validconns = self.eco.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
+            for vm in validconns:
+                validconnnames.append(vm["name"])
+        return validconnnames
+
     #abstractmethod
-    def createConnections(self, configname, guacHostname, username, password, url_path, method, maxConnections="", maxConnectionsPerUser="", width="1400", height="1050", bitdepth="16", creds_file=""):
+    def createConnections(self, configname, guacHostname, username, password, url_path, method, maxConnections="", maxConnectionsPerUser="", width="1400", height="1050", bitdepth="16", creds_file="", itype="", name=""):
         logging.debug("createConnections(): instantiated")
-        t = threading.Thread(target=self.runCreateConnections, args=(configname, guacHostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, creds_file))
+        t = threading.Thread(target=self.runCreateConnections, args=(configname, guacHostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, creds_file, itype, name))
         t.start()
         return 0
 
-    def runCreateConnections(self, configname, guacHostname, username, password,url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, creds_file):
+    def runCreateConnections(self, configname, guacHostname, username, password,url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, creds_file, itype, name):
         logging.debug("runCreateConnections(): instantiated")
         #call guac backend API to make connections as specified in config file and then set the complete status
+        rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
+        validconnsnames = self.getValidConnsFromTypeName(configname, itype, name, rolledoutjson)
+
         userpool = UserPool()
         usersConns = userpool.generateUsersConns(configname, creds_file=creds_file)
+
         try:
             self.writeStatus = ConnectionManage.CONNECTION_MANAGE_CREATING
             logging.debug("runCreateConnection(): guacHostname: " + str(guacHostname) + " username/pass: " + username + " url_path: " + url_path + " method: " + str(method) + " creds_file: " + creds_file)
@@ -37,18 +72,18 @@ class ConnectionManageGuacRDP(ConnectionManage):
                 logging.error("runCreateConnection(): Error with guac connection... skipping: " + str(guacHostname) + " " + str(username))
                 self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
                 return -1
-
+            user_dict = guacConn.get_users()
             for (username, password) in usersConns:
-
-                logging.debug( "Creating User: " + username)                
-                try:
-                    result = self.createUser(guacConn, username, password)
-                    if result == "already_exists":
-                        logging.debug("User already exists; skipping...")
-                except Exception:
-                    logging.error("runCreateConnections(): Error in runCreateConnections(): when trying to add user.")
-                    exc_type, exc_value, exc_traceback = sys.exc_info()
-                    traceback.print_exception(exc_type, exc_value, exc_traceback)
+                if username not in user_dict:
+                    logging.debug( "Creating User: " + username)                
+                    try:
+                        result = self.createUser(guacConn, username, password)
+                        if result == "already_exists":
+                            logging.debug("User already exists; skipping...")
+                    except Exception:
+                        logging.error("runCreateConnections(): Error in runCreateConnections(): when trying to add user.")
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        traceback.print_exception(exc_type, exc_value, exc_traceback)
 
                 logging.debug( "Creating Connection for Username: " + username)
                 try:
@@ -56,9 +91,11 @@ class ConnectionManageGuacRDP(ConnectionManage):
                         cloneVMName = conn[0]
                         vmServerIP = conn[1]
                         vrdpPort = conn[2]
-                        result = self.createConnAssociation(guacConn, cloneVMName, username, vmServerIP, vrdpPort, maxConnections, maxConnectionsPerUser, width, height, bitdepth)
-                        if result == "already_exists":
-                            logging.debug("Connection already exists; skipping...")
+                        #only if this is a specific connection to create; based on itype and name
+                        if cloneVMName in validconnsnames:
+                            result = self.createConnAssociation(guacConn, cloneVMName, username, vmServerIP, vrdpPort, maxConnections, maxConnectionsPerUser, width, height, bitdepth)
+                            if result == "already_exists":
+                                logging.debug("Connection already exists; skipping...")
                 except Exception:
                         logging.error("runCreateConnections(): Error in runCreateConnections(): when trying to add connection.")
                         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -116,16 +153,19 @@ class ConnectionManageGuacRDP(ConnectionManage):
         self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
 
     #abstractmethod
-    def removeConnections(self, configname, guacHostname, username, password, url_path, method, creds_file=""):
+    def removeConnections(self, configname, guacHostname, username, password, url_path, method, creds_file="", itype="", name=""):
         logging.debug("removeConnections(): instantiated")
-        t = threading.Thread(target=self.runRemoveConnections, args=(configname,guacHostname, username, password, url_path, method, creds_file))
+        t = threading.Thread(target=self.runRemoveConnections, args=(configname,guacHostname, username, password, url_path, method, creds_file, itype, name))
         t.start()
         return 0
 
-    def runRemoveConnections(self, configname, guacHostname, username, password, url_path, method, creds_file):
+    def runRemoveConnections(self, configname, guacHostname, username, password, url_path, method, creds_file, itype, name):
         self.writeStatus = ConnectionManage.CONNECTION_MANAGE_REMOVING
         logging.debug("runRemoveConnections(): instantiated")
         #call guac backend API to make connections as specified in config file and then set the complete status
+        rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
+        validconnsnames = self.getValidConnsFromTypeName(configname, itype, name, rolledoutjson)
+
         userpool = UserPool()
         try:
             usersConns = userpool.generateUsersConns(configname, creds_file=creds_file)
@@ -138,24 +178,28 @@ class ConnectionManageGuacRDP(ConnectionManage):
                 return -1
 
             for (username, password) in usersConns:
-
-                logging.debug( "Removing User: " + username)                
-                try:
-                    result = self.removeUser(guacConn, username)
-                    if result == "Does not Exist":
-                        logging.debug("User doesn't exist; skipping...")
-                except Exception:
-                    logging.error("runRemoveConnections(): Error in runRemoveConnections(): when trying to remove user.")
-                    exc_type, exc_value, exc_traceback = sys.exc_info()
-                    traceback.print_exception(exc_type, exc_value, exc_traceback)
-
                 logging.debug( "Removing Connection for Username: " + username)
                 try:
                     for conn in usersConns[(username, password)]:
                         cloneVMName = conn[0]
-                        result = self.removeConnAssociation(guacConn, cloneVMName)
-                        if result == "Does not Exist":
-                            logging.debug("Connection doesn't exists; skipping...")
+                        if cloneVMName in validconnsnames:
+                            result = self.removeConnAssociation(guacConn, cloneVMName)
+                            if result == "Does not Exist":
+                                logging.debug("Connection doesn't exists; skipping...")
+
+                    #check if any other connections exist for user, if not, remove the user too
+                    try:
+                        result = guacConn.get_permissions(username)
+                        if len(result["connectionPermissions"]) == 0:
+                            logging.debug( "Removing User: " + username)
+                            result = self.removeUser(guacConn, username)
+                            if result == "Does not Exist":
+                                logging.debug("User doesn't exist; skipping...")
+                    except Exception:
+                        logging.error("runRemoveConnections(): Error in runRemoveConnections(): when trying to remove user.")
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        traceback.print_exception(exc_type, exc_value, exc_traceback)
+
                 except Exception:
                         logging.error("runRemoveConnections(): Error in runRemoveConnections(): when trying to remove connection.")
                         exc_type, exc_value, exc_traceback = sys.exc_info()

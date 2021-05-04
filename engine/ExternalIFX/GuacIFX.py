@@ -1,4 +1,3 @@
-#TODO: make this into a callable class
 import subprocess
 import shutil
 import xml.etree.ElementTree as ET
