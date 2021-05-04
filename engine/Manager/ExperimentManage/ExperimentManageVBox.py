@@ -24,7 +24,12 @@ class ExperimentManageVBox(ExperimentManage):
         #get VMs or sets that we need to start
         validvms = []
         validvmnames = []
-        if itype == "set":
+        if name == "all":
+            #if none was specified, just add all vms to the list
+            validvms = self.eco.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
+            for vm in validvms:
+                validvmnames.append(vm["name"])            
+        elif itype == "set":
             validvms = self.eco.getExperimentVMsInSetFromRolledOut(configname, name, rolledoutjson)
             for vm in validvms:
                 validvmnames.append(vm)                
