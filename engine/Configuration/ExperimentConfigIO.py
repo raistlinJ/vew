@@ -5,12 +5,38 @@ import json
 import sys, traceback
 from engine.Configuration.SystemConfigIO import SystemConfigIO
 import os
+import threading
 
 class ExperimentConfigIO:
+
+    __singleton_lock = threading.Lock()
+    __singleton_instance = None
+
+    @classmethod
+    def getInstance(cls):
+        logging.debug("getInstance() ExperimentConfigIO: instantiated")
+        if not cls.__singleton_instance:
+            with cls.__singleton_lock:
+                if not cls.__singleton_instance:
+                    cls.__singleton_instance = cls()
+        return cls.__singleton_instance
+
     def __init__(self):
+        #Virtually private constructor
         self.s = SystemConfigIO()
         self.rolledoutjson = {}
         self.config_jsondata = {}
+        self.config_rdp_userpass = {}
+
+    def storeConfigRDPBrokerCreds(self, configname, username, password):
+        logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
+        self.config_rdp_userpass[configname] = (username, password)
+
+    def getConfigRDPBrokerCreds(self, configname):
+        logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
+        if configname in self.config_rdp_userpass:
+            return self.config_rdp_userpass[configname]
+        return None
 
     def getExperimentXMLFileData(self, configname, force_refresh=False):
         logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
@@ -302,7 +328,7 @@ if __name__ == "__main__":
     logging.debug("Starting Program")
 
     logging.debug("Instantiating Experiment Config IO")
-    e = ExperimentConfigIO()
+    e = ExperimentConfigIO.getInstance()
     logging.info("Getting experiment folders and filenames")
     [xmlExperimentFilenames, xmlExperimentNames] = e.getExperimentXMLFilenames()
     logging.info("Contents: " + str(xmlExperimentFilenames) + " " + str(xmlExperimentNames))

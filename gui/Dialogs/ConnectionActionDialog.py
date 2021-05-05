@@ -1,3 +1,4 @@
+from gui.Dialogs.ConnectionRetrievingDialog import ConnectionRetrievingDialog
 from PyQt5.QtCore import QDateTime, Qt, QTimer, QThread, pyqtSignal, QObject
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QDial, QDialog, QDialogButtonBox, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
@@ -8,6 +9,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
 from engine.Engine import Engine
 import time
 from engine.Manager.ConnectionManage.ConnectionManage import ConnectionManage
+from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 from gui.Dialogs.ConnectionActioningDialog import ConnectionActioningDialog
 import logging
 import configparser
@@ -18,10 +20,11 @@ class ConnectionActionDialog(QDialog):
         logging.debug("ConnectionActionDialog(): instantiated")
         super(ConnectionActionDialog, self).__init__(parent)
         self.parent = parent
+        self.eco = ExperimentConfigIO.getInstance()
         self.configname = configname
         self.actionname = actionname
         self.experimentHostname = experimentHostname
-        self.usersFile= users_file
+        self.usersFile = users_file
         self.itype = itype
         self.name = name
         if rdpBrokerHostname.strip() == "":
@@ -54,9 +57,15 @@ class ConnectionActionDialog(QDialog):
         self.hostnameLineEdit = QLineEdit(self.rdpBrokerHostname)
         self.hostnameLineEdit.setEnabled(False)
         self.layout.addRow(QLabel("RDP Broker Hostname/IP:"), self.hostnameLineEdit)
-        self.usernameLineEdit = QLineEdit()
+        mgmusername = ""
+        mgmpassword = ""
+        cachedCreds = self.eco.getConfigRDPBrokerCreds(self.configname)
+        if cachedCreds != None:
+            mgmusername = cachedCreds[0]
+            mgmpassword = cachedCreds[1]
+        self.usernameLineEdit = QLineEdit(mgmusername)
         self.layout.addRow(QLabel("Management Username:"), self.usernameLineEdit)
-        self.passwordLineEdit = QLineEdit()
+        self.passwordLineEdit = QLineEdit(mgmpassword)
         self.passwordLineEdit.setEchoMode(QLineEdit.Password)
         self.layout.addRow(QLabel("Management Password:"), self.passwordLineEdit)
         self.urlPathLineEdit = QLineEdit("/guacamole")
@@ -111,9 +120,16 @@ class ConnectionActionDialog(QDialog):
                 self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText(), self.usersFileLabel.text(), self.itype, self.name]
             elif self.actionname == "Clear":
                 self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText()]
+            elif self.actionname == "Refresh":
+                self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText()]
             else:
                 pass
-            cad = ConnectionActioningDialog(self.parent, self.configname, self.actionname, self.args).exec_()
-            return (QMessageBox.Ok)
+            if self.actionname == "Refresh":
+                self.eco.storeConfigRDPBrokerCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text())
+                crd = ConnectionRetrievingDialog(self.parent, self.args).exec_()
+                return crd
+            else:
+                self.eco.storeConfigRDPBrokerCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text())
+                cad = ConnectionActioningDialog(self.parent, self.configname, self.actionname, self.args).exec_()
+                return (QMessageBox.Ok)
         return (QMessageBox.Cancel)
-        

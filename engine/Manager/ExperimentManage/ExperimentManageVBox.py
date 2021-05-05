@@ -15,7 +15,7 @@ class ExperimentManageVBox(ExperimentManage):
         ExperimentManage.__init__(self)
         #Create an instance of vmManage
         self.vmManage = vmManage
-        self.eco = ExperimentConfigIO()
+        self.eco = ExperimentConfigIO.getInstance()
 
     def getValidVMsFromTypeName(self, configname, itype, name, rolledoutjson=None):
         logging.debug("getValidVMsFromTypeName(): instantiated")

@@ -128,7 +128,7 @@ if __name__=='__main__':
         elif "info" in logging_level.lower():
             logging.getLogger().setLevel(logging.INFO)
     configname = sys.argv[4]
-    e = ExperimentConfigIO()
+    e = ExperimentConfigIO.getInstance()
     data, numclones = e.getExperimentVMRolledOut(configname)
     
     configvms = []

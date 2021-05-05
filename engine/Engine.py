@@ -66,9 +66,11 @@ class Engine:
         return self.vmManage.getVMStatus(vmName)
         
     def vmManageMgrStatusCmd(self, args):
+        logging.debug("vmManageMgrStatusCmd(): instantiated")
         return self.vmManage.getManagerStatus()
         
     def vmManageRefreshCmd(self, args):
+        logging.debug("vmManageRefreshCmd(): instantiated")
         self.vmManage.refreshAllVMInfo()
 
     def packagerStatusCmd(self, args):
@@ -95,6 +97,15 @@ class Engine:
     def connectionStatusCmd(self, args):
         #query connection manager status and then return it here
         return self.connectionManage.getConnectionManageStatus()
+
+    def connectionRefreshCmd(self, args):
+        hostname = args.hostname
+        username = args.username
+        password = args.password
+        url_path = args.url_path
+        method = args.method
+        #query connection manager status and then return it here
+        return self.connectionManage.getConnectionManageRefresh(hostname, username, password, url_path, method)
         
     def connectionCreateCmd(self, args):
         logging.debug("connectionCreateCmd(): instantiated")
@@ -333,6 +344,19 @@ class Engine:
 
         self.connectionManageStatusParser = self.connectionManageSubParser.add_parser('status', help='retrieve connection manager status')
         self.connectionManageStatusParser.set_defaults(func=self.connectionStatusCmd)
+
+        self.connectionManageRefreshParser = self.connectionManageSubParser.add_parser('refresh', help='retrieve all connection manager status')
+        self.connectionManageRefreshParser.add_argument('hostname', metavar='<host address>', action="store",
+                                          help='Name or IP address where Connection host resides')
+        self.connectionManageRefreshParser.add_argument('username', metavar='<username>', action="store",
+                                          help='Username for connecting to host')
+        self.connectionManageRefreshParser.add_argument('password', metavar='<password>', action="store",
+                                          help='Password for connecting to host')
+        self.connectionManageRefreshParser.add_argument('url_path', metavar='<url_path>', action="store",
+                                          help='URL path to broker service')
+        self.connectionManageRefreshParser.add_argument('method', metavar='<method>', action="store",
+                                          help='Either HTTP or HTTPS, depending on the server\'s configuration')
+        self.connectionManageRefreshParser.set_defaults(func=self.connectionRefreshCmd)
 
         self.connectionManageCreateParser = self.connectionManageSubParser.add_parser('create', help='create conns as specified in config file')
         self.connectionManageCreateParser.add_argument('configname', metavar='<config filename>', action="store",

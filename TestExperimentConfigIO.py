@@ -12,7 +12,7 @@ if __name__ == "__main__":
     logging.debug("Starting Program")
 
     logging.debug("Instantiating Experiment Config IO")
-    e = ExperimentConfigIO()
+    e = ExperimentConfigIO.getInstance()
     logging.info("Getting experiment folders and filenames")
     [xmlExperimentFilenames, xmlExperimentNames] = e.getExperimentXMLFilenames()
     logging.info("Contents: " + str(xmlExperimentFilenames) + " " + str(xmlExperimentNames))

@@ -1,6 +1,7 @@
+from gui.Dialogs.ConnectionActionDialog import ConnectionActionDialog
+from gui.Dialogs.ConnectionActioningDialog import ConnectionActioningDialog
 from gui.Dialogs.GUIFunctionExecutingDialog import GUIFunctionExecutingDialog
-from gui.Dialogs.VMRetrievingDialog import VMRetrievingDialog
-from gui.Dialogs.VMRetreiveDialog import VMRetrieveDialog
+from gui.Dialogs.ConnectionRetrievingDialog import ConnectionRetrievingDialog
 from PyQt5 import QtCore, QtGui, QtWidgets
 import logging
 from gui.Dialogs.ExperimentActionDialog import ExperimentActionDialog
@@ -22,7 +23,7 @@ class ConnectionWidget(QtWidgets.QWidget):
         self.statusBar = statusBar
         self.experimentItemNames = {}
         self.connectionBaseWidgets = {}
-        self.eco = ExperimentConfigIO()
+        self.eco = ExperimentConfigIO.getInstance()
 
         self.setObjectName("ConnectionWidget")
 
@@ -56,10 +57,10 @@ class ConnectionWidget(QtWidgets.QWidget):
         self.basedataStackedWidget.setEnabled(False)
         self.windowBoxVLayout.addWidget(self.basedataStackedWidget)
 
-        self.refreshVMsButton = QtWidgets.QPushButton("Refresh Status")
-        self.refreshVMsButton.clicked.connect(self.refreshVMStatus)
-        self.refreshVMsButton.setEnabled(False)
-        self.windowBoxVLayout.addWidget(self.refreshVMsButton)
+        self.refreshConnsButton = QtWidgets.QPushButton("Refresh Status")
+        self.refreshConnsButton.clicked.connect(self.refreshConnsStatus)
+        self.refreshConnsButton.setEnabled(False)
+        self.windowBoxVLayout.addWidget(self.refreshConnsButton)
 
         self.windowBoxHLayout.addLayout(self.windowBoxVLayout)
         
@@ -84,7 +85,7 @@ class ConnectionWidget(QtWidgets.QWidget):
     def onItemSelected(self):
         logging.debug("MainApp:onItemSelected instantiated")
         self.basedataStackedWidget.setEnabled(True)
-        self.refreshVMsButton.setEnabled(True)
+        self.refreshConnsButton.setEnabled(True)
     	# Get the selected item
         selectedItem = self.experimentTree.currentItem()
         if selectedItem == None:
@@ -157,7 +158,7 @@ class ConnectionWidget(QtWidgets.QWidget):
         funcs.append((self.getExperimentVMRolledOut, configname, config_jsondata))
         GUIFunctionExecutingDialog(None, "Processing Conns for " + str(configname), funcs).exec_()
         rolledoutjson = self.rolledoutjson
-        #rolledoutjson = self.eco.getExperimentVMRolledOut(configname, config_jsondata)
+
         if rolledoutjson != None:
             #get the usersConn associations first:
             # if file was specified, but it doesn't exist, prepend usernames
@@ -305,7 +306,7 @@ class ConnectionWidget(QtWidgets.QWidget):
                 ConnectionActions().connectionActionEvent(self, configname, actionlabelname, vmHostname, rdpBrokerHostname, users_file, itype, name)
         self.statusBar.showMessage("Executed " + str(actionlabelname) + " for " + configname)
 
-    def refreshVMStatus(self):
+    def refreshConnsStatus(self):
         logging.debug("refreshVMStatus(): instantiated")
 
         #Get the configname based on selected item:
@@ -319,27 +320,41 @@ class ConnectionWidget(QtWidgets.QWidget):
         while selectedItem.parent() != None:
             selectedItem = selectedItem.parent()
         configname = selectedItem.text(0)
-        s = VMRetrievingDialog(self).exec_()
-        self.vms = s["vmstatus"]
 
+        vmHostname, rdpBrokerHostname, chatServerIP, users_file = self.eco.getExperimentServerInfo(configname)
+        s = ConnectionActionDialog(self, configname, "Refresh", vmHostname, rdpBrokerHostname).exec_()
+        #format: {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersConnsStatus" : [(username, connName): {"user_status": user_perm, "connStatus": active}] }
+        if s == QMessageBox.Cancel:
+            logging.debug("Cancel pressed")
+            return
+        if s == None or s == -1:
+            logging.error("Could not retrieve connection status: " + str(s))
+            QMessageBox.warning(self,
+                        "No Results",
+                        "Incorrect credentials or no connectivity",
+                        QMessageBox.Ok)
+            return
+
+        self.usersConnsStatus = s["usersConnsStatus"]
+        
         #Update all vm status in the subtrees
         #First the "all" view
         for widget in self.connectionBaseWidgets[configname].values():
             if isinstance(widget, ConnectionStatusWidget):
-                widget.updateVMStatus(self.vms)
+                widget.updateConnStatus(self.usersConnsStatus)
         #The Sets:
         for widget in self.connectionBaseWidgets[configname]["ExperimentActionsSetWidgets"].values():
             if isinstance(widget, ConnectionStatusWidget):
-                widget.updateVMStatus(self.vms)
+                widget.updateConnStatus(self.usersConnsStatus)
         #The Templates:
         for widget in self.connectionBaseWidgets[configname]["ExperimentActionsTemplateWidgets"].values():
             if isinstance(widget, ConnectionStatusWidget):
-                widget.updateVMStatus(self.vms)
+                widget.updateConnStatus(self.usersConnsStatus)
         #The VMs
         for widget in self.connectionBaseWidgets[configname]["ExperimentActionsVMWidgets"].values():
             if isinstance(widget, ConnectionStatusWidget):
-                widget.updateVMStatus(self.vms)
+                widget.updateConnStatus(self.usersConnsStatus)
         #The Users
         for widget in self.connectionBaseWidgets[configname]["ExperimentActionsUserWidgets"].values():
             if isinstance(widget, ConnectionStatusWidget):
-                widget.updateVMStatus(self.vms)
+                widget.updateConnStatus(self.usersConnsStatus)

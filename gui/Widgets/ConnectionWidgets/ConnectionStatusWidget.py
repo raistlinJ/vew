@@ -38,8 +38,8 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
         self.vmStatusTable.setSelectionMode(QTableView.SingleSelection)
         
         self.vmStatusTable.setRowCount(0)
-        self.vmStatusTable.setColumnCount(4)
-        self.vmStatusTable.setHorizontalHeaderLabels(("Connection Name", "Generated User", "User Status", "Conn Status"))
+        self.vmStatusTable.setColumnCount(5)
+        self.vmStatusTable.setHorizontalHeaderLabels(("Connection Name", "Generated User", "Generated Pass", "User Status", "Conn Status"))
 
         # Context menus
         self.vmStatusTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -100,13 +100,18 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
                     username = "vrdp disabled"
                     if vmuser_mapping != {} and vmName in vmuser_mapping:
                         username = vmuser_mapping[vmName]
+                    password = "vrdp disabled"
+                    if vmuser_mapping != {} and vmName in vmuser_mapping:
+                        password = vmuser_mapping[vmName]
                     usernameCell = QTableWidgetItem(username)
+                    passwordCell = QTableWidgetItem(password)
                     userStatusCell = QTableWidgetItem(str("refresh req."))
                     # statusCell.setFlags(Qt.ItemIsEnabled)
                     self.vmStatusTable.setItem(rowPos, 0, vmCell)
                     self.vmStatusTable.setItem(rowPos, 1, usernameCell)
-                    self.vmStatusTable.setItem(rowPos, 2, userStatusCell)
-                    self.vmStatusTable.setItem(rowPos, 3, connStatusCell)
+                    self.vmStatusTable.setItem(rowPos, 2, passwordCell)
+                    self.vmStatusTable.setItem(rowPos, 3, userStatusCell)
+                    self.vmStatusTable.setItem(rowPos, 4, connStatusCell)
                     self.vmStatusTable.resizeColumnToContents(0)
 
     def showContextMenu(self, position):
@@ -124,16 +129,23 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
         ConnectionActions().connectionActionEvent(self.configname, actionlabelname, "vm", vmName)
         self.statusBar.showMessage("Executed " + str(actionlabelname) + " on " + self.configname)
 
-    def updateVMStatus(self, vmStatus):
-        logging.debug("updateVMStatus(): instantiated")
-        
+    def updateConnStatus(self, usersConnsStatus):
+        logging.debug("updateConnStatus(): instantiated")
+        #format: [(username, connName): {"user_status": user_perm, "connStatus": active}]
         for cell in range(0,self.vmStatusTable.rowCount()):
-            tableVMName = self.vmStatusTable.item(cell, 0).text()
-            tmpCellItem = self.vmStatusTable.item(cell, 3)
-            if tableVMName in vmStatus:
-                tmpCellItem.setText(vmStatus[tableVMName]["vmState"])
-            else:
-                tmpCellItem.setText("missing")
+            tableConnName = self.vmStatusTable.item(cell, 0).text()
+            tableUserName = self.vmStatusTable.item(cell, 1).text()
+            userStatusCellItem = self.vmStatusTable.item(cell, 2)
+            connStatusCellItem = self.vmStatusTable.item(cell, 3)
+            userStatus = "not_found"
+            connStatus = "not_found"
+            if (tableUserName, tableConnName) in usersConnsStatus:
+                if "user_status" in usersConnsStatus[(tableUserName, tableConnName)] and usersConnsStatus[(tableUserName, tableConnName)]["user_status"] != None:
+                    userStatus = usersConnsStatus[(tableUserName, tableConnName)]["user_status"]
+                if "connStatus" in usersConnsStatus[(tableUserName, tableConnName)] and usersConnsStatus[(tableUserName, tableConnName)]["connStatus"] != None:
+                    connStatus = usersConnsStatus[(tableUserName, tableConnName)]["connStatus"]
+            userStatusCellItem.setText(userStatus)
+            connStatusCellItem.setText(connStatus)
 
 if __name__ == "__main__":
     import sys

@@ -50,7 +50,7 @@ class MainApp(QWidget):
         self.vmWidgets = {}
         self.materialWidgets = {}
         self.cf = SystemConfigIO()
-        self.ec = ExperimentConfigIO()
+        self.ec = ExperimentConfigIO.getInstance()
         self.statusBar = QStatusBar()
         
         self.setMinimumSize(670,565)

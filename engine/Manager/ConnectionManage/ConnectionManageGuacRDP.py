@@ -9,13 +9,16 @@ from engine.ExternalIFX.GuacIFX import GuacIFX
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 from engine.Configuration.UserPool import UserPool
 from guacapy import Guacamole
+from threading import RLock
 
 class ConnectionManageGuacRDP(ConnectionManage):
     def __init__(self):
         logging.debug("ConnectionManageGuacRDP(): instantiated")
         ConnectionManage.__init__(self)
         self.guacifx = GuacIFX()
-        self.eco = ExperimentConfigIO()
+        self.eco = ExperimentConfigIO.getInstance()
+        self.usersConnsStatus = {}
+        self.lock = RLock()
 
     def getValidConnsFromTypeName(self, configname, itype, name, rolledoutjson=None):
         logging.debug("getValidConnsFromTypeName(): instantiated")
@@ -337,7 +340,54 @@ class ConnectionManageGuacRDP(ConnectionManage):
     #abstractmethod
     def getConnectionManageStatus(self):
         logging.debug("getConnectionManageStatus(): instantiated")
-        return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus}
+        #format: {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersConnsStatus" : [(username, connName): {"user_status": user_perm, "connStatus": active}] }
+        return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersConnsStatus" : self.usersConnsStatus}
+    
+    def getConnectionManageRefresh(self, guacHostname, username, password, url_path, method):
+        logging.debug("getConnectionManageStatus(): instantiated")
+        self.writeStatus = ConnectionManage.CONNECTION_MANAGE_REFRESHING
+        try:
+            self.lock.acquire()
+            self.usersConnsStatus.clear()
+            guacConn = Guacamole(guacHostname,username=username,password=password,url_path=url_path,method=method)
+            #username, connName/VMName, userStatus (admin/etc.), connStatus (connected/not)
+            users = guacConn.get_users()
+            
+            connIDsNames = {}
+            activeConns = {}
+            allConnections = guacConn.get_connections()
+            if 'childConnections' in allConnections:
+                for conn in guacConn.get_connections()['childConnections']:
+                    connIDsNames[conn['identifier']] = conn['name']
+            guac_activeConns = guacConn.get_active_connections()
+            for conn in guac_activeConns:
+                activeConns[(guac_activeConns[conn]["username"], guac_activeConns[conn]["connectionIdentifier"])] = True
+
+            for user in users:
+                #user status first
+                perm = guacConn.get_permissions(user)
+                user_perm = "not_found"
+                if "READ" in perm['userPermissions'][user]:
+                    user_perm = "Non-Admin"
+                if "ADMINISTER" in perm['userPermissions'][user]:
+                    user_perm = "Admin"
+                #next, get the list of connections and the names of those connections and their status associated with those connections            
+                for connID in perm['connectionPermissions']:
+                    active = "not_connected"
+                    #if the connection is in an active state (exists in our activeConns dict), then state it as such
+                    if (user, connID) in activeConns:
+                        active = "connected"
+                    self.usersConnsStatus[(user, connIDsNames[connID])] = {"user_status": user_perm, "connStatus": active}
+            
+        except Exception as e:
+            logging.error("Error in getConnectionManageStatus(). Did not remove connection or relation!")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            trace_back = traceback.extract_tb(exc_traceback)
+            #traceback.print_exception(exc_type, exc_value, exc_traceback)
+            return None
+        finally:
+            self.lock.release()
+            self.writeStatus = ConnectionManage.CONNECTION_MANAGE_COMPLETE
 
     def get_user_pass_frombase(self, base, num_users):
         logging.debug("get_user_pass_frombase(): instantiated")

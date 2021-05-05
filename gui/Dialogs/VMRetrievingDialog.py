@@ -107,6 +107,7 @@ class VMRetrievingDialog(QDialog):
         if buttonEnabled != None:
             if buttonEnabled == True:
                 self.ok_button.setEnabled(True)
+                self.hide()
             else:
                 self.ok_button.setEnabled(False)
 

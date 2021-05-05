@@ -23,7 +23,7 @@ class PackageImportDialog:
                 QMessageBox.warning(self.parent,
                                         "Import Error",
                                         "An experiment with the same name already exists. Skipping...",
-                                        QMessageBox.Ok)            
+                                        QMessageBox.Ok)
                 return []           
             successfilenames = self.importData(filename)
             if len(successfilenames) > 0:

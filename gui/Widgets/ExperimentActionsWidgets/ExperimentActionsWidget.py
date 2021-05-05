@@ -22,7 +22,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.statusBar = statusBar
         self.experimentItemNames = {}
         self.experimentActionsBaseWidgets = {}
-        self.eco = ExperimentConfigIO()
+        self.eco = ExperimentConfigIO.getInstance()
         self.rolledoutjson = None
 
         self.setObjectName("ExperimentActionsWidget")
