@@ -194,7 +194,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
                 for conn in usersConns[(username, password)]:
                     cloneVMName = conn[0]
                     if invalid_userfile == False:
-                        vmuser_mapping[cloneVMName] = username
+                        vmuser_mapping[cloneVMName] = (username, password)
                     else:
                         vmuser_mapping[cloneVMName] = "userfile_not_found"
                     

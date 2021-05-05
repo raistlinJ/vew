@@ -1,7 +1,6 @@
 from gui.Dialogs.ConnectionActionDialog import ConnectionActionDialog
 from gui.Dialogs.ConnectionActioningDialog import ConnectionActioningDialog
 from gui.Dialogs.GUIFunctionExecutingDialog import GUIFunctionExecutingDialog
-from gui.Dialogs.ConnectionRetrievingDialog import ConnectionRetrievingDialog
 from PyQt5 import QtCore, QtGui, QtWidgets
 import logging
 from gui.Dialogs.ExperimentActionDialog import ExperimentActionDialog
@@ -72,6 +71,8 @@ class ConnectionWidget(QtWidgets.QWidget):
         self.removeGuac.triggered.connect(self.menuItemSelected)
         self.clearGuac = self.connsContextMenu.addAction("Clear All Entries")
         self.clearGuac.triggered.connect(self.menuItemSelected)
+        self.openGuac = self.connsContextMenu.addAction("Open Connections")
+        self.openGuac.triggered.connect(self.menuItemSelected)
 
         self.setLayout(self.windowBoxHLayout)
         self.retranslateUi()
@@ -136,9 +137,6 @@ class ConnectionWidget(QtWidgets.QWidget):
         ##Now add the item to the tree widget and create the baseWidget
         experimentTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
         experimentTreeWidgetItem.setText(0,configname)
-        button = QPushButton("connect")
-        experimentTreeWidgetItem.setText(0,configname)
-        experimentTreeWidgetItem.setText(1,"connect")
 
         experimentSetTreeItem = QtWidgets.QTreeWidgetItem(experimentTreeWidgetItem)
         experimentSetTreeItem.setText(0,"Sets")
@@ -160,6 +158,12 @@ class ConnectionWidget(QtWidgets.QWidget):
         rolledoutjson = self.rolledoutjson
 
         if rolledoutjson != None:
+            #first check if ther'es an RDP Broker IP, if not, disable the tree and add a description to configname
+            if "rdp-broker-ip" not in config_jsondata["xml"]["testbed-setup"]["network-config"] or \
+                config_jsondata["xml"]["testbed-setup"]["network-config"]["rdp-broker-ip"] == None or \
+                    config_jsondata["xml"]["testbed-setup"]["network-config"]["rdp-broker-ip"].strip() == "":
+                experimentTreeWidgetItem.setText(0,configname+" (RDP Broker Address required)")
+                experimentTreeWidgetItem.setDisabled(True)
             #get the usersConn associations first:
             # if file was specified, but it doesn't exist, prepend usernames
             invalid_userfile = False
@@ -174,7 +178,7 @@ class ConnectionWidget(QtWidgets.QWidget):
                 for conn in usersConns[(username, password)]:
                     cloneVMName = conn[0]
                     if invalid_userfile == False:
-                        vmuser_mapping[cloneVMName] = username
+                        vmuser_mapping[cloneVMName] = (username, password)
                     else:
                         vmuser_mapping[cloneVMName] = "userfile_not_found"
                     
@@ -304,7 +308,6 @@ class ConnectionWidget(QtWidgets.QWidget):
                 ConnectionActions().connectionActionEvent(self, configname, actionlabelname, vmHostname, rdpBrokerHostname, users_file="", itype=itype, name=name)
             else:
                 ConnectionActions().connectionActionEvent(self, configname, actionlabelname, vmHostname, rdpBrokerHostname, users_file, itype, name)
-        self.statusBar.showMessage("Executed " + str(actionlabelname) + " for " + configname)
 
     def refreshConnsStatus(self):
         logging.debug("refreshVMStatus(): instantiated")

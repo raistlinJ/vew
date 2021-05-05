@@ -97,12 +97,10 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
                     vmName = str(cloned_vm["name"])
                     vmCell = QTableWidgetItem(vmName)
                     username = "vrdp disabled"
-                    if vmuser_mapping != {} and vmName in vmuser_mapping:
-                        username = vmuser_mapping[vmName]
-                    usernameCell = QTableWidgetItem(username)
                     password = "vrdp disabled"
                     if vmuser_mapping != {} and vmName in vmuser_mapping:
-                        password = vmuser_mapping[vmName]
+                        (username, password) = vmuser_mapping[vmName]
+                    usernameCell = QTableWidgetItem(username)
                     passwordCell = QTableWidgetItem(password)
                     statusCell = QTableWidgetItem(str("refresh req."))
                     # statusCell.setFlags(Qt.ItemIsEnabled)

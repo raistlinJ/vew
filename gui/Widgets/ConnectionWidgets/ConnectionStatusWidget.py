@@ -18,10 +18,12 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
             logging.error("configname cannot be empty")
             return None
         QtWidgets.QWidget.__init__(self, parent=None)
+        self.parent = parent
         self.statusBar = status_bar
         self.widgetname = widgetname
         self.configname = configname
         self.rolledoutjson = rolledoutjson
+        self.eco = ExperimentConfigIO.getInstance()
 
         self.setWindowTitle("ConnectionStatusWidget")
         self.setObjectName("ConnectionStatusWidget")
@@ -31,54 +33,31 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
         self.outerVertBox.setObjectName("outerVertBox")
         self.layoutWidget.setLayout(self.outerVertBox)
 
-        self.vmStatusTable = QtWidgets.QTableWidget(parent)
-        self.vmStatusTable.setObjectName("vmStatusTable")
-        self.vmStatusTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.vmStatusTable.setSelectionBehavior(QTableView.SelectRows)
-        self.vmStatusTable.setSelectionMode(QTableView.SingleSelection)
+        self.connStatusTable = QtWidgets.QTableWidget(parent)
+        self.connStatusTable.setObjectName("connStatusTable")
+        self.connStatusTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.connStatusTable.setSelectionBehavior(QTableView.SelectRows)
+        self.connStatusTable.setSelectionMode(QTableView.SingleSelection)
         
-        self.vmStatusTable.setRowCount(0)
-        self.vmStatusTable.setColumnCount(5)
-        self.vmStatusTable.setHorizontalHeaderLabels(("Connection Name", "Generated User", "Generated Pass", "User Status", "Conn Status"))
+        self.connStatusTable.setRowCount(0)
+        self.connStatusTable.setColumnCount(5)
+        self.connStatusTable.setHorizontalHeaderLabels(("Connection Name", "Generated User", "Generated Pass", "User Status", "Conn Status"))
 
         # Context menus
-        self.vmStatusTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.vmStatusTable.customContextMenuRequested.connect(self.showContextMenu)
-        self.experimentMenu = QtWidgets.QMenu()
-        self.startupContextMenu = QtWidgets.QMenu("Startup")
-        self.shutdownContextMenu = QtWidgets.QMenu("Shutdown")
-        self.stateContextMenu = QtWidgets.QMenu("State")
-        self.experimentMenu.addMenu(self.startupContextMenu)
-        self.experimentMenu.addMenu(self.shutdownContextMenu)
-        self.experimentMenu.addMenu(self.stateContextMenu)
+        self.connStatusTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.connStatusTable.customContextMenuRequested.connect(self.showContextMenu)
+        self.connsContextMenu = QtWidgets.QMenu()
+        self.createGuac = self.connsContextMenu.addAction("Create Users")
+        self.createGuac.triggered.connect(self.menuItemSelected)
+        self.removeGuac = self.connsContextMenu.addAction("Remove Users")
+        self.removeGuac.triggered.connect(self.menuItemSelected)
+        self.clearGuac = self.connsContextMenu.addAction("Clear All Entries")
+        self.clearGuac.triggered.connect(self.menuItemSelected)
+        self.openGuac = self.connsContextMenu.addAction("Open Connections")
+        self.openGuac.triggered.connect(self.menuItemSelected)
 
-        self.cloneExperiment = self.startupContextMenu.addAction("Signal - Create Clone")
-        self.cloneExperiment.triggered.connect(self.menuItemSelected)
-        
-        self.startVMs = self.startupContextMenu.addAction("Signal - Start VM (headless)")
-        self.startVMs.triggered.connect(self.menuItemSelected)
-
-        self.restoreSnapshots = self.startupContextMenu.addAction("Signal - Restore Snapshot")
-        self.restoreSnapshots.triggered.connect(self.menuItemSelected)
-
-        self.pauseVMs = self.shutdownContextMenu.addAction("Signal - Pause VM")
-        self.pauseVMs.triggered.connect(self.menuItemSelected)
-
-        self.suspendVMs = self.shutdownContextMenu.addAction("Signal - Suspend & Save State")
-        self.suspendVMs.triggered.connect(self.menuItemSelected)
-
-        self.poweroffVMs = self.shutdownContextMenu.addAction("Signal - Power Off VM")
-        self.poweroffVMs.triggered.connect(self.menuItemSelected)
-
-        self.deleteClones = self.shutdownContextMenu.addAction("Signal - Delete Clone")
-        self.deleteClones.triggered.connect(self.menuItemSelected)
-        self.shutdownContextMenu.addAction(self.deleteClones)
-
-        self.snapshotVMs = self.stateContextMenu.addAction("Signal - Snapshot VM")
-        self.snapshotVMs.triggered.connect(self.menuItemSelected)
-
-        self.vmStatusTable.setSortingEnabled(True)
-        self.outerVertBox.addWidget(self.vmStatusTable)
+        self.connStatusTable.setSortingEnabled(True)
+        self.outerVertBox.addWidget(self.connStatusTable)
 
         self.setLayout(self.outerVertBox)
         self.retranslateUi(rolledoutjson, interest_vmnames, vmuser_mapping)
@@ -92,51 +71,51 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
         for template_vm in template_vms:
             for cloned_vm in template_vms[template_vm]:
                 if interest_vmnames == [] or cloned_vm["name"] in interest_vmnames:
-                    rowPos = self.vmStatusTable.rowCount()
-                    self.vmStatusTable.insertRow(rowPos)
+                    rowPos = self.connStatusTable.rowCount()
+                    self.connStatusTable.insertRow(rowPos)
                     vmName = str(cloned_vm["name"])
                     vmCell = QTableWidgetItem(vmName)
                     connStatusCell = QTableWidgetItem(str("refresh req."))
                     username = "vrdp disabled"
-                    if vmuser_mapping != {} and vmName in vmuser_mapping:
-                        username = vmuser_mapping[vmName]
                     password = "vrdp disabled"
                     if vmuser_mapping != {} and vmName in vmuser_mapping:
-                        password = vmuser_mapping[vmName]
+                        (username, password) = vmuser_mapping[vmName]
                     usernameCell = QTableWidgetItem(username)
                     passwordCell = QTableWidgetItem(password)
                     userStatusCell = QTableWidgetItem(str("refresh req."))
                     # statusCell.setFlags(Qt.ItemIsEnabled)
-                    self.vmStatusTable.setItem(rowPos, 0, vmCell)
-                    self.vmStatusTable.setItem(rowPos, 1, usernameCell)
-                    self.vmStatusTable.setItem(rowPos, 2, passwordCell)
-                    self.vmStatusTable.setItem(rowPos, 3, userStatusCell)
-                    self.vmStatusTable.setItem(rowPos, 4, connStatusCell)
-                    self.vmStatusTable.resizeColumnToContents(0)
+                    self.connStatusTable.setItem(rowPos, 0, vmCell)
+                    self.connStatusTable.setItem(rowPos, 1, usernameCell)
+                    self.connStatusTable.setItem(rowPos, 2, passwordCell)
+                    self.connStatusTable.setItem(rowPos, 3, userStatusCell)
+                    self.connStatusTable.setItem(rowPos, 4, connStatusCell)
+                    self.connStatusTable.resizeColumnToContents(0)
 
     def showContextMenu(self, position):
         logging.debug("showContextMenu() instantiated")
-        self.experimentMenu.popup(self.vmStatusTable.mapToGlobal(position))
+        self.connsContextMenu.popup(self.connStatusTable.mapToGlobal(position))
 
     def menuItemSelected(self):
         logging.debug("menuItemSelected(): instantiated")
-        vmRow = self.vmStatusTable.currentRow()
-        if vmRow == None:
+        connRow = self.connStatusTable.currentRow()
+        if connRow == None:
             logging.error("menuItemSelected(): No Row is Selected.")
             return
-        vmName = self.vmStatusTable.item(vmRow,0).text()
+        connName = self.connStatusTable.item(connRow,0).text()
         actionlabelname = self.sender().text()
-        ConnectionActions().connectionActionEvent(self.configname, actionlabelname, "vm", vmName)
+        vmserverip, rdpbroker, chatserver, users_file = self.eco.getExperimentServerInfo(self.configname)
+        #parent, configname, actionlabelname, vmHostname, rdpBrokerHostname, users_file="", itype="", name=""
+        ConnectionActions().connectionActionEvent(self.parent, self.configname, actionlabelname, vmserverip, rdpbroker, users_file, "vm", connName)
         self.statusBar.showMessage("Executed " + str(actionlabelname) + " on " + self.configname)
 
     def updateConnStatus(self, usersConnsStatus):
         logging.debug("updateConnStatus(): instantiated")
         #format: [(username, connName): {"user_status": user_perm, "connStatus": active}]
-        for cell in range(0,self.vmStatusTable.rowCount()):
-            tableConnName = self.vmStatusTable.item(cell, 0).text()
-            tableUserName = self.vmStatusTable.item(cell, 1).text()
-            userStatusCellItem = self.vmStatusTable.item(cell, 2)
-            connStatusCellItem = self.vmStatusTable.item(cell, 3)
+        for cell in range(0,self.connStatusTable.rowCount()):
+            tableConnName = self.connStatusTable.item(cell, 0).text()
+            tableUserName = self.connStatusTable.item(cell, 1).text()
+            userStatusCellItem = self.connStatusTable.item(cell, 3)
+            connStatusCellItem = self.connStatusTable.item(cell, 4)
             userStatus = "not_found"
             connStatus = "not_found"
             if (tableUserName, tableConnName) in usersConnsStatus:

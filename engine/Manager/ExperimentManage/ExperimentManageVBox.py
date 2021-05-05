@@ -17,36 +17,6 @@ class ExperimentManageVBox(ExperimentManage):
         self.vmManage = vmManage
         self.eco = ExperimentConfigIO.getInstance()
 
-    def getValidVMsFromTypeName(self, configname, itype, name, rolledoutjson=None):
-        logging.debug("getValidVMsFromTypeName(): instantiated")
-        if rolledoutjson == None:
-            rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
-        #get VMs or sets that we need to start
-        validvms = []
-        validvmnames = []
-        if name == "all":
-            #if none was specified, just add all vms to the list
-            validvms = self.eco.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
-            for vm in validvms:
-                validvmnames.append(vm["name"])            
-        elif itype == "set":
-            validvms = self.eco.getExperimentVMsInSetFromRolledOut(configname, name, rolledoutjson)
-            for vm in validvms:
-                validvmnames.append(vm)                
-        elif itype == "template":
-            validvms = []
-            if name in self.eco.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson):
-                validvms = self.eco.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson)[name]
-            for vm in validvms:
-                validvmnames.append(vm)
-        elif itype == "vm":
-            validvmnames.append(name)
-        elif itype == "":
-            #if none was specified, just add all vms to the list
-            validvms = self.eco.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
-            for vm in validvms:
-                validvmnames.append(vm["name"])
-        return validvmnames
 
     #abstractmethod
     def createExperiment(self, configname, itype="", name=""):
@@ -61,7 +31,7 @@ class ExperimentManageVBox(ExperimentManage):
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_CREATING
             rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
             clonevmjson, numclones = rolledoutjson
-            validvmnames = self.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
+            validvmnames = self.eco.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
             status = self.vmManage.getManagerStatus()["writeStatus"]
             for vm in clonevmjson.keys(): 
                 vmName = vm
@@ -128,7 +98,7 @@ class ExperimentManageVBox(ExperimentManage):
             #call vmManage to start clones as specified in config file; wait and query the vmManage status, and then set the complete status
             rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
             clonevmjson, numclones = rolledoutjson
-            validvmnames = self.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
+            validvmnames = self.eco.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
             for i in range(1, numclones + 1):
                 for vm in clonevmjson.keys(): 
                     vmName = vm
@@ -199,7 +169,7 @@ class ExperimentManageVBox(ExperimentManage):
             #call vmManage to suspend clones as specified in config file; wait and query the vmManage status, and then set the complete status
             rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
             clonevmjson, numclones = rolledoutjson
-            validvmnames = self.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
+            validvmnames = self.eco.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
             for i in range(1, numclones + 1):
                 for vm in clonevmjson.keys(): 
                     vmName = vm
@@ -244,7 +214,7 @@ class ExperimentManageVBox(ExperimentManage):
             #call vmManage to pause clones as specified in config file; wait and query the vmManage status, and then set the complete status
             rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
             clonevmjson, numclones = rolledoutjson
-            validvmnames = self.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
+            validvmnames = self.eco.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
             for i in range(1, numclones + 1):
                 for vm in clonevmjson.keys(): 
                     vmName = vm
@@ -289,7 +259,7 @@ class ExperimentManageVBox(ExperimentManage):
             #call vmManage to snapshot clones as specified in config file; wait and query the vmManage status, and then set the complete status
             rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
             clonevmjson, numclones = rolledoutjson
-            validvmnames = self.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
+            validvmnames = self.eco.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
             for i in range(1, numclones + 1):
                 for vm in clonevmjson.keys(): 
                     vmName = vm
@@ -334,7 +304,7 @@ class ExperimentManageVBox(ExperimentManage):
             #call vmManage to stop clones as specified in config file; wait and query the vmManage status, and then set the complete status
             rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
             clonevmjson, numclones = rolledoutjson
-            validvmnames = self.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
+            validvmnames = self.eco.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
             for vm in clonevmjson.keys(): 
                 vmName = vm
                 logging.debug("runStopExperiment(): working with vm: " + str(vmName))
@@ -377,7 +347,7 @@ class ExperimentManageVBox(ExperimentManage):
             #call vmManage to remove clones as specified in config file; wait and query the vmManage status, and then set the complete status
             rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
             clonevmjson, numclones = rolledoutjson
-            validvmnames = self.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
+            validvmnames = self.eco.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
             for vm in clonevmjson.keys(): 
                 vmName = vm
                 logging.debug("runRemoveExperiment(): working with vm: " + str(vmName))
@@ -420,7 +390,7 @@ class ExperimentManageVBox(ExperimentManage):
             #call vmManage to restore clones as specified in config file; wait and query the vmManage status, and then set the complete status
             rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
             clonevmjson, numclones = rolledoutjson
-            validvmnames = self.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
+            validvmnames = self.eco.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
             for vm in clonevmjson.keys(): 
                 vmName = vm
                 logging.debug("runRestoreExperiment(): working with vm: " + str(vmName))

@@ -1,3 +1,5 @@
+from engine.Configuration.SystemConfigIO import SystemConfigIO
+from gui.Dialogs.ConnectionOpeningDialog import ConnectionOpeningDialog
 from gui.Dialogs.ConnectionRetrievingDialog import ConnectionRetrievingDialog
 from PyQt5.QtCore import QDateTime, Qt, QTimer, QThread, pyqtSignal, QObject
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
@@ -12,7 +14,7 @@ from engine.Manager.ConnectionManage.ConnectionManage import ConnectionManage
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 from gui.Dialogs.ConnectionActioningDialog import ConnectionActioningDialog
 import logging
-import configparser
+from engine.Configuration.UserPool import UserPool
 
 class ConnectionActionDialog(QDialog):
 
@@ -21,6 +23,7 @@ class ConnectionActionDialog(QDialog):
         super(ConnectionActionDialog, self).__init__(parent)
         self.parent = parent
         self.eco = ExperimentConfigIO.getInstance()
+        self.s = SystemConfigIO()
         self.configname = configname
         self.actionname = actionname
         self.experimentHostname = experimentHostname
@@ -64,10 +67,11 @@ class ConnectionActionDialog(QDialog):
             mgmusername = cachedCreds[0]
             mgmpassword = cachedCreds[1]
         self.usernameLineEdit = QLineEdit(mgmusername)
-        self.layout.addRow(QLabel("Management Username:"), self.usernameLineEdit)
         self.passwordLineEdit = QLineEdit(mgmpassword)
         self.passwordLineEdit.setEchoMode(QLineEdit.Password)
-        self.layout.addRow(QLabel("Management Password:"), self.passwordLineEdit)
+        if self.actionname != "Open":
+            self.layout.addRow(QLabel("Management Username:"), self.usernameLineEdit)
+            self.layout.addRow(QLabel("Management Password:"), self.passwordLineEdit)
         self.urlPathLineEdit = QLineEdit("/guacamole")
         self.layout.addRow(QLabel("URL Path:"), self.urlPathLineEdit)
         self.methodComboBox = QComboBox()
@@ -97,7 +101,6 @@ class ConnectionActionDialog(QDialog):
             self.layout.addRow(QLabel("Bit Depth:"), self.bitdepthComboBox)
         if self.actionname == "Remove":
             self.layout.addRow(QLabel("Users File: "), self.usersFileLabel)
-
         self.formGroupBox.setLayout(self.layout)
 
     def exec_(self):
@@ -122,12 +125,36 @@ class ConnectionActionDialog(QDialog):
                 self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText()]
             elif self.actionname == "Refresh":
                 self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText()]
+            elif self.actionname == "Open":
+                #get all of the connections from the currently selected item
+                userpool = UserPool()
+                usersConns = userpool.generateUsersConns(self.configname, creds_file=self.usersFile)
+                vmuser_mapping = {}
+                for (username, password) in usersConns:
+                    for conn in usersConns[(username, password)]:
+                        cloneVMName = conn[0]
+                        vmuser_mapping[cloneVMName] = (username, password)
+                #get all vms based on what's selected
+                tentativeVMs = self.eco.getValidVMsFromTypeName(self.configname, self.itype, self.name)
+                #get user/password from selected vms and store those in the list of users to open
+                usersToOpen = {}
+                for vm in tentativeVMs:
+                    if vm in vmuser_mapping:
+                        usersToOpen[vmuser_mapping[vm]] = True
+                logging.debug(str(usersToOpen))
             else:
                 pass
             if self.actionname == "Refresh":
                 self.eco.storeConfigRDPBrokerCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text())
                 crd = ConnectionRetrievingDialog(self.parent, self.args).exec_()
                 return crd
+            elif self.actionname == "Open":
+                self.eco.storeConfigRDPBrokerCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text())
+                pathToBrowser = self.s.getConfig()["BROWSER"]["BROWSER_PATH"]
+                browserArgs = self.s.getConfig()["BROWSER"]["ARGS"]
+                url = self.rdpBrokerHostname+self.urlPathLineEdit.text()
+                cod = ConnectionOpeningDialog(self.parent, pathToBrowser, browserArgs, usersToOpen, url, self.methodComboBox.currentText()).exec_()
+                return cod
             else:
                 self.eco.storeConfigRDPBrokerCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text())
                 cad = ConnectionActioningDialog(self.parent, self.configname, self.actionname, self.args).exec_()

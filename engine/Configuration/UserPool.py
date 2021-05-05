@@ -49,7 +49,7 @@ class UserPool():
         else:
             if genIfEmpty == True:
                 if len(self.basepool) == 0:
-                    self.addFromBase(base="user_")
+                    self.addFromBase(base="user")
                 return self.basepool.pop(0)[0]
             else:
                 return None
@@ -61,7 +61,7 @@ class UserPool():
         else:
             if genIfEmpty==True:
                 if len(self.basepool) == 0:
-                    self.addFromBase(base="user_")
+                    self.addFromBase(base="user")
                 return self.basepool.pop(0)
             else:
                 return None

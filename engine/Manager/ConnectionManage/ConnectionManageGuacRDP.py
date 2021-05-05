@@ -20,37 +20,6 @@ class ConnectionManageGuacRDP(ConnectionManage):
         self.usersConnsStatus = {}
         self.lock = RLock()
 
-    def getValidConnsFromTypeName(self, configname, itype, name, rolledoutjson=None):
-        logging.debug("getValidConnsFromTypeName(): instantiated")
-        if rolledoutjson == None:
-            rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
-        #get VMs or sets that we need to start
-        validconns = []
-        validconnnames = []
-        if name == "all":
-            #if all was specified, just add all vms to the list
-            validconns = self.eco.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
-            for vm in validconns:
-                validconnnames.append(vm["name"])
-        elif itype == "set":
-            validconns = self.eco.getExperimentVMsInSetFromRolledOut(configname, name, rolledoutjson)
-            for vm in validconns:
-                validconnnames.append(vm)                
-        elif itype == "template":
-            validconns = []
-            if name in self.eco.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson):
-                validconns = self.eco.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson)[name]
-            for vm in validconns:
-                validconnnames.append(vm)
-        elif itype == "vm":
-            validconnnames.append(name)
-        elif itype == "":
-            #if none was specified, just add all vms to the list
-            validconns = self.eco.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
-            for vm in validconns:
-                validconnnames.append(vm["name"])
-        return validconnnames
-
     #abstractmethod
     def createConnections(self, configname, guacHostname, username, password, url_path, method, maxConnections="", maxConnectionsPerUser="", width="1400", height="1050", bitdepth="16", creds_file="", itype="", name=""):
         logging.debug("createConnections(): instantiated")
@@ -62,7 +31,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
         logging.debug("runCreateConnections(): instantiated")
         #call guac backend API to make connections as specified in config file and then set the complete status
         rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
-        validconnsnames = self.getValidConnsFromTypeName(configname, itype, name, rolledoutjson)
+        validconnsnames = self.eco.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
 
         userpool = UserPool()
         usersConns = userpool.generateUsersConns(configname, creds_file=creds_file)
@@ -169,7 +138,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
         logging.debug("runRemoveConnections(): instantiated")
         #call guac backend API to make connections as specified in config file and then set the complete status
         rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
-        validconnsnames = self.getValidConnsFromTypeName(configname, itype, name, rolledoutjson)
+        validconnsnames = self.eco.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
 
         userpool = UserPool()
         try:

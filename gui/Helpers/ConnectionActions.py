@@ -11,6 +11,8 @@ class ConnectionActions():
             self.connectionAction(parent, configname, "Remove", vmHostname, rdpBrokerHostname, users_file, itype, name)
         elif "Clear All Entries" in actionlabelname:
             self.connectionAction(parent, configname, "Clear", vmHostname, rdpBrokerHostname, users_file, itype, name)
+        elif "Open Connections" in actionlabelname:
+            self.connectionAction(parent, configname, "Open", vmHostname, rdpBrokerHostname, users_file, itype, name)
 
     def connectionAction(self, parent, configname, actionname, vmHostname, rdpBrokerHostname, users_file, itype, name):
         logging.debug("connnectionAction(): showContextMenu(): instantiated")

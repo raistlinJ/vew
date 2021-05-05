@@ -182,6 +182,37 @@ class ExperimentConfigIO:
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             return None
 
+    def getValidVMsFromTypeName(self, configname, itype, name, rolledoutjson=None):
+        logging.debug("getValidVMsFromTypeName(): instantiated")
+        if rolledoutjson == None:
+            rolledoutjson = self.getExperimentVMRolledOut(configname)
+        #get VMs or sets that we need to start
+        validvms = []
+        validvmnames = []
+        if name == "all":
+            #if none was specified, just add all vms to the list
+            validvms = self.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
+            for vm in validvms:
+                validvmnames.append(vm["name"])            
+        elif itype == "set":
+            validvms = self.getExperimentVMsInSetFromRolledOut(configname, name, rolledoutjson)
+            for vm in validvms:
+                validvmnames.append(vm)                
+        elif itype == "template":
+            validvms = []
+            if name in self.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson):
+                validvms = self.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson)[name]
+            for vm in validvms:
+                validvmnames.append(vm)
+        elif itype == "vm":
+            validvmnames.append(name)
+        elif itype == "":
+            #if none was specified, just add all vms to the list
+            validvms = self.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
+            for vm in validvms:
+                validvmnames.append(vm["name"])
+        return validvmnames
+
     def getExperimentVMsInSetFromRolledOut(self, configname, set_num, rolledout_jsondata=None):
         logging.debug("ExperimentConfigIO: getExperimentVMsInSetFromRolledOut(): instantiated")
         sets = self.getExperimentSetDictFromRolledOut(configname, rolledout_jsondata=rolledout_jsondata)
