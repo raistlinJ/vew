@@ -4,10 +4,10 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
         QVBoxLayout, QWidget, QMessageBox)
-import sys, traceback
+import sys, traceback, platform
 import logging
 import subprocess
-import os
+import shlex
 
 class ConnectionOpeningThread(QThread):
     watchsignal = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
@@ -35,7 +35,7 @@ class ConnectionOpeningThread(QThread):
                 stringExec = "Opening Conn: " + str(cmd)
                 self.watchsignal.emit(stringExec, None, None)
                 logging.debug(stringExec)
-                result.append(subprocess.Popen(cmd))
+                result.append(subprocess.Popen(shlex.split(cmd)))
                 logging.debug("ConnectionOpeningThread(): thread ending")
             self.watchsignal.emit("Operation complete.", "success", True)
             return
