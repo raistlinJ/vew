@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QVBoxLayout, QWidget, QMessageBox)
 
 from engine.Engine import Engine
-import time
 from engine.Manager.ConnectionManage.ConnectionManage import ConnectionManage
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 from gui.Dialogs.ConnectionActioningDialog import ConnectionActioningDialog
@@ -62,22 +61,29 @@ class ConnectionActionDialog(QDialog):
         self.layout.addRow(QLabel("RDP Broker Hostname/IP:"), self.hostnameLineEdit)
         mgmusername = ""
         mgmpassword = ""
+        url = "/guacamole"
+        method = "HTTP"
         cachedCreds = self.eco.getConfigRDPBrokerCreds(self.configname)
         if cachedCreds != None:
             mgmusername = cachedCreds[0]
             mgmpassword = cachedCreds[1]
+            url = cachedCreds[2]
+            method = cachedCreds[3]
         self.usernameLineEdit = QLineEdit(mgmusername)
         self.passwordLineEdit = QLineEdit(mgmpassword)
         self.passwordLineEdit.setEchoMode(QLineEdit.Password)
         if self.actionname != "Open":
             self.layout.addRow(QLabel("Management Username:"), self.usernameLineEdit)
             self.layout.addRow(QLabel("Management Password:"), self.passwordLineEdit)
-        self.urlPathLineEdit = QLineEdit("/guacamole")
+        self.urlPathLineEdit = QLineEdit(url)
         self.layout.addRow(QLabel("URL Path:"), self.urlPathLineEdit)
         self.methodComboBox = QComboBox()
         self.methodComboBox.addItem("HTTP")
         self.methodComboBox.addItem("HTTPS")
-        self.methodComboBox.setCurrentIndex(0)
+        if method == "HTTP":
+            self.methodComboBox.setCurrentIndex(0)
+        else:
+            self.methodComboBox.setCurrentIndex(1)
         self.layout.addRow(QLabel("Method:"), self.methodComboBox)
         
         self.maxConnectionsLineEdit = QLineEdit("1")
@@ -145,18 +151,18 @@ class ConnectionActionDialog(QDialog):
             else:
                 pass
             if self.actionname == "Refresh":
-                self.eco.storeConfigRDPBrokerCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text())
+                self.eco.storeConfigRDPBrokerCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText())
                 crd = ConnectionRetrievingDialog(self.parent, self.args).exec_()
                 return crd
             elif self.actionname == "Open":
-                self.eco.storeConfigRDPBrokerCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text())
+                self.eco.storeConfigRDPBrokerCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText())
                 pathToBrowser = self.s.getConfig()["BROWSER"]["BROWSER_PATH"]
                 browserArgs = self.s.getConfig()["BROWSER"]["ARGS"]
                 url = self.rdpBrokerHostname+self.urlPathLineEdit.text()
                 cod = ConnectionOpeningDialog(self.parent, pathToBrowser, browserArgs, usersToOpen, url, self.methodComboBox.currentText()).exec_()
                 return cod
             else:
-                self.eco.storeConfigRDPBrokerCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text())
+                self.eco.storeConfigRDPBrokerCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.urlPathLineEdit.text(), self.methodComboBox.currentText())
                 cad = ConnectionActioningDialog(self.parent, self.configname, self.actionname, self.args).exec_()
                 return (QMessageBox.Ok)
         return (QMessageBox.Cancel)

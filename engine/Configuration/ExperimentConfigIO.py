@@ -28,9 +28,9 @@ class ExperimentConfigIO:
         self.config_jsondata = {}
         self.config_rdp_userpass = {}
 
-    def storeConfigRDPBrokerCreds(self, configname, username, password):
+    def storeConfigRDPBrokerCreds(self, configname, username, password, url, method):
         logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
-        self.config_rdp_userpass[configname] = (username, password)
+        self.config_rdp_userpass[configname] = (username, password, url, method)
 
     def getConfigRDPBrokerCreds(self, configname):
         logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
