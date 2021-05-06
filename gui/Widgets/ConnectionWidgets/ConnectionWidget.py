@@ -260,7 +260,7 @@ class ConnectionWidget(QtWidgets.QWidget):
         logging.debug("ConnectionWidget(): showContextMenu(): instantiated")
         self.connsContextMenu.popup(self.experimentTree.mapToGlobal(position))
 
-    def getTypeNameFromSelection(self, currentItem):
+    def getTypeNameFromSelection(self):
         configname = ""
         itype = ""
         name = ""
@@ -292,14 +292,14 @@ class ConnectionWidget(QtWidgets.QWidget):
                 name = "\"" + " ".join(name) + "\""
             elif currItemText.startswith("U: "):
                 itype = "set"
-                name = currItemText.split("(Set ")[1].split(")")[0]
+                name = currItemText.split("(Set ")[1].split(")")[0:-1]
                 name = " ".join(name)
         return configname, itype, name
 
     def menuItemSelected(self):
         logging.debug("menuItemSelected(): instantiated")
         actionlabelname = self.sender().text()
-        configname, itype, name = self.getTypeNameFromSelection(self.experimentTree.currentItem())
+        configname, itype, name = self.getTypeNameFromSelection()
         
         ##get server info
         vmHostname, rdpBrokerHostname, chatServerIP, users_file = self.eco.getExperimentServerInfo(configname)
