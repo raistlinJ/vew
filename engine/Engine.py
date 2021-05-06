@@ -66,9 +66,11 @@ class Engine:
         return self.vmManage.getVMStatus(vmName)
         
     def vmManageMgrStatusCmd(self, args):
+        logging.debug("vmManageMgrStatusCmd(): instantiated")
         return self.vmManage.getManagerStatus()
         
     def vmManageRefreshCmd(self, args):
+        logging.debug("vmManageRefreshCmd(): instantiated")
         self.vmManage.refreshAllVMInfo()
 
     def packagerStatusCmd(self, args):
@@ -95,6 +97,15 @@ class Engine:
     def connectionStatusCmd(self, args):
         #query connection manager status and then return it here
         return self.connectionManage.getConnectionManageStatus()
+
+    def connectionRefreshCmd(self, args):
+        hostname = args.hostname
+        username = args.username
+        password = args.password
+        url_path = args.url_path
+        method = args.method
+        #query connection manager status and then return it here
+        return self.connectionManage.getConnectionManageRefresh(hostname, username, password, url_path, method)
         
     def connectionCreateCmd(self, args):
         logging.debug("connectionCreateCmd(): instantiated")
@@ -110,14 +121,13 @@ class Engine:
         width = args.width
         height = args.height
         bitdepth = args.bitdepth
+        itype = args.itype
+        name = args.name
         creds_file = args.creds_file
         if creds_file != None and isinstance(creds_file, str) and creds_file.strip() != "None":
             full_creds_file = os.path.abspath(creds_file)
-            print ("!!!!!!!!!!CREDSFILE!!!!!!!!!: " + str(full_creds_file))
             if os.path.exists(full_creds_file):
-                print ("!!!!!!!!!!FROMFILE!!!!!!!!!: " + str(full_creds_file))
-                return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, full_creds_file)
-        print ("!!!!!!!!!!FROMBASE!!!!!!!!!: ")
+                return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, full_creds_file, itype, name)
         return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth)
 
     def connectionRemoveCmd(self, args):
@@ -130,11 +140,13 @@ class Engine:
         password = args.password
         url_path = args.url_path
         method = args.method
+        itype = args.itype
+        name = args.name
         creds_file = args.creds_file
         if creds_file != None and isinstance(creds_file, str) and creds_file.strip() != "None":
             full_creds_file = os.path.abspath(creds_file)
             if os.path.exists(full_creds_file):
-                return self.connectionManage.removeConnections(configname, hostname, username, password, url_path, method, full_creds_file)
+                return self.connectionManage.removeConnections(configname, hostname, username, password, url_path, method, full_creds_file, itype, name)
         return self.connectionManage.removeConnections(configname, hostname, username, password, url_path, method)
 
     def connectionClearAllCmd(self, args):
@@ -153,9 +165,10 @@ class Engine:
         #open a display to the current connection
         configname = args.configname
         experimentid = args.experimentid
-        vmid = args.vmid
+        itype = args.itype
+        name = args.itype
 
-        return self.connectionManage.openConnection(configname, experimentid, vmid)
+        return self.connectionManage.openConnection(configname, experimentid, itype, name)
 
     def experimentStatusCmd(self, args):
         #query connection manager status and then return it here
@@ -250,11 +263,7 @@ class Engine:
         if self.vmManage.getVMStatus(vmName) == None:
             logging.error("vmConfigCmd(): vmName does not exist or you need to call refreshAllVMs: " + vmName)
             return None
-
         logging.debug("vmConfigCmd(): VM found, configuring VM")
-        #TODO
-        #Need to configure the vm adaptors accordingly
-        # self.vmManage.configureVM(vmName, args.srcvmServerIP, args.dstvmServerIP, args.srcPort, args.dstPort, args.adaptorNum)
                 
     def vmManageStartCmd(self, args):
         logging.debug("vmManageStartCmd(): instantiated")
@@ -336,6 +345,19 @@ class Engine:
         self.connectionManageStatusParser = self.connectionManageSubParser.add_parser('status', help='retrieve connection manager status')
         self.connectionManageStatusParser.set_defaults(func=self.connectionStatusCmd)
 
+        self.connectionManageRefreshParser = self.connectionManageSubParser.add_parser('refresh', help='retrieve all connection manager status')
+        self.connectionManageRefreshParser.add_argument('hostname', metavar='<host address>', action="store",
+                                          help='Name or IP address where Connection host resides')
+        self.connectionManageRefreshParser.add_argument('username', metavar='<username>', action="store",
+                                          help='Username for connecting to host')
+        self.connectionManageRefreshParser.add_argument('password', metavar='<password>', action="store",
+                                          help='Password for connecting to host')
+        self.connectionManageRefreshParser.add_argument('url_path', metavar='<url_path>', action="store",
+                                          help='URL path to broker service')
+        self.connectionManageRefreshParser.add_argument('method', metavar='<method>', action="store",
+                                          help='Either HTTP or HTTPS, depending on the server\'s configuration')
+        self.connectionManageRefreshParser.set_defaults(func=self.connectionRefreshCmd)
+
         self.connectionManageCreateParser = self.connectionManageSubParser.add_parser('create', help='create conns as specified in config file')
         self.connectionManageCreateParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
@@ -361,6 +383,10 @@ class Engine:
                                           help='Bit-depth (8, 16, 24, or 32)')
         self.connectionManageCreateParser.add_argument('creds_file', metavar='<creds_file>', action="store",
                                           help='File with username/password pairs.')
+        self.connectionManageCreateParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.connectionManageCreateParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')
         self.connectionManageCreateParser.set_defaults(func=self.connectionCreateCmd)
         
         self.connectionManageRemoveParser = self.connectionManageSubParser.add_parser('remove', help='remove conns as specified in config file')
@@ -378,6 +404,10 @@ class Engine:
                                           help='Either HTTP or HTTPS, depending on the server\'s configuration')
         self.connectionManageRemoveParser.add_argument('creds_file', metavar='<creds_file>', action="store",
                                           help='File with username/password pairs.')
+        self.connectionManageRemoveParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.connectionManageRemoveParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')
         self.connectionManageRemoveParser.set_defaults(func=self.connectionRemoveCmd)
 
         self.connectionManageClearAllParser = self.connectionManageSubParser.add_parser('clear', help='Clear all connections in database')
@@ -398,8 +428,10 @@ class Engine:
                                           help='path to config file')
         self.connectionManageOpenParser.add_argument('experimentid', metavar='<experiment id>', action="store",
                                           help='experiment instance number')
-        self.connectionManageOpenParser.add_argument('vmid', metavar='<vm id>', action="store",
-                                          help='virtual machine (with vrdp enabled) number')
+        self.connectionManageOpenParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.connectionManageOpenParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')
         self.connectionManageOpenParser.set_defaults(func=self.connectionOpenCmd)
 
 #-----------Experiment

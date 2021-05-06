@@ -46,9 +46,14 @@ class SystemConfigIO():
             if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
                 self.config['VBOX'] = {}
                 self.config['VBOX']['VBOX_PATH'] = "VBoxManage"
+                self.config['BROWSER']['BROWSER_PATH'] = "firefox"
+                self.config['BROWSER']['ARGS'] = "-private-window"
             else:
                 self.config['VBOX'] = {}
                 self.config['VBOX']['VBOX_PATH'] = "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"
+                self.config['BROWSER']['BROWSER_PATH'] = "C:\\Program Files\\Mozilla Firefox\\firefox.exe"
+                self.config['BROWSER']['ARGS'] = "-private-window"
+
             self.config['EXPERIMENTS'] = {}
             self.config['EXPERIMENTS']['EXPERIMENTS_PATH'] = "ExperimentData"
             self.config['EXPERIMENTS']['TEMP_DATA_PATH'] = "tmp"
@@ -62,10 +67,14 @@ class SystemConfigIO():
             self.config['VBOX'] = {}
             self.config['VBOX']['VMANAGE_PATH'] = "VBoxManage"
             self.config['VBOX']['VBOX_PATH'] = "VirtualBox"
+            self.config['BROWSER']['BROWSER_PATH'] = "firefox"
+            self.config['BROWSER']['ARGS'] = "-private-window"
         else:
             self.config['VBOX'] = {}
             self.config['VBOX']['VMANAGE_PATH'] = "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"
             self.config['VBOX']['VBOX_PATH'] = "C:\\Program Files\\Oracle\\VirtualBox\\VirtualBox.exe"
+            self.config['BROWSER']['BROWSER_PATH'] = "C:\\Program Files\\Mozilla Firefox\\firefox.exe"
+            self.config['BROWSER']['ARGS'] = "-private-window"
         self.config['EXPERIMENTS'] = {}
         self.config['EXPERIMENTS']['EXPERIMENTS_PATH'] = "ExperimentData"
         self.config['EXPERIMENTS']['TEMP_DATA_PATH'] = "tmp"

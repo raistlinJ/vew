@@ -39,7 +39,7 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
         
         self.vmStatusTable.setRowCount(0)
         self.vmStatusTable.setColumnCount(4)
-        self.vmStatusTable.setHorizontalHeaderLabels(("VM Name", "UUID", "Generated User", "Status"))
+        self.vmStatusTable.setHorizontalHeaderLabels(("VM Name", "Generated User", "Generated Pass", "Status"))
 
         # Context menus
         self.vmStatusTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -96,16 +96,17 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
                     self.vmStatusTable.insertRow(rowPos)
                     vmName = str(cloned_vm["name"])
                     vmCell = QTableWidgetItem(vmName)
-                    uuidCell = QTableWidgetItem(str("refresh req."))
                     username = "vrdp disabled"
+                    password = "vrdp disabled"
                     if vmuser_mapping != {} and vmName in vmuser_mapping:
-                        username = vmuser_mapping[vmName]
+                        (username, password) = vmuser_mapping[vmName]
                     usernameCell = QTableWidgetItem(username)
+                    passwordCell = QTableWidgetItem(password)
                     statusCell = QTableWidgetItem(str("refresh req."))
                     # statusCell.setFlags(Qt.ItemIsEnabled)
                     self.vmStatusTable.setItem(rowPos, 0, vmCell)
-                    self.vmStatusTable.setItem(rowPos, 1, uuidCell)
-                    self.vmStatusTable.setItem(rowPos, 2, usernameCell)
+                    self.vmStatusTable.setItem(rowPos, 1, usernameCell)
+                    self.vmStatusTable.setItem(rowPos, 2, passwordCell)
                     self.vmStatusTable.setItem(rowPos, 3, statusCell)
                     self.vmStatusTable.resizeColumnToContents(0)
 

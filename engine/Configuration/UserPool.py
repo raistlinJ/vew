@@ -7,7 +7,7 @@ from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
 class UserPool():
     def __init__(self):
         logging.debug("UserPool(): instantiated")
-        self.eco = ExperimentConfigIO()
+        self.eco = ExperimentConfigIO.getInstance()
         self.filepool = []
         self.basepool = []
         self.num_created_fromfile = 0
@@ -49,7 +49,7 @@ class UserPool():
         else:
             if genIfEmpty == True:
                 if len(self.basepool) == 0:
-                    self.addFromBase(base="user_")
+                    self.addFromBase(base="user")
                 return self.basepool.pop(0)[0]
             else:
                 return None
@@ -61,7 +61,7 @@ class UserPool():
         else:
             if genIfEmpty==True:
                 if len(self.basepool) == 0:
-                    self.addFromBase(base="user_")
+                    self.addFromBase(base="user")
                 return self.basepool.pop(0)
             else:
                 return None

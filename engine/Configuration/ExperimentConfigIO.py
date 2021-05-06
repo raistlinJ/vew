@@ -5,18 +5,49 @@ import json
 import sys, traceback
 from engine.Configuration.SystemConfigIO import SystemConfigIO
 import os
+import threading
 
 class ExperimentConfigIO:
+
+    __singleton_lock = threading.Lock()
+    __singleton_instance = None
+
+    @classmethod
+    def getInstance(cls):
+        logging.debug("getInstance() ExperimentConfigIO: instantiated")
+        if not cls.__singleton_instance:
+            with cls.__singleton_lock:
+                if not cls.__singleton_instance:
+                    cls.__singleton_instance = cls()
+        return cls.__singleton_instance
+
     def __init__(self):
+        #Virtually private constructor
         self.s = SystemConfigIO()
         self.rolledoutjson = {}
+        self.config_jsondata = {}
+        self.config_rdp_userpass = {}
 
-    def getExperimentXMLFileData(self, configname):
+    def storeConfigRDPBrokerCreds(self, configname, username, password, url, method):
         logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
+        self.config_rdp_userpass[configname] = (username, password, url, method)
+
+    def getConfigRDPBrokerCreds(self, configname):
+        logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
+        if configname in self.config_rdp_userpass:
+            return self.config_rdp_userpass[configname]
+        return None
+
+    def getExperimentXMLFileData(self, configname, force_refresh=False):
+        logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
+        if configname in self.config_jsondata:
+            if force_refresh == False:
+                return self.config_jsondata[configname]
         try:
             xmlconfigfile = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], configname,"Experiments",configname+".xml")
             with open(xmlconfigfile) as fd:
                 jsondata = xmltodict.parse(fd.read(), process_namespaces=True)
+            self.config_jsondata[configname] = jsondata
             return jsondata
         except FileNotFoundError:
             logging.error("Error in getExperimentXMLFileData(): File not found: " + str(xmlconfigfile))
@@ -26,20 +57,43 @@ class ExperimentConfigIO:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             return None
+    
+    def getExperimentServerInfo(self, configname):
+        logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
+        jsondata = self.getExperimentJSONFileData(configname)
+        vmserverip=None
+        rdpbroker=None
+        chatserver=None
+        users_file=None
+        if "xml" in jsondata:
+            if "testbed-setup" in jsondata["xml"]:
+                if "network-config" in jsondata["xml"]["testbed-setup"]:
+                    if "vm-server-ip" in jsondata["xml"]["testbed-setup"]["network-config"]:
+                        vmserverip = jsondata["xml"]["testbed-setup"]["network-config"]["vm-server-ip"]
+                    if "rdp-broker-ip" in jsondata["xml"]["testbed-setup"]["network-config"]:
+                        rdpbroker = jsondata["xml"]["testbed-setup"]["network-config"]["rdp-broker-ip"]
+                    if "chat-server-ip" in jsondata["xml"]["testbed-setup"]["network-config"]:
+                        chatserver = jsondata["xml"]["testbed-setup"]["network-config"]["chat-server-ip"]
+                if "vm-set" in jsondata["xml"]["testbed-setup"]:
+                    if "vm-set" in jsondata["xml"]["testbed-setup"]:
+                        if "users-filename" in jsondata["xml"]["testbed-setup"]["vm-set"]:
+                            users_file = jsondata["xml"]["testbed-setup"]["vm-set"]["users-filename"]
+                    
+        return vmserverip, rdpbroker, chatserver, users_file
 
-    def getExperimentVMRolledOut(self, configname, config_jsondata=None, forceRefresh="False"):
+    def getExperimentVMRolledOut(self, configname, config_jsondata=None, force_refresh="False"):
         logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
         try:
             if configname in self.rolledoutjson:
-                if forceRefresh == False:
+                if force_refresh == False:
                     return self.rolledoutjson[configname]
 
             vmRolledOutList = {}
-            if config_jsondata == None:
-                config_jsondata = self.getExperimentXMLFileData(configname)
+            if config_jsondata == None or force_refresh:
+                config_jsondata = self.getExperimentXMLFileData(configname, force_refresh=True)
             vmServerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["vm-server-ip"]
-            # rdpBrokerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["rdp-broker-ip"]
-            # chatServerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["chat-server-ip"]
+            rdpBrokerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["rdp-broker-ip"]
+            chatServerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["chat-server-ip"]
             vmSet = config_jsondata["xml"]["testbed-setup"]["vm-set"]
             pathToVirtualBox = config_jsondata["xml"]["vbox-setup"]["path-to-vboxmanage"]
             numClones = int(vmSet["num-clones"])
@@ -110,8 +164,8 @@ class ExperimentConfigIO:
                     vrdpEnabled = vm["vrdp-enabled"]
                     if vrdpEnabled != None and vrdpEnabled == 'true':
                         vrdpBaseport = str(int(vrdpBaseport))
-                        #vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "rdp-broker-ip": rdpBrokerIP, "chat-server-ip": chatServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
-                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "rdp-broker-ip": rdpBrokerIP, "chat-server-ip": chatServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
+                        #vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
                         vrdpBaseport = int(vrdpBaseport) + 1
                     #otherwise, don't include vrdp port
                     else:
@@ -127,6 +181,37 @@ class ExperimentConfigIO:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             return None
+
+    def getValidVMsFromTypeName(self, configname, itype, name, rolledoutjson=None):
+        logging.debug("getValidVMsFromTypeName(): instantiated")
+        if rolledoutjson == None:
+            rolledoutjson = self.getExperimentVMRolledOut(configname)
+        #get VMs or sets that we need to start
+        validvms = []
+        validvmnames = []
+        if name == "all":
+            #if none was specified, just add all vms to the list
+            validvms = self.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
+            for vm in validvms:
+                validvmnames.append(vm["name"])            
+        elif itype == "set":
+            validvms = self.getExperimentVMsInSetFromRolledOut(configname, name, rolledoutjson)
+            for vm in validvms:
+                validvmnames.append(vm)                
+        elif itype == "template":
+            validvms = []
+            if name in self.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson):
+                validvms = self.getExperimentVMNamesFromTemplateFromRolledOut(configname, rolledoutjson)[name]
+            for vm in validvms:
+                validvmnames.append(vm)
+        elif itype == "vm":
+            validvmnames.append(name)
+        elif itype == "":
+            #if none was specified, just add all vms to the list
+            validvms = self.getExperimentVMListsFromRolledOut(configname, rolledoutjson)
+            for vm in validvms:
+                validvmnames.append(vm["name"])
+        return validvmnames
 
     def getExperimentVMsInSetFromRolledOut(self, configname, set_num, rolledout_jsondata=None):
         logging.debug("ExperimentConfigIO: getExperimentVMsInSetFromRolledOut(): instantiated")
@@ -177,12 +262,16 @@ class ExperimentConfigIO:
                 vms.append(cloned_vm)
         return vms
 
-    def getExperimentJSONFileData(self, configname):
+    def getExperimentJSONFileData(self, configname, force_refresh=False):
         logging.debug("ExperimentConfigIO: getExperimentJSONFileData(): instantiated")
+        if configname in self.config_jsondata:
+            if force_refresh == False:
+                return self.config_jsondata[configname]
         try:
             jsonconfigfile = os.path.join(self.s.getConfig()['EXPERIMENTS']['EXPERIMENTS_PATH'], configname,"Experiments",configname+".json")
             with open(jsonconfigfile) as fd:
                 jsondata = json.load(fd)
+            self.config_jsondata[configname] = jsondata
             return jsondata
         except FileNotFoundError:
             logging.error("getExperimentJSONFileData(): File not found: " + str(jsonconfigfile))
@@ -270,7 +359,7 @@ if __name__ == "__main__":
     logging.debug("Starting Program")
 
     logging.debug("Instantiating Experiment Config IO")
-    e = ExperimentConfigIO()
+    e = ExperimentConfigIO.getInstance()
     logging.info("Getting experiment folders and filenames")
     [xmlExperimentFilenames, xmlExperimentNames] = e.getExperimentXMLFilenames()
     logging.info("Contents: " + str(xmlExperimentFilenames) + " " + str(xmlExperimentNames))

@@ -19,8 +19,8 @@ import time
 from gui.Widgets.BaseWidget import BaseWidget
 from gui.Widgets.VMWidget import VMWidget
 from gui.Widgets.MaterialWidget import MaterialWidget
-from gui.Widgets.ExperimentActionsWidget import ExperimentActionsWidget
-from gui.Widgets.ConnectionWidget import ConnectionWidget
+from gui.Widgets.ExperimentActionsWidgets.ExperimentActionsWidget import ExperimentActionsWidget
+from gui.Widgets.ConnectionWidgets.ConnectionWidget import ConnectionWidget
 from gui.Widgets.ManagerBox import ManagerBox
 from engine.Configuration.SystemConfigIO import SystemConfigIO
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
@@ -50,7 +50,7 @@ class MainApp(QWidget):
         self.vmWidgets = {}
         self.materialWidgets = {}
         self.cf = SystemConfigIO()
-        self.ec = ExperimentConfigIO()
+        self.ec = ExperimentConfigIO.getInstance()
         self.statusBar = QStatusBar()
         
         self.setMinimumSize(670,565)
@@ -97,7 +97,7 @@ class MainApp(QWidget):
         self.tabWidget.addTab(self.experimentActionsWidget, "Experiment Actions")      
 
         # Remote Connections Tab
-        self.connectionWidget = ConnectionWidget(statusBar=self.statusBar, baseWidgets=self.baseWidgets)
+        self.connectionWidget = ConnectionWidget(statusBar=self.statusBar)
         self.connectionWidget.setObjectName("connectionsWidget")
         self.tabWidget.addTab(self.connectionWidget, "Remote Connections")
 
@@ -210,7 +210,7 @@ class MainApp(QWidget):
         configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
         configTreeWidgetItem.setText(0,configname)
         self.experimentActionsWidget.addExperimentItem(configname, config_jsondata=jsondata)
-        self.connectionWidget.addConnectionItem(configname)
+        self.connectionWidget.addExperimentItem(configname, config_jsondata=jsondata)
         basejsondata = jsondata["xml"]
         # Base Config Widget 
         self.baseWidget = BaseWidget(self, configname, configname, basejsondata)
@@ -311,6 +311,7 @@ class MainApp(QWidget):
         configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
         configTreeWidgetItem.setText(0,configname)
         self.experimentActionsWidget.addExperimentItem(configname)
+        self.connectionWidget.addExperimentItem(configname)
         # Base Config Widget 
         self.baseWidget = BaseWidget(self, configname, configname)
         self.baseWidgets[configname] = {"BaseWidget": {}, "VMWidgets": {}, "MaterialWidgets": {} }
@@ -373,6 +374,7 @@ class MainApp(QWidget):
         configname = selectedItem.text(0)
         config_jsondata = self.getWritableData(configname)
         self.experimentActionsWidget.resetExperiment(configname, config_jsondata=config_jsondata)
+        self.connectionWidget.resetExperiment(configname, config_jsondata=config_jsondata)
         self.statusBar.showMessage("Added " + str(len(vmsChosen)) + " VM files to experiment: " + str(selectedItemName))
 
     def startHypervisorActionEvent(self):
@@ -440,7 +442,7 @@ class MainApp(QWidget):
             self.basedataStackedWidget.removeWidget(self.baseWidgets[selectedItemName]["BaseWidget"])
             del self.baseWidgets[selectedItemName]
             self.experimentActionsWidget.removeExperimentItem(selectedItemName)
-            self.connectionWidget.removeConnectionItem(selectedItemName)
+            self.experimentActionsWidget.removeExperimentItem(selectedItemName)
             self.statusBar.showMessage("Removed experiment: " + str(selectedItemName))
         else:
             #Check if it's the case that a VM Name was selected
@@ -453,6 +455,7 @@ class MainApp(QWidget):
                 #Also remove from the experiment action widget:
                 config_jsondata = self.getWritableData(configname)
                 self.experimentActionsWidget.resetExperiment(configname, config_jsondata=config_jsondata)
+                self.connectionWidget.resetExperiment(configname, config_jsondata=config_jsondata)
 
             #Check if it's the case that a Material Name was selected
             elif(selectedItem.text(0)[0] == "M"):
@@ -588,8 +591,11 @@ class MainApp(QWidget):
         
         self.ec.writeExperimentXMLFileData(jsondata, configname)
         self.ec.writeExperimentJSONFileData(jsondata, configname)
+        self.ec.getExperimentVMRolledOut(configname, jsondata, force_refresh=True)
+        res = self.ec.getExperimentServerInfo(configname)
         #Now reset the experimentActions view
         self.experimentActionsWidget.resetExperiment(configname, jsondata)
+        self.connectionWidget.resetExperiment(configname, jsondata)
         self.statusBar.showMessage("Succesfully saved experiment file for " + str(configname), 2000)
 
 if __name__ == '__main__':
