@@ -17,6 +17,9 @@ class UserPool():
         logging.debug("addFromCSV(): instantiated")
         #quick lazy way to generate the users/passes from csv:
         i = 0
+        if csvfilename == None:
+            logging.error("addFromCSV(): csvfilename was None cannot create users from file")
+            return
         try:
             if os.path.exists(csvfilename) == False:
                 logging.error("addFromCSV(): Filename: " + csvfilename + " does not exists; cannot create users from file")
