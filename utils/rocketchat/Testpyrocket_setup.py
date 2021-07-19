@@ -31,6 +31,20 @@ def delete_users(logged_rocket, user_list, ignore=[""]):
             results.append((user, delete_user(logged_rocket, user)))
     return results
 
+def delete_all_users(logged_rocket, ignore=[""]):
+    results = []
+    if isinstance(ignore, str):
+        ignore = [ignore]
+
+    user_list = logged_rocket.users_list().json().get("users")
+
+    for user in user_list:
+        print("Working with user: " + str(user) + "\n")
+        username = user.get("username")
+        if username.lower() not in (string.lower() for string in ignore):
+            results.append((username, delete_user(logged_rocket, username)))
+    return results
+
 def create_user(logged_rocket, username, password, email, name):
     print("Creating User: " + str(username))
     users_create = logged_rocket.users_create(
@@ -73,7 +87,7 @@ def get_user_pass_fromfile(filename):
         logging.error("Error in get_user_pass_fromfile().")
         exc_type, exc_value, exc_traceback = sys.exc_info()
         trace_back = traceback.extract_tb(exc_traceback)
-        #traceback.print_exception(exc_type, exc_value, exc_traceback)
+        traceback.print_exception(exc_type, exc_value, exc_traceback)
         return None
 
 def get_groups_fromfile(filename):
@@ -116,7 +130,7 @@ def delete_channel(logged_rocket, channel_name):
             return True
     return False
 
-def delete_all_channels(logged_rocket, ignore=["GENERAL"]):
+def delete_all_channels(logged_rocket, ignore=["GENERAL", "general"]):
     results = []
     if isinstance(ignore, str):
         ignore = [ignore]
@@ -236,32 +250,29 @@ def delete_all_groups(logged_rocket, ignore=["GENERAL"]):
 
 logged_rocket = RocketChat(sys.argv[1], sys.argv[2], server_url=sys.argv[3])
 print("calling get_user_pass_fromfile()")
-users_passes = get_user_pass_fromfile("users.txt")
-groups = get_groups_fromfile("groups.txt")
+users_passes = get_user_pass_fromfile("users.csv")
+print("FOUND USERS: " + str(users_passes))
+#groups = get_groups_fromfile("groups_cs4177.txt")
 
 #print("Got Users:" + str(users_passes))
-# print("Removing All Users")
-# users = [x[0] for x in users_passes]
-# results = delete_users(logged_rocket, users, ignore=["temp"])
-# print("Removing Completed")
-# print("Results: ")
-# for result in results:
-#     print("Username: " + str(result[0]) + " " + str(result[1]))
 
-# print("waiting for 5 seconds...")
-# time.sleep(5)
+print("Creating Users")
+results = create_users(logged_rocket, users_passes)
+print("User Creation Complete")
+print("Results: ")
+for result in results:
+    print("Username: " + str(result[0]) + " " + str(result[1]))
 
-# print("Creating Users")
-# results = create_users(logged_rocket, users_passes)
-# print("User Creation Complete")
-# print("Results: ")
-# for result in results:
-#     print("Username: " + str(result[0]) + " " + str(result[1]))
-
-# print("waiting for 5 seconds...")
-# time.sleep(5)
+print("waiting for 5 seconds...")
+time.sleep(5)
 
 # channel_name = "notifications"
+# print("Creating Channel: " + str(channel_name))
+# result = create_channel(logged_rocket, channel_name)
+# print(result)
+# print("Channel Creation Complete")
+
+# channel_name = "general"
 # print("Creating Channel: " + str(channel_name))
 # result = create_channel(logged_rocket, channel_name)
 # print(result)
@@ -270,15 +281,20 @@ groups = get_groups_fromfile("groups.txt")
 # print("waiting for 5 seconds...")
 # time.sleep(5)
 
-# print("Adding All Users to Channel: " + str(channel_name))
-# result = add_all_to_channel(logged_rocket, channel_name)
-# print(result)
-# print("Adding All to Channel Complete")
+channel_name="notifications"
+print("Adding All Users to Channel: " + str(channel_name))
+result = add_all_to_channel(logged_rocket, channel_name)
+print(result)
+print("Adding All to Channel Complete")
 
-# print("waiting for 5 seconds...")
-# time.sleep(5)
+channel_name="general"
+print("Adding All Users to Channel: " + str(channel_name))
+result = add_all_to_channel(logged_rocket, channel_name)
+print(result)
+print("Adding All to Channel Complete")
 
-#print("Got Groups:" + str(groups))
+print("waiting for 5 seconds...")
+time.sleep(5)
 
 #print("Creating IMs: " + str(groups))
 # results = add_ims_from_to(logged_rocket, groups)
@@ -288,17 +304,17 @@ groups = get_groups_fromfile("groups.txt")
 # print("waiting for 5 seconds...")
 # time.sleep(5)
 
-print("Creating Groups: " + str(groups))
-results = add_groups(logged_rocket, groups, append_team_name="_toModerators", add_members_all_teams=["jaharrison"])
-print("Create Groups Results: \n" + str(results))
-print("Creating Groups Complete")
+# print("Creating Groups: " + str(groups))
+# results = add_groups(logged_rocket, groups, append_team_name="_toAdmins", add_members_all_teams=["acosta"])
+# print("Create Groups Results: \n" + str(results))
+# print("Creating Groups Complete")
 
-print("waiting for 5 seconds...")
-time.sleep(5)
+# print("waiting for 5 seconds...")
+# time.sleep(5)
 
 
-# print("Removing Groups: " + str(groups))
-# results = delete_all_groups(logged_rocket)
+# print("Removing All Groups: ")
+# results = delete_all_groups(logged_rocket, ignore=["general", "notifications"])
 # print("Removing Groups Results: \n" + str(results))
 # print("Removing Groups Complete")
 
@@ -306,7 +322,7 @@ time.sleep(5)
 # time.sleep(5)
 
 # print("Removing All Channels")
-# result = delete_all_channels(logged_rocket, ignore="")
+# result = delete_all_channels(logged_rocket, ignore=["general"])
 # print(result)
 # print("Remove Channels Complete")
 
@@ -314,8 +330,15 @@ time.sleep(5)
 # time.sleep(5)
 
 # print("Removing All Users")
+# results = delete_all_users(logged_rocket, ignore=["acosta", "mac", "alaina", "iperez", "sibarra"])
+# print("Removing Completed")
+# print("Results: ")
+# for result in results:
+#     print("Username: " + str(result))
+
+# print("Removing Users" + str(users))
 # users = [x[0] for x in users_passes]
-# results = delete_users(logged_rocket, users, ignore="tempuser")
+# results = delete_users(logged_rocket, users, ignore=["acosta"])
 # print("Removing Completed")
 # print("Results: ")
 # for result in results:
