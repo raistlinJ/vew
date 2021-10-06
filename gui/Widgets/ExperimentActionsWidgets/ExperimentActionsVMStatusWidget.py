@@ -89,6 +89,7 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
         if rolledoutjson == None:
             return
         (template_vms, num_clones) = rolledoutjson
+        user_num = 1
         for template_vm in template_vms:
             for cloned_vm in template_vms[template_vm]:
                 if interest_vmnames == [] or cloned_vm["name"] in interest_vmnames:
@@ -99,7 +100,11 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
                     username = "vrdp disabled"
                     password = "vrdp disabled"
                     if vmuser_mapping != {} and vmName in vmuser_mapping:
-                        (username, password) = vmuser_mapping[vmName]
+                        if vmuser_mapping[vmName] == "userfile_not_found":
+                            (username, password) = ("userfile_not_found"+str(user_num), "userfile_not_found"+str(user_num))
+                            user_num+=1
+                        else:
+                            (username, password) = vmuser_mapping[vmName]
                     usernameCell = QTableWidgetItem(username)
                     passwordCell = QTableWidgetItem(password)
                     statusCell = QTableWidgetItem(str("refresh req."))

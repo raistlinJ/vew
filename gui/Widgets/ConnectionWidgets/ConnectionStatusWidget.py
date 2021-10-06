@@ -64,7 +64,7 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
 
     def retranslateUi(self, rolledoutjson, interest_vmnames, vmuser_mapping):
         logging.debug("ConnectionStatusWidget: retranslateUi(): instantiated")
-        
+        user_num = 1
         if rolledoutjson == None:
             return
         (template_vms, num_clones) = rolledoutjson
@@ -79,7 +79,11 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
                     username = "vrdp disabled"
                     password = "vrdp disabled"
                     if vmuser_mapping != {} and vmName in vmuser_mapping:
-                        (username, password) = vmuser_mapping[vmName]
+                        if vmuser_mapping[vmName] == "userfile_not_found":
+                            (username, password) = ("userfile_not_found"+str(user_num), "userfile_not_found"+str(user_num))
+                            user_num+=1
+                        else:
+                            (username, password) = vmuser_mapping[vmName]
                     usernameCell = QTableWidgetItem(username)
                     passwordCell = QTableWidgetItem(password)
                     userStatusCell = QTableWidgetItem(str("refresh req."))
