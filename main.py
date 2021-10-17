@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import (QApplication, qApp, QAction, QCheckBox, QComboBox, 
 
 from engine.Engine import Engine
 import time
+from gui.Dialogs.ExperimentDuplicateDialog import ExperimentDuplicateDialog
 
 from gui.Widgets.BaseWidget import BaseWidget
 from gui.Widgets.VMWidget import VMWidget
@@ -154,6 +155,8 @@ class MainApp(QWidget):
         self.addMaterial.triggered.connect(self.addMaterialActionEvent)
 
         # Add line separator here
+        self.duplicateExperiment = self.experimentContextMenu.addAction("Duplicate Experiment")
+        self.duplicateExperiment.triggered.connect(self.duplicateExperimentItemActionEvent)
         self.removeExperiment = self.experimentContextMenu.addAction("Remove Experiment")
         self.removeExperiment.triggered.connect(self.removeExperimentItemActionEvent)
         self.exportExperiment = self.experimentContextMenu.addAction("Export Experiment")
@@ -489,6 +492,32 @@ class MainApp(QWidget):
         #Add the items to the tree
 
         self.statusBar.showMessage("Exported to " + folderChosen)
+
+    def duplicateExperimentItemActionEvent(self):
+        logging.debug("MainApp:duplicateExperimentItemActionEvent() instantiated")
+        #Check if it's the case that an experiment name was selected
+        selectedItem = self.experimentTree.currentItem()
+        if selectedItem == None:
+            logging.debug("MainApp:duplicateExperimentItemActionEvent no item selected for duplicate")
+            self.statusBar.showMessage("You must have an experiment selected to duplicate.")
+            return
+        original_configname = selectedItem.text(0)
+
+        logging.debug("MainApp:addExperimentActionEvent() instantiated")
+        duplicate_configname = ExperimentAddDialog().experimentAddDialog(self, self.baseWidgets.keys())
+        
+        if original_configname != None:
+            logging.debug("configureVM(): OK pressed and valid configname entered: " + str(original_configname))
+        else:
+            logging.debug("configureVM(): Cancel pressed")
+            return
+        
+        ##Copy the contents of original experiment to duplicate directory with a progress dialog (at least a wait)
+        filesCopied = ExperimentDuplicateDialog().experimentDuplicateDialog(original_configname, duplicate_configname)
+        ##load the config; we know the name is the same as the original 
+        self.loadConfigname(duplicate_configname)
+
+        self.statusBar.showMessage("Added new duplicated experiment: " + str(duplicate_configname))
 
     def editPathActionEvent(self):
         logging.debug("MainApp:editPathActionEvent() instantiated")
