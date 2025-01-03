@@ -1,0 +1,38 @@
+[
+    {
+       "challenge_name": "Hello",
+       "author": "raistlinJ",
+       "category": "Cateogory",
+       "description": "This is a sample description",
+       "value": "100",
+       "type": "standard",
+       "num_attempts": "5",
+       "flags": """
+           - flag{3xampl3}
+           - {
+              type: 'static',
+              content: 'flag{wat}',
+              data: 'asdfasdfsdf',
+          }""",
+        "tags": """
+           - web
+           - sandbox
+           - js
+        """,
+        "files": """
+           - dist/source.py
+        """,
+        "hints": """
+           - {
+              content: 'This hint costs points',
+              cost: 10
+           }
+           -this hint is free
+        """,
+        "requirements": """
+           - 'Warmup'
+           - 'Are you alive'
+           - 1
+        """
+    }
+]

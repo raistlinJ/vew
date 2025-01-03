@@ -1,0 +1,24 @@
+[VBOX]
+vmanage_path = VBoxManage
+vbox_path = VirtualBox
+
+[VMWARE]
+vmanage_vm_path = /home/workshopdev/vmware/
+vmanage_cli_path = vmcli
+vmanage_run_path = vmrun
+vmanage_ovf_path = ovftool
+vmware_path = vmware
+vmware_prefsfile_path = /home/workshopdev/.vmware/preferences
+vmware_inventoryfile_path = /home/workshopdev/.vmware/inventory.vmls
+
+[BROWSER]
+browser_path = firefox
+args = -private-window
+
+[HYPERVISOR]
+active = VBOX
+
+[EXPERIMENTS]
+experiments_path = ExperimentData
+temp_data_path = tmp
+
