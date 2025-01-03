@@ -191,14 +191,6 @@ class VMwareManage(VMManage):
             for aVM in self.tempVMs:
                 logging.debug("runVMSInfo(): collecting # " + str(vmNum) + " of " + str(len(self.tempVMs)) + " : " + str(aVM))
                 #Need to get ethernet type for each nic num, group/folder, vmstate, and latest snapshot uid
-
-                #Group/folder: 
-                #VMState: 
-                    #vmcli "C:\Users\Acosta\VMWare_VMs\Ubuntu_20.04\Ubuntu_20.04.vmx" Power query
-                    #Read PowerState -- sample output: PowerState: suspended
-                #Latest Snapshot uid: 
-                    #vmcli "C:\Users\Acosta\VMWare_VMs\Ubuntu_20.04\Ubuntu_20.04.vmx" Snapshot query
-                    #Read currentUID
                 #NICs: 
                 vmnics = self.vc.get_vmnics(aVM)
                 nn = 1
@@ -278,14 +270,6 @@ class VMwareManage(VMManage):
             #get the machine readable info
             logging.debug("runVMInfo(): collecting VM extended info")
             #Need to get ethernet type for each nic num, group/folder, vmstate, and latest snapshot uid
-
-            #Group/folder: 
-            #VMState: 
-                #vmcli "C:\Users\Acosta\VMWare_VMs\Ubuntu_20.04\Ubuntu_20.04.vmx" Power query
-                #Read PowerState -- sample output: PowerState: suspended
-            #Latest Snapshot uid: 
-                #vmcli "C:\Users\Acosta\VMWare_VMs\Ubuntu_20.04\Ubuntu_20.04.vmx" Snapshot query
-                #Read currentUID
             #NICs: 
             vmnics = self.vc.get_vmnics(vmName)
             nn = 1
@@ -442,7 +426,6 @@ class VMwareManage(VMManage):
             logging.debug("runVMCmd(): sub 1 "+ str(self.writeStatus))
 
     def runVMCmd_ovf(self, cmd):
-        #ovftool.exe "C:\Users\Acosta\OneDrive - The University of Texas at El Paso\Desktop\defaulta.ova" "C:\Users\Acosta\OneDrive - The University of Texas at El Paso\Desktop"\
         logging.debug("VMwareManage: runVMCmd(): instantiated")
         try:
             self.readStatus = VMManage.MANAGER_READING
@@ -475,9 +458,9 @@ class VMwareManage(VMManage):
             logging.debug("runVMCmd(): adding 1 "+ str(self.writeStatus))
             vmCmd = "\""+self.vmrun + "\" " + cmd
             logging.info("runVMCmd(): Running " + vmCmd)
-            p = Popen(shlex.split(vmCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
+            p = Popen(shlex.split(vmCmd, posix=self.POSIX), stderr=PIPE, encoding="utf-8",)
             while True:
-                out = p.stdout.readline()
+                out = p.stderr.readline()
                 if out == '' and p.poll() != None:
                     break
                 if out.strip() != '':
@@ -524,7 +507,6 @@ class VMwareManage(VMManage):
 
     def importVM(self, filepath):
         logging.debug("VMwareManage: importVM(): instantiated")
-        #ovftool.exe "C:\Users\Acosta\OneDrive - The University of Texas at El Paso\Desktop\defaulta.ova" "C:\Users\Acosta\OneDrive - The University of Texas at El Paso\Desktop"\
         experimentname = os.path.basename(os.path.dirname(os.path.dirname(filepath)))
         cmd = "\"" + filepath + "\" \"" + os.path.join(self.vms_filename,experimentname) + "\""
         self.readStatus = VMManage.MANAGER_READING
@@ -571,10 +553,10 @@ class VMwareManage(VMManage):
         #check to make sure the vm is known, if not should refresh or check name:
         try:
             self.lock.acquire()
-            cmd = "-T ws start \"" + str(vmName) + "\" nogui"
+            cmd = " \"" + str(vmName) + "\" Power Start"
             self.readStatus = VMManage.MANAGER_READING
             self.writeStatus += 1
-            t = threading.Thread(target=self.runVMCmd, args=(cmd,))
+            t = threading.Thread(target=self.runVMCmd_cli, args=(cmd,))
             t.start()
             t.join()
             return 0

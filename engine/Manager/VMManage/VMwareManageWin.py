@@ -584,7 +584,7 @@ class VMwareManageWin(VMManage):
             if not exists:
                 logging.error("startVM(): " + vmName + " not found in list of known vms: \r\n" + str(self.vms))
                 return -1
-            cmd = "-T ws start \"" + str(self.vms[vmName].UUID) + "\" nogui"
+            cmd = " \"" + str(vmName) + "\" Power Start"
             self.readStatus = VMManage.MANAGER_READING
             self.writeStatus += 1
             t = threading.Thread(target=self.runVMCmd, args=(cmd,))
