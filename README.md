@@ -25,7 +25,8 @@ RES has been tested on:
 * Ubuntu 16.04+ LTE (64-bit)
 
 ##### Requirements
-* [Python 3.6 (64-bit) - Python 3.9 ](https://www.python.org/downloads/release/python-360/) (Note that RES does not work with Python 3.12 due to double-inheritance issues in the console handler code)
+* [Python 3.6 (64-bit) - Python 3.9 ](https://www.python.org/downloads/release/python-360/) (Note that RES does not work with Python 3.12 due to double-inheritance issues in the console handler code). It is recommended to use conda with a Python 3.9 virtual environment.
+
 * [VirtualBox 6.1.6](https://www.virtualbox.org/wiki/Downloads) or VMWare Workstation 17+
 * [Several Other Python packages] (see requirements.txt)
 ##### Windows
@@ -63,6 +64,17 @@ pip3 install -r requirements.txt
 To run the GUI, follow the steps in [Run the GUI](#run-the-gui).
 To run the engine tests, follow the steps in [Run Engine Tests](#run-engine-tests).
 
+#### VMware Workstation Special Considerations
+By default promiscous mode is disabled for virtual machines. To enable this, open the following file /etc/init.d/vmware
+
+Change the vmwareStartVmnet() function as follows:
+```
+vmwareStartVmnet() {
+   vmwareLoadModule $vnet
+   "$BINDIR"/vmware-networks --start >> $VNETLIB_LOG 2>&1
+   chmod a+rw /dev/vmnet*
+}
+```
 
 ### Run the GUI
 Navigate to the folder where you downloaded res and activate the virtualenv container
@@ -82,16 +94,14 @@ Start the GUI
 ```
 python main.py
 ```
-A sample RES file can be downloaded [here](https://bit.ly/2wP3Gzc). After downloading the file, right-click and select to Import the file.
+A sample RES file is included in the samples folder. In the GUI, right-click in the left pane and select to Import the file.
 
 ### Run Engine Tests
 A driver program is included that will demonstrate several of the functions provided by RES.
 
-Download the Sample RES file from [here](https://bit.ly/2wP3Gzc) and save it into the following directory
-```
-res/src/main/python/ExperimentData/samples/
-```
-Activate the virtualenv container
+Import the sample res file in the samples folder.
+
+In the terminal, activate the virtualenv container
 ```
 cd res
 (Windows)
