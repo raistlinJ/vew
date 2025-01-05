@@ -22,7 +22,7 @@ if __name__ == "__main__":
     s = SystemConfigIO()
     vmpath = s.getConfig()["VMWARE"]["VMANAGE_VM_PATH"]
 
-    testvmname = os.path.join(vmpath,"defaulta/defaulta.vmx")
+    testvmname = os.path.join(vmpath,"samples/kali-linux-2024.3-vmware-amd64/kali-linux-2024.3-vmware-amd64.vmx")
     
     vbm = VMwareManage()
     
@@ -156,19 +156,22 @@ if __name__ == "__main__":
         time.sleep(.1)
     logging.info("----Waiting 5 seconds to stop-------")
     time.sleep(5)
-# ##Test guestCommands -- only works when guest additions is installed
-#     # cmd1 = "run --exe \"/bin/bash\" --username researchdev --password toor --wait-stdout --wait-stderr -- -l -c \"echo toor | sudo -S /usr/bin/find /etc/ | tee /tmp/out.txt | cat && sleep 10 && cat /tmp/out.txt\""
-#     # cmd2 = "copyfrom --username researchdev --password toor --verbose --follow -R /tmp/ \"C:\\Users\\Desktop\\tmp2\""
+##Test guestCommands -- only works when VMware Tools is installed
+    cmds = []
+    cmds.append("-gu kali -gp kali CopyFileFromHostToGuest \"" + testvmname + "\" utils/checkConns.sh /tmp/checkConns.sh")
+    cmds.append("-gu kali -gp kali runProgramInGuest \"" + testvmname + "\" /tmp/checkConns.sh")
+    cmds.append("-gu kali -gp kali CopyFileFromGuestToHost \"" + testvmname + "\" /tmp/output.txt output1.txt")
+    cmds.append("-gu kali -gp kali deleteFileInGuest \"" + testvmname + "\" /tmp/output.txt")
+    cmds.append("-gu kali -gp kali deleteFileInGuest \"" + testvmname + "\" /tmp/checkConns.sh")
 
-#     # guestCmds = [cmd1,cmd2]
+    guestCmds = cmds
 
-#     # vbm.guestCommands(testvmname, guestCmds)
-#     # while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-#     #     logging.info("waiting for manager to finish reading/writing...")
-#     #     time.sleep(.1)
-#     # logging.info("----Waiting 15 seconds to stop-------")
-#     # time.sleep(15)
-# ##Test guestCommands -- only works when guest additions is installed
+    vbm.guestCommands(testvmname, guestCmds)
+    while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+        logging.info("waiting for manager to finish reading/writing...")
+        time.sleep(.1)
+    logging.info("----Waiting 15 seconds to stop-------")
+    time.sleep(15)
 
     vbm.stopVM(testvmname)
     while vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE and vbm.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:

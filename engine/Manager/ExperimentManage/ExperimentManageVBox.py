@@ -115,11 +115,12 @@ class ExperimentManageVBox(ExperimentManage):
                                 continue
                             logging.debug("runStartExperiment(): Starting: " + str(vmName))
                             self.vmManage.startVM(cloneVMName)
-                while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                    #waiting for vmmanager start vm to finish reading/writing...
-                    time.sleep(.1)
-                #now that the VMs have started, we want to run the commands on each; no waiting needed
-                for vm in clonevmjson.keys(): 
+            while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                #waiting for vmmanager start vm to finish reading/writing...
+                time.sleep(.1)
+            #now that the VMs have started, we want to run the commands on each; no waiting needed
+            for i in range(1, numclones + 1):
+                for vm in clonevmjson.keys():
                     vmName = vm
                     logging.debug("runStartExperiment(): working with vm: " + str(vmName))
                     #get names for clones and start them
@@ -141,7 +142,10 @@ class ExperimentManageVBox(ExperimentManage):
                                     cmds = startupCmds[sequence]
                                     for mcmd in cmds:
                                         #from the tuple, just get the "exec" or command, not hypervisor
-                                        orderedStartupCmds.append(mcmd[1].replace("{{RES_CloneNumber}}",str(i)))
+                                        #substitute out any template variables
+                                        mcmd = (mcmd[0],mcmd[1].replace("{{RES_CloneName}}","\""+str(cloneVMName)+"\""))
+                                        mcmd = (mcmd[0],mcmd[1].replace("{{RES_CloneNumber}}",str(i)))
+                                        orderedStartupCmds.append(mcmd[1])
                                 logging.debug("runStartExperiment(): sending command(s) for " + str(cloneVMName) + str(orderedStartupCmds))
                                 self.vmManage.guestCommands(cloneVMName, orderedStartupCmds, startupDelay)
             logging.debug("runStartExperiment(): Complete...")
@@ -156,7 +160,7 @@ class ExperimentManageVBox(ExperimentManage):
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
     #abstractmethod
-    def suspendExperiment(self, configname, itype, name):
+    def suspendExperiment(self, configname, itype="", name=""):
         logging.debug("suspendExperiment(): instantiated")
         t = threading.Thread(target=self.runSuspendExperiment, args=(configname, itype, name))
         t.start()
@@ -225,7 +229,7 @@ class ExperimentManageVBox(ExperimentManage):
                             cloneVMName = cloneinfo["name"]
                             if cloneVMName not in validvmnames:
                                 continue                            
-                            #Check if clone exists and then run it if it doeFs
+                            #Check if clone exists and then run it if it does
                             if self.vmManage.getVMStatus(vmName) == None:
                                 logging.error("runPauseExperiment(): VM Name: " + str(vmName) + " does not exist; skipping...")
                                 continue

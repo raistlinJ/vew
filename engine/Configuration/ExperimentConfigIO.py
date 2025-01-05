@@ -122,7 +122,7 @@ class ExperimentConfigIO:
                 startupCmds_reformatted = None
                 startupDelay = 0
                 #read startup commands
-                if "startup" in vm and "cmd" in vm["startup"]:
+                if "startup" in vm and "startup" in vm and vm["startup"] != None and "cmd" in vm["startup"]:
                     startupCmds_reformatted = {}
                     if "delay" in vm["startup"]:
                         startupDelay = vm["startup"]["delay"]
@@ -137,7 +137,7 @@ class ExperimentConfigIO:
                             logging.error("getExperimentVMRolledOut(): exec tag missing: " + str(startupcmd))
                             continue
                         #set default hypervisor and seq if they aren't specified
-                        hypervisor = "vbox"
+                        hypervisor = "unset"
                         seq = "0"
                         if hypervisor in startupcmd:
                             hypervisor = startupcmd["hypervisor"]
@@ -147,7 +147,7 @@ class ExperimentConfigIO:
                         if seq not in startupCmds_reformatted:
                             startupCmds_reformatted[seq] = [(hypervisor, startupcmd["exec"])]
                         else:
-                            startupCmds_reformatted[seq].append[(hypervisor, startupcmd["exec"])]
+                            startupCmds_reformatted[seq].append((hypervisor, startupcmd["exec"]))
 
                 #get names for clones
                 myBaseOutname = baseOutname

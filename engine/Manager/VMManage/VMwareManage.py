@@ -112,7 +112,6 @@ class VMwareManage(VMManage):
             self.guestThreadStatus += 1
             t = threading.Thread(target=self.runGuestCommands, args=(vmName, cmds, delay))
             t.start()
-            t.join()
             return 0
         finally:
             self.lock.release()
@@ -124,9 +123,9 @@ class VMwareManage(VMManage):
             #if a delay was specified... wait
             time.sleep(int(delay))
             for cmd in cmds:
-                vmCmd = self.vmanage_path + " guestcontrol " + str(vmName) + " " + cmd
+                vmCmd = self.vmrun + " " + cmd
                 logging.info("runGuestCommands(): Running " + vmCmd)
-                p = Popen(vmCmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
+                p = Popen(shlex.split(vmCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
                 while True:
                     out = p.stdout.readline()
                     if out == '' and p.poll() != None:
@@ -157,16 +156,12 @@ class VMwareManage(VMManage):
         logging.debug("VMwareManage: refreshVMInfo(): instantiated: " + str(vmName))
         logging.debug("refreshVMInfo() refresh VMs thread")
         #check to make sure the vm is known, if not should refresh or check name:
-        exists = False
-        try:
-            self.readStatus = VMManage.MANAGER_READING
-            self.writeStatus += 1
-            t = threading.Thread(target=self.runVMInfo, args=(vmName,))
-            t.start()
-            t.join()
-            return 0
-        finally:
-            self.lock.release()
+        self.readStatus = VMManage.MANAGER_READING
+        self.writeStatus += 1
+        t = threading.Thread(target=self.runVMInfo, args=(vmName,))
+        t.start()
+        t.join()
+
     
     def runVMSInfo(self):
         logging.debug("VMwareManage: runVMSInfo(): instantiated")
@@ -264,7 +259,7 @@ class VMwareManage(VMManage):
             logging.debug("runVMSInfo(): Found # VMS: " + str(len(self.tempVMs)))
 
             if vmName not in self.tempVMs:
-                logging.error("runVnot inMInfo(): VM was not found/registered: " + vmName)
+                logging.error("runVMInfo(): VM was not found/registered: " + vmName)
                 return
 
             #get the machine readable info
@@ -538,7 +533,7 @@ class VMwareManage(VMManage):
             self.lock.acquire()
             filepath = filepath.replace("\"","")
             exportfilename = os.path.join(filepath,os.path.basename(vmName)[:-4]+".ova")
-            cmd = "\"" + vmName + "\" \"" + exportfilename + "\""# + "\" --iso"
+            cmd = "\"" + vmName + "\" \"" + exportfilename + "\""
             self.readStatus = VMManage.MANAGER_READING
             self.writeStatus += 1
             t = threading.Thread(target=self.runVMCmd_ovf, args=(cmd,))
@@ -558,7 +553,7 @@ class VMwareManage(VMManage):
             self.writeStatus += 1
             t = threading.Thread(target=self.runVMCmd_cli, args=(cmd,))
             t.start()
-            t.join()
+            #t.join()
             return 0
         finally:
             self.lock.release()
@@ -686,7 +681,6 @@ class VMwareManage(VMManage):
             self.readStatus = VMManage.MANAGER_READING
             logging.debug("runCloneVMConfigAll(): adding 1 "+ str(self.writeStatus))
             #first clone
-            #Check that vm does exist
             # clone the VM
             self.writeStatus += 1
             self.runCloneVM(vmName, cloneName, cloneSnapshots, linkedClones, groupName)
