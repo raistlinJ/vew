@@ -264,7 +264,17 @@ class Engine:
         if name == "all":
             return self.experimentManage.restoreExperiment(configname)    
         return self.experimentManage.restoreExperiment(configname, itype, name)
-  
+
+    def experimentRunGuestCmd(self, args):
+        logging.debug("experimentRunGuestCmd(): instantiated")
+        #will run guest commands of the experiment as specified in configfile
+        configname = args.configname
+        itype=args.itype
+        name=args.name
+        if name == "all":
+            return self.experimentManage.guestCmdsExperiment(configname)    
+        return self.experimentManage.guestCmdsExperiment(configname, itype, name)
+
     def vmConfigCmd(self, args):
         logging.debug("vmConfigCmd(): instantiated")
         vmName = args.vmName.replace("\"","").replace("'","")
@@ -523,6 +533,15 @@ class Engine:
         self.experimentManageRemoveParser.add_argument('name', metavar='<instance-name>', action="store",
                                           help='all, set-number, template-vm-name, or clone-vm-name')                                                    
         self.experimentManageRemoveParser.set_defaults(func=self.experimentRemoveCmd)
+        
+        self.experimentManageRemoveParser = self.experimentManageSubParser.add_parser('guestcmd', help='runs VM guest commands for experiment clones')
+        self.experimentManageRemoveParser.add_argument('configname', metavar='<config filename>', action="store",
+                                          help='path to config file')
+        self.experimentManageRemoveParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.experimentManageRemoveParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')                                                    
+        self.experimentManageRemoveParser.set_defaults(func=self.experimentRunGuestCmd)
 
     def execute(self, cmd):
         logging.debug("execute(): instantiated")
