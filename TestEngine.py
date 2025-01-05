@@ -123,7 +123,19 @@ if __name__ == "__main__":
         time.sleep(.1)
         logging.debug("Waiting for experiment start to complete...")
         res = e.execute("experiment status")
-    logging.debug("Experiment start complete.")    
+    logging.debug("Experiment start complete.")
+
+    #####---Run Guest Commands Test#####
+    ##Note that any guestcontrol operations will require guest additions to be installed on the VM
+    logging.info("Running Guest Commands for Experiment")
+    e.execute("experiment guestcmd sample clones defaultb")
+    res = e.execute("experiment status")
+    logging.debug("Waiting for experiment start to complete...")
+    while res["writeStatus"] != ExperimentManageVBox.EXPERIMENT_MANAGE_COMPLETE:
+        time.sleep(.1)
+        logging.debug("Waiting for experiment start to complete...")
+        res = e.execute("experiment status")
+    logging.debug("Experiment start complete.")
 
     #####---Stop Experiment Test#####
     time.sleep(5)
