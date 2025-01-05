@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (QApplication, qApp, QAction, QCheckBox, QComboBox, 
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QMessageBox, QTableWidget, QTabWidget, QTextEdit, QPlainTextEdit,
         QVBoxLayout, QWidget, QStackedWidget, QStatusBar, QMenuBar)
-from testconsole import Handler
+from gui.Handlers.ConsoleHandler import ConsoleHandler
 
 from gui.Dialogs.ExperimentDuplicateDialog import ExperimentDuplicateDialog
 
@@ -118,7 +118,7 @@ class MainApp(QWidget):
         self.consoleGroupBox = QGroupBox("Console")
         self.groupBoxLayout = QHBoxLayout()
 
-        handler = Handler(self)
+        handler = ConsoleHandler(self)
         self.console_text_box = QPlainTextEdit(self)
         self.consoleLayout.addWidget(self.console_text_box)
         logging.getLogger().addHandler(handler)

@@ -3,7 +3,7 @@
 import logging
 from PyQt5.QtCore import pyqtSignal, QObject
 
-class Handler(QObject, logging.Handler):
+class ConsoleHandler(QObject, logging.Handler):
     new_record = pyqtSignal(object)
 
     def __init__(self, parent):
