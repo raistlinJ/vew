@@ -16,9 +16,6 @@ RES is a wrapper system that enables analysts and researchers to easily create, 
 
 The current version of RES supports VirtualBox machines. 
 
-### Limitations
-* The system currently does not allow entry of custom VM commands. This feature is forthcoming.
-
 ### Installation
 RES has been tested on:
 * Windows 10+ (64-bit)
@@ -27,7 +24,7 @@ RES has been tested on:
 ##### Requirements
 * [Python 3.6 (64-bit) - Python 3.9 ](https://www.python.org/downloads/release/python-360/) (Note that RES does not work with Python 3.12 due to double-inheritance issues in the console handler code). It is recommended to use conda with a Python 3.9 virtual environment.
 
-* [VirtualBox 6.1.6](https://www.virtualbox.org/wiki/Downloads) or VMWare Workstation 17+
+* [VirtualBox 6.1.6+](https://www.virtualbox.org/wiki/Downloads) or VMWare Workstation 17+
 * [Several Other Python packages] (see requirements.txt)
 ##### Windows
 Clone the source and then cd into the directory:
