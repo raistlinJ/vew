@@ -69,9 +69,11 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.startupContextMenu = QtWidgets.QMenu("Startup")
         self.shutdownContextMenu = QtWidgets.QMenu("Shutdown")
         self.stateContextMenu = QtWidgets.QMenu("State")
+        self.controlContextMenu = QtWidgets.QMenu("Control")
         self.experimentMenu.addMenu(self.startupContextMenu)
         self.experimentMenu.addMenu(self.shutdownContextMenu)
         self.experimentMenu.addMenu(self.stateContextMenu)
+        self.experimentMenu.addMenu(self.controlContextMenu)
 
         self.cloneExperiment = self.startupContextMenu.addAction("Signal - Create Clones")
         self.cloneExperiment.triggered.connect(self.menuItemSelected)
@@ -97,6 +99,9 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
 
         self.snapshotVMs = self.stateContextMenu.addAction("Signal - Snapshot VMs")
         self.snapshotVMs.triggered.connect(self.menuItemSelected)
+
+        self.guestCmdsVMs = self.controlContextMenu.addAction("Signal - Run Stored GuestCmds")
+        self.guestCmdsVMs.triggered.connect(self.menuItemSelected)
 
         self.setLayout(self.windowBoxHLayout)
         self.retranslateUi()
