@@ -229,7 +229,7 @@ class PackageManageVMware(PackageManage):
             tmpPathVMs = os.path.join(tmpPathBase,"VMs")
             tmpPathMaterials = os.path.join(tmpPathBase,"Materials")
             tmpPathExperiments = os.path.join(tmpPathBase,"Experiments")
-            exportfilename = os.path.join(exportpath,experimentname+".res")
+            exportfilename = os.path.join(exportpath,experimentname+".rvm")
             
             #copy all files to temp folder
             logging.debug("runExportPackage(): copying experiment files to temporary folder: " + str(tmpPathBase))

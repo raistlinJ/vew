@@ -10,7 +10,7 @@ class PackageImportDialog:
 
         fdialog = QFileDialog()
         filenames = ""
-        filenames, _ = QFileDialog.getOpenFileNames(fdialog, "Choose RES File to Import", filter="RES Files(*.res)")
+        filenames, _ = QFileDialog.getOpenFileNames(fdialog, "Choose RES File to Import", filter="VirtualBox RES Files(*.res);;VMware RES Files (*.rvm)")
         if len(filenames) > 0:
             #check if experiment already exists
             filename = filenames[0]
