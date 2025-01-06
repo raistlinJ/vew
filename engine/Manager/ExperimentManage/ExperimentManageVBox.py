@@ -127,6 +127,8 @@ class ExperimentManageVBox(ExperimentManage):
                     for cloneinfo in clonevmjson[vm]:
                         if cloneinfo["groupNum"] == str(i):
                             cloneVMName = cloneinfo["name"]
+                            if cloneVMName not in validvmnames:
+                                continue
                             #Check if clone exists and then run it if it does
                             if self.vmManage.getVMStatus(cloneVMName) == None:
                                 logging.error("runStartExperiment(): VM Name: " + str(cloneVMName) + " does not exist; skipping...")
@@ -158,6 +160,64 @@ class ExperimentManageVBox(ExperimentManage):
             return
         finally:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+    def guestCmdsExperiment(self, configname, itype="", name=""):
+        logging.debug("guestCmdsExperiment(): instantiated")
+        t = threading.Thread(target=self.runGuestCmdsExperiment, args=(configname, itype, name))
+        t.start()
+        t.join()
+        return 0
+
+    def runGuestCmdsExperiment(self, configname, itype, name):
+        logging.debug("runGuestCmdsExperiment(): instantiated")
+        try:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMMANDING
+            rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
+            clonevmjson, numclones = rolledoutjson
+            validvmnames = self.eco.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
+            for i in range(1, numclones + 1):
+                for vm in clonevmjson.keys():
+                    vmName = vm
+                    logging.debug("runGuestCmdsExperiment(): working with vm: " + str(vmName))
+                    #get names for clones and start them
+                    for cloneinfo in clonevmjson[vm]:
+                        if cloneinfo["groupNum"] == str(i):
+                            cloneVMName = cloneinfo["name"]
+                            if cloneVMName not in validvmnames:
+                                continue
+                            #Check if clone exists and then run it if it does
+                            if self.vmManage.getVMStatus(cloneVMName) == None:
+                                logging.error("runGuestCmdsExperiment(): VM Name: " + str(cloneVMName) + " does not exist; skipping...")
+                                continue
+                            logging.debug("runGuestCmdsExperiment(): command(s) setup on " + str(cloneVMName) )
+                            #put all of the commands into a single list, based on sequence numbers:
+                            if cloneinfo["startup-cmds"] != None:
+                                startupCmds = cloneinfo["startup-cmds"]
+                                startupDelay = cloneinfo["startup-cmds-delay"]
+                                #format them into a list; based on execution order
+                                orderedStartupCmds = []
+                                for sequence in sorted(startupCmds):
+                                    cmds = startupCmds[sequence]
+                                    for mcmd in cmds:
+                                        #from the tuple, just get the "exec" or command, not hypervisor
+                                        #substitute out any template variables
+                                        mcmd = (mcmd[0],mcmd[1].replace("{{RES_CloneName}}","\""+str(cloneVMName)+"\""))
+                                        mcmd = (mcmd[0],mcmd[1].replace("{{RES_CloneNumber}}",str(i)))
+                                        orderedStartupCmds.append(mcmd[1])
+                                logging.debug("runGuestCmdsExperiment(): sending command(s) for " + str(cloneVMName) + str(orderedStartupCmds))
+                                self.vmManage.guestCommands(cloneVMName, orderedStartupCmds, startupDelay)
+            while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                #waiting for vmmanager start vm to finish reading/writing...
+                time.sleep(.1)
+            logging.debug("runGuestCmdsExperiment(): Complete...")
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+        except Exception:
+            logging.error("runGuestCmdsExperiment(): Error in runGuestCmdsExperiment(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+            return
+        finally:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
     #abstractmethod
     def suspendExperiment(self, configname, itype="", name=""):
@@ -166,7 +226,7 @@ class ExperimentManageVBox(ExperimentManage):
         t.start()
         return 0
 
-    def runSuspendExperiment(self, configname, itype="", name=""):
+    def runSuspendExperiment(self, configname, itype, name):
         logging.debug("runSuspendExperiment(): instantiated")
         try:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_SUSPENDING
