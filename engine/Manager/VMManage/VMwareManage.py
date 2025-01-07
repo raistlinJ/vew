@@ -832,7 +832,7 @@ class VMwareManage(VMManage):
         try:
             self.lock.acquire()
             latestSnap = ""
-            #TODO for now revert to snapshot 1; fill fix by quering latest and then getting uid that way...
+            #query latest and then getting uid that way...
             vmStateCmd = "\""+self.vmcli + "\" " + "\""+str(vmName) + "\" Snapshot query"
             logging.info("runVMSInfo(): Running " + vmStateCmd)
             p = Popen(shlex.split(vmStateCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")

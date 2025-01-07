@@ -54,11 +54,15 @@ class Engine:
         #Create the ConnectionManage
         self.connectionManage = ConnectionManageGuacRDP()
         #Create the ExperimentManage
-        #self.experimentManage = ExperimentManageVBox(self.vmManage)
-        self.experimentManage = ExperimentManageVMware(self.vmManage)
+        if c.getConfig()['HYPERVISOR']['ACTIVE'] == 'VBOX':
+            self.experimentManage = ExperimentManageVBox(self.vmManage)
+        else:
+            self.experimentManage = ExperimentManageVMware(self.vmManage)
         #Create the PackageManage
-        #self.packageManage = PackageManageVBox(self.vmManage, self.experimentManage)
-        self.packageManage = PackageManageVMware(self.vmManage, self.experimentManage)
+        if c.getConfig()['HYPERVISOR']['ACTIVE'] == 'VBOX':
+            self.packageManage = PackageManageVBox(self.vmManage, self.experimentManage)
+        else:
+            self.packageManage = PackageManageVMware(self.vmManage, self.experimentManage)
         #build the parser
         self.buildParser()
 

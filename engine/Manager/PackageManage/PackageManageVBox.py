@@ -62,7 +62,6 @@ class PackageManageVBox(PackageManage):
                 self.importVMWorker(os.path.join(tmpPathVMs, vmFilename))
                 #since we added a new VM, we have to refresh
                 
-                ##TODO: replace with updateVMByName()
                 self.vmManage.refreshAllVMInfo()
                 result = self.vmManage.getManagerStatus()["writeStatus"]
                 while result != self.vmManage.MANAGER_IDLE:
@@ -74,7 +73,7 @@ class PackageManageVBox(PackageManage):
                 self.snapshotVMWorker(os.path.join(vmFilename[:-4]))
                 vmNum = vmNum + 1
 
-            #TODO: move all unzipped files (except ovas) to experiment path)
+            #move all unzipped files (except ovas) to experiment path)
             #remove experiment from experiment folder if it already exists
             if os.path.exists(tmpPathBaseImportedExperiment) == False:
                 logging.error("Experiment folder not found after decompressing files... Skipping: " + str(tmpPathBaseImportedExperiment))
