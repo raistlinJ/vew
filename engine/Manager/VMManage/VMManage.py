@@ -74,10 +74,8 @@ class VMManage:
     def exportVM(self, vmName, filepath):
         raise NotImplementedError()
 
-#TODO:
-#    def cloneVM(self, vmName, cloneName):
-#        raise NotImplementedError()
+    def cloneVM(self, vmName, cloneName):
+        raise NotImplementedError()
 
-#TODO:
-#    def removeVM(self, vmName):
-#        raise NotImplementedError()
+    def removeVM(self, vmName):
+        raise NotImplementedError()
