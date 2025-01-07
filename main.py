@@ -650,4 +650,9 @@ if __name__ == '__main__':
     QApplication.setStyle(QStyleFactory.create('Fusion')) 
     gui.show()
     exit_code = appctxt.exec_()
+    #remove all logger handlers for a clean exit
+    logger = logging.getLogger()
+    while logger.hasHandlers():
+        logger.removeHandler(logger.handlers[0])
+
     sys.exit(exit_code)
