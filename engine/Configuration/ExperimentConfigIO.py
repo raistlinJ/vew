@@ -136,6 +136,9 @@ class ExperimentConfigIO:
                         if "exec" not in startupcmd:
                             logging.error("getExperimentVMRolledOut(): exec tag missing: " + str(startupcmd))
                             continue
+                        if "enabled" not in startupcmd or startupcmd["enabled"] != "2":
+                            logging.debug("getExperimentVMRolledOut(): command disabled, skipping: " + str(startupcmd))
+                            continue
                         #set default hypervisor and seq if they aren't specified
                         hypervisor = "unset"
                         seq = "0"

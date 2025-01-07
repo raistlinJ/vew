@@ -34,7 +34,7 @@ class VMStartupCmdsDialog(QDialog):
         #self.outerVertBox.setContentsMargins(0, 0, 0, 0)
         self.outerVertBox.setObjectName("outerVertBox")
         
-        self.startupCommandsGroupBox = QGroupBox("Commands for " + vmName + " (correct guest additions required)")
+        self.startupCommandsGroupBox = QGroupBox("Commands for " + vmName + " (correct Guest Additions/VMware Tools required)")
         self.startupCommandsVertBox = QVBoxLayout()
         self.startupCommandsVertBox.setObjectName("startupCommandsVertBox")
         self.startupCommandsVertBox.setAlignment(Qt.AlignTop)

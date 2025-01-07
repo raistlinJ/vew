@@ -12,6 +12,11 @@ class VMStartupCmdWidget(QtWidgets.QWidget):
         self.VMStartupCmdsHLayout = QtWidgets.QHBoxLayout()
         self.VMStartupCmdsHLayout.setObjectName("VMStartupCmdsHLayout")
 
+        self.enabledCheckBox = QtWidgets.QCheckBox()
+        self.enabledCheckBox.setObjectName("enabledCheckBox")
+        self.enabledCheckBox.setEnabled(True)
+        self.VMStartupCmdsHLayout.addWidget(self.enabledCheckBox)
+
         self.cmdSpinBox = QtWidgets.QSpinBox()
         self.cmdSpinBox.setObjectName("cmdSpinBox")
         self.cmdSpinBox.setRange(1, 25)
@@ -37,17 +42,23 @@ class VMStartupCmdWidget(QtWidgets.QWidget):
     def retranslateUi(self, cmdjson):
         logging.debug("VMStartupCmdWidget: retranslateUi(): instantiated")
         self.lineEdit.setPlaceholderText("enter your command here, e.g., run --exe \"/bin/bash\" --username user --password pass --wait-stdout --wait-stderr -- -l -c \"echo toor | sudo -S /usr/bin/find /etc/")
-        hypervisor = "vbox"
+        hypervisor = "unset"
         delay = 0
-        sequence = "0"
+        seq = "0"
+        execText = ""
+        ena = "0"
         if hypervisor in cmdjson:
             hypervisor = cmdjson["hypervisor"]
         if "seq" in cmdjson:
             seq = cmdjson["seq"]
-        execText = cmdjson["exec"]
+        self.cmdSpinBox.setValue(int(seq))
+        if "exec" in cmdjson:
+            execText = cmdjson["exec"]
         if execText.strip() != "":
             self.lineEdit.setText(execText)
-        self.cmdSpinBox.setValue(int(seq))
+        if "enabled" in cmdjson:
+            ena = cmdjson["enabled"]
+        self.enabledCheckBox.setCheckState(int(ena))
         
         self.removeCommandButton.setText("X")
 
@@ -55,8 +66,9 @@ class VMStartupCmdWidget(QtWidgets.QWidget):
         logging.debug("VMStartupCmdsDialog: createDefaultJSONData(): instantiated")
 
         jsondata = {"seq": 0, 
-            "hypervisor": "vbox", 
-            "exec": ""
+            "hypervisor": "unset", 
+            "exec": "",
+            "enabled": "2"
             }
 
         return jsondata
@@ -64,7 +76,8 @@ class VMStartupCmdWidget(QtWidgets.QWidget):
     def getWritableData(self):
         logging.debug("VMStartupCmdsDialog: getWritableData(): instantiated")
         #build JSON from text entry fields
-        jsondata = {"seq": str(self.cmdSpinBox.value()), "hypervisor": "vbox", "exec": self.lineEdit.text()}
+
+        jsondata = {"seq": str(self.cmdSpinBox.value()), "hypervisor": "unset", "exec": self.lineEdit.text(), "enabled": str(self.enabledCheckBox.checkState())}
         return jsondata
 
 if __name__ == "__main__":
