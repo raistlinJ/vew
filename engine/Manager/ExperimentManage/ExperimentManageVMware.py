@@ -222,6 +222,65 @@ class ExperimentManageVMware(ExperimentManage):
         finally:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
+    def guestStoredCmdsExperiment(self, configname, itype="", name=""):
+        logging.debug("runGuestStoredCmdsExperiment(): instantiated")
+        t = threading.Thread(target=self.runGuestStoredCmdsExperiment, args=(configname, itype, name))
+        t.start()
+        t.join()
+        return 0
+
+    def runGuestStoredCmdsExperiment(self, configname, itype, name):
+        logging.debug("runGuestStoredCmdsExperiment(): instantiated")
+        try:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMMANDING
+            rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
+            clonevmjson, numclones = rolledoutjson
+            validvmnames = self.eco.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
+            for i in range(1, numclones + 1):
+                for vm in clonevmjson.keys():
+                    vmName = vm
+                    logging.debug("runGuestStoredCmdsExperiment(): working with vm: " + str(vmName))
+                    #get names for clones and start them
+                    for cloneinfo in clonevmjson[vm]:
+                        if cloneinfo["groupNum"] == str(i):
+                            cloneVMName = cloneinfo["name"]
+                            if cloneVMName not in validvmnames:
+                                continue
+                            #Check if clone exists and then run it if it does
+                            if self.vmManage.getVMStatus(cloneVMName) == None:
+                                logging.error("runGuestStoredCmdsExperiment(): VM Name: " + str(cloneVMName) + " does not exist; skipping...")
+                                continue
+                            logging.debug("runGuestStoredCmdsExperiment(): command(s) setup on " + str(cloneVMName) )
+                            #put all of the commands into a single list, based on sequence numbers:
+                            if cloneinfo["stored-cmds"] != None:
+                                storedCmds = cloneinfo["stored-cmds"]
+                                storedDelay = cloneinfo["stored-cmds-delay"]
+                                #format them into a list; based on execution order
+                                orderedStoredCmds = []
+                                for sequence in sorted(storedCmds):
+                                    cmds = storedCmds[sequence]
+                                    for mcmd in cmds:
+                                        #from the tuple, just get the "exec" or command, not hypervisor
+                                        #substitute out any template variables
+                                        mcmd = (mcmd[0],mcmd[1].replace("{{RES_CloneName}}","\""+str(cloneVMName)+"\""))
+                                        mcmd = (mcmd[0],mcmd[1].replace("{{RES_CloneNumber}}",str(i)))
+                                        orderedStoredCmds.append(mcmd[1])
+                                logging.debug("runGuestStoredCmdsExperiment(): sending command(s) for " + str(cloneVMName) + str(orderedStoredCmds))
+                                self.vmManage.guestCommands(cloneVMName, orderedStoredCmds, storedDelay)
+            while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                #waiting for vmmanager to finish reading/writing...
+                time.sleep(.1)
+            logging.debug("runGuestStoredCmdsExperiment(): Complete...")
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+        except Exception:
+            logging.error("runGuestStoredCmdsExperiment(): Error in runGuestStoredCmdsExperiment(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+            return
+        finally:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+
     #abstractmethod
     def suspendExperiment(self, configname, itype="", name=""):
         logging.debug("suspendExperiment(): instantiated")

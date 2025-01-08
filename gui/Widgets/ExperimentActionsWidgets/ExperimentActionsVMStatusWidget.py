@@ -79,8 +79,11 @@ class ExperimentActionsVMStatusWidget(QtWidgets.QWidget):
         self.snapshotVMs = self.stateContextMenu.addAction("Signal - Snapshot VM")
         self.snapshotVMs.triggered.connect(self.menuItemSelected)
         
-        self.guestCmdsVMs = self.controlContextMenu.addAction("Signal - Run Stored GuestCmds")
+        self.guestCmdsVMs = self.controlContextMenu.addAction("Signal - Run Startup GuestCmds")
         self.guestCmdsVMs.triggered.connect(self.menuItemSelected)
+
+        self.guestAdhocCmdsVMs = self.controlContextMenu.addAction("Signal - Run Stored GuestCmds")
+        self.guestAdhocCmdsVMs.triggered.connect(self.menuItemSelected)
 
         self.vmStatusTable.setSortingEnabled(True)
         self.outerVertBox.addWidget(self.vmStatusTable)

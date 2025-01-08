@@ -152,6 +152,39 @@ class ExperimentConfigIO:
                         else:
                             startupCmds_reformatted[seq].append((hypervisor, startupcmd["exec"]))
 
+                storedCmds_reformatted = None
+                storedDelay = 0
+                #read stored commands
+                if "stored" in vm and "stored" in vm and vm["stored"] != None and "cmd" in vm["stored"]:
+                    storedCmds_reformatted = {}
+                    if "delay" in vm["stored"]:
+                        storedDelay = vm["stored"]["delay"]
+                    storedcmds = vm["stored"]["cmd"]
+                    #if this is not a list, make it one (xml to json limitation)
+                    if isinstance(storedcmds, list) == False:
+                        storedcmds = [storedcmds]
+                    #iterate through each stored command
+                    for storedcmd in storedcmds:
+                        #if exec does not exist, just quit; can't do anything without it
+                        if "exec" not in storedcmd:
+                            logging.error("getExperimentVMRolledOut(): exec tag missing: " + str(storedcmd))
+                            continue
+                        if "enabled" not in storedcmd or storedcmd["enabled"] != "2":
+                            logging.debug("getExperimentVMRolledOut(): command disabled, skipping: " + str(storedcmd))
+                            continue
+                        #set default hypervisor and seq if they aren't specified
+                        hypervisor = "unset"
+                        seq = "0"
+                        if hypervisor in storedcmd:
+                            hypervisor = storedcmd["hypervisor"]
+                        if "seq" in storedcmd:
+                            seq = storedcmd["seq"]
+                        #store the data and allow for duplicate sequences (store as list)
+                        if seq not in storedCmds_reformatted:
+                            storedCmds_reformatted[seq] = [(hypervisor, storedcmd["exec"])]
+                        else:
+                            storedCmds_reformatted[seq].append((hypervisor, storedcmd["exec"]))
+
                 #get names for clones
                 myBaseOutname = baseOutname
                 for i in range(1, numClones + 1):
@@ -175,13 +208,13 @@ class ExperimentConfigIO:
                     vrdpEnabled = vm["vrdp-enabled"]
                     if vrdpEnabled != None and vrdpEnabled == 'true':
                         vrdpBaseport = str(int(vrdpBaseport))
-                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "rdp-broker-ip": rdpBrokerIP, "chat-server-ip": chatServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "rdp-broker-ip": rdpBrokerIP, "chat-server-ip": chatServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "stored-cmds": storedCmds_reformatted, "stored-cmds-delay": storedDelay, "users-filename": usersFilename})
                         #vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
                         vrdpBaseport = int(vrdpBaseport) + 1
                     #otherwise, don't include vrdp port
                     else:
                         #vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
-                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "stored-cmds": storedCmds_reformatted, "stored-cmds-delay": storedDelay, "users-filename": usersFilename})
 
                     logging.debug("getExperimentVMRolledOut(): finished setting up clone: " + str(vmRolledOutList))
             self.rolledoutjson[configname] = vmRolledOutList, numClones

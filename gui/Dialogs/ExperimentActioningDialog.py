@@ -51,6 +51,9 @@ class ExperimentActionThread(QThread):
                 e.execute("experiment remove " + str(self.configname) + " " + str(self.itype) + " \"" + str(self.name) + "\"")
             elif self.actionname == "Run GuestCmds":
                 e.execute("experiment guestcmd " + str(self.configname) + " " + str(self.itype) + " \"" + str(self.name) + "\"")
+            elif self.actionname == "Run GuestStored":
+                e.execute("experiment gueststored " + str(self.configname) + " " + str(self.itype) + " \"" + str(self.name) + "\"")
+            
             #will check status every 0.5 second and will either display stopped or ongoing or connected
             dots = 1
             while(True):

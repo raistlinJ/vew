@@ -21,8 +21,10 @@ class ExperimentActions():
             self.experimentAction(configname, "Remove Experiment", itype, name)            
         elif "Signal - Power Off VM" in actionlabelname:
             self.experimentAction(configname, "Stop Experiment", itype, name)
-        elif "Signal - Run Stored GuestCmds" in actionlabelname:
+        elif "Signal - Run Startup GuestCmds" in actionlabelname:
             self.experimentAction(configname, "Run GuestCmds", itype, name)
+        elif "Signal - Run Stored GuestCmds" in actionlabelname:
+            self.experimentAction(configname, "Run GuestStored", itype, name)
 
     def experimentAction(self, configname, actionname, itype, name):
         logging.debug("experimentAction(): showContextMenu(): instantiated")

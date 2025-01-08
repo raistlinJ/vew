@@ -16,7 +16,7 @@ class VMStartupCmdsDialog(QDialog):
         logging.debug("VMStartupCmdsDialog(): instantiated")
         super(VMStartupCmdsDialog, self).__init__(parent)      
         self.parent = parent
-        self.setWindowTitle("Startup Commands")
+        self.setWindowTitle("Commands")
         self.setObjectName("VMStartupCmdWidget")
         self.configname = configname
         self.vmName = vmName

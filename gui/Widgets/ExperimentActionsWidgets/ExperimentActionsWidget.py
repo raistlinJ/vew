@@ -100,8 +100,11 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         self.snapshotVMs = self.stateContextMenu.addAction("Signal - Snapshot VMs")
         self.snapshotVMs.triggered.connect(self.menuItemSelected)
 
-        self.guestCmdsVMs = self.controlContextMenu.addAction("Signal - Run Stored GuestCmds")
+        self.guestCmdsVMs = self.controlContextMenu.addAction("Signal - Run Startup GuestCmds")
         self.guestCmdsVMs.triggered.connect(self.menuItemSelected)
+
+        self.guestAdhocCmdsVMs = self.controlContextMenu.addAction("Signal - Run Stored GuestCmds")
+        self.guestAdhocCmdsVMs.triggered.connect(self.menuItemSelected)
 
         self.setLayout(self.windowBoxHLayout)
         self.retranslateUi()

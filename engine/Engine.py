@@ -278,6 +278,16 @@ class Engine:
         if name == "all":
             return self.experimentManage.guestCmdsExperiment(configname)    
         return self.experimentManage.guestCmdsExperiment(configname, itype, name)
+    
+    def experimentRunGuestStoredCmd(self, args):
+        logging.debug("experimentRunGuestStoredCmd(): instantiated")
+        #will run guest commands of the experiment as specified in configfile
+        configname = args.configname
+        itype=args.itype
+        name=args.name
+        if name == "all":
+            return self.experimentManage.guestStoredCmdsExperiment(configname)    
+        return self.experimentManage.guestStoredCmdsExperiment(configname, itype, name)
 
     def vmConfigCmd(self, args):
         logging.debug("vmConfigCmd(): instantiated")
@@ -538,14 +548,23 @@ class Engine:
                                           help='all, set-number, template-vm-name, or clone-vm-name')                                                    
         self.experimentManageRemoveParser.set_defaults(func=self.experimentRemoveCmd)
         
-        self.experimentManageRemoveParser = self.experimentManageSubParser.add_parser('guestcmd', help='runs VM guest commands for experiment clones')
-        self.experimentManageRemoveParser.add_argument('configname', metavar='<config filename>', action="store",
+        self.experimentManageGuestCmdStartupParser = self.experimentManageSubParser.add_parser('guestcmd', help='runs VM guest startup commands for experiment clones')
+        self.experimentManageGuestCmdStartupParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
-        self.experimentManageRemoveParser.add_argument('itype', metavar='<instance-type>', action="store",
+        self.experimentManageGuestCmdStartupParser.add_argument('itype', metavar='<instance-type>', action="store",
                                           help='set, template, or vm')
-        self.experimentManageRemoveParser.add_argument('name', metavar='<instance-name>', action="store",
+        self.experimentManageGuestCmdStartupParser.add_argument('name', metavar='<instance-name>', action="store",
                                           help='all, set-number, template-vm-name, or clone-vm-name')                                                    
-        self.experimentManageRemoveParser.set_defaults(func=self.experimentRunGuestCmd)
+        self.experimentManageGuestCmdStartupParser.set_defaults(func=self.experimentRunGuestCmd)
+
+        self.experimentManageGuestCmdStoredParser = self.experimentManageSubParser.add_parser('gueststored', help='runs VM guest stored commands for experiment clones')
+        self.experimentManageGuestCmdStoredParser.add_argument('configname', metavar='<config filename>', action="store",
+                                          help='path to config file')
+        self.experimentManageGuestCmdStoredParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.experimentManageGuestCmdStoredParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')                                                    
+        self.experimentManageGuestCmdStoredParser.set_defaults(func=self.experimentRunGuestStoredCmd)
 
     def execute(self, cmd):
         logging.debug("execute(): instantiated")

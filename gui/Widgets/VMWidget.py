@@ -70,6 +70,19 @@ class VMWidget(QtWidgets.QWidget):
         self.startupCommandsHorBox.addWidget(self.startupCommandsPushButton)
         self.outerVertBox.addLayout(self.startupCommandsHorBox)
         
+        self.storedCommandsHorBox = QtWidgets.QHBoxLayout()
+        self.storedCommandsHorBox.setObjectName("storedCommandsHorBox")
+        self.storedCommandsLabel = QtWidgets.QLabel()
+        self.storedCommandsLabel.setText("VM Stored Commands:")
+        self.storedCommandsLabel.setObjectName("storedCommandsLabel")
+        self.storedCommandsHorBox.addWidget(self.storedCommandsLabel)
+
+        self.storedCommandsPushButton = QtWidgets.QPushButton("...")
+        self.storedCommandsPushButton.setObjectName("storedCommandsPushButton")
+        self.storedCommandsPushButton.clicked.connect(self.buttonModifyStoredCommands)
+        self.storedCommandsHorBox.addWidget(self.storedCommandsPushButton)
+        self.outerVertBox.addLayout(self.storedCommandsHorBox)
+
         self.iNetGroupBox = QtWidgets.QGroupBox("Internal Network Adaptors")       
         self.iNetVertBox = QtWidgets.QVBoxLayout()
         self.iNetVertBox.setObjectName("iNetVertBox")
@@ -112,6 +125,12 @@ class VMWidget(QtWidgets.QWidget):
             self.startupjsondata = self.vmjsondata["startup"]
             logging.debug("VMWidget: startup data found; adding:" + str(self.startupjsondata))
 
+        self.storedjsondata = None
+        if "stored" in self.vmjsondata:
+            logging.debug("VMWidget: stored data found; vmjson is:" + str(self.vmjsondata))
+            self.storedjsondata = self.vmjsondata["stored"]
+            logging.debug("VMWidget: startup data found; adding:" + str(self.storedjsondata))
+
     def buttonAddAdaptor(self):
         logging.debug("VMWidget: buttonAddAdaptor(): instantiated")
         #This additional function is needed because otherwise the parameters sent by the button clicked signal mess things up
@@ -141,10 +160,19 @@ class VMWidget(QtWidgets.QWidget):
     
     def buttonModifyStartupCommands(self):
         vmStartupCmdsDialog = VMStartupCmdsDialog(self, self.configname, self.nameLineEdit.text(), self.startupjsondata)
+        vmStartupCmdsDialog.setWindowTitle("VM Startup Commands")
         startCommandResult, commands = vmStartupCmdsDialog.exec_()
         if startCommandResult == QtWidgets.QMessageBox.Ok:
             self.startupjsondata = commands
             logging.debug("VMWidget: buttonModify: OK pressed; reassigning to:" + str(self.startupjsondata))
+
+    def buttonModifyStoredCommands(self):
+        vmStoredCmdsDialog = VMStartupCmdsDialog(self, self.configname, self.nameLineEdit.text(), self.storedjsondata)
+        vmStoredCmdsDialog.setWindowTitle("VM Stored Commands")
+        storedCommandResult, commands = vmStoredCmdsDialog.exec_()
+        if storedCommandResult == QtWidgets.QMessageBox.Ok:
+            self.storedjsondata = commands
+            logging.debug("VMWidget: buttonModify: OK pressed; reassigning to:" + str(self.storedjsondata))
 
     def getWritableData(self):
         logging.debug("VMWidget: getWritableData(): instantiated")
@@ -158,9 +186,11 @@ class VMWidget(QtWidgets.QWidget):
         for netAdaptor in self.netAdaptors.values():
             if isinstance(netAdaptor, NetworkAdaptorWidget):
                 jsondata["internalnet-basename"].append(netAdaptor.lineEdit.text())
-        #also need to add startup command data if any
+        #also need to add startup and stored command data if any
         if self.startupjsondata != None:
             jsondata["startup"] = self.startupjsondata
+        if self.storedjsondata != None:
+            jsondata["stored"] = self.storedjsondata
         return jsondata
 
     def createDefaultJSONData(self):
