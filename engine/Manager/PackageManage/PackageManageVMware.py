@@ -60,7 +60,6 @@ class PackageManageVMware(PackageManage):
                 self.importVMWorker(os.path.join(tmpPathVMs, vmFilename))
                 #since we added a new VM, we have to refresh
                 #need to update filenames in JSON here
-                ##TODO: replace with updateVMByName()
                 self.vmManage.refreshAllVMInfo()
                 result = self.vmManage.getManagerStatus()["writeStatus"]
                 while result != self.vmManage.MANAGER_IDLE:
@@ -91,6 +90,9 @@ class PackageManageVMware(PackageManage):
 
             for i in range(len(vms)):
                 tmpName = vms[i]['name']
+                #If going from Win to Linux, need change paths
+                if os.sys.platform == "linux":
+                    tmpName = tmpName.replace("\\","/")
                 savedPathR = os.path.join(os.path.basename(tmpName)[:-4],os.path.basename(tmpName))
                 savedPathL = os.path.join(os.path.join(self.s.getConfig()['VMWARE']['VMANAGE_VM_PATH']))
                 newVMPath = os.path.join(savedPathL,os.path.basename(targetPathBase),savedPathR)
