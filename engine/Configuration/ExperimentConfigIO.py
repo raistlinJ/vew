@@ -27,15 +27,26 @@ class ExperimentConfigIO:
         self.rolledoutjson = {}
         self.config_jsondata = {}
         self.config_rdp_userpass = {}
+        self.config_challengesys_userpass = {}
 
     def storeConfigRDPBrokerCreds(self, configname, username, password, url, method):
-        logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
+        logging.debug("ExperimentConfigIO: storeConfigRDPBrokerCreds(): instantiated")
         self.config_rdp_userpass[configname] = (username, password, url, method)
 
     def getConfigRDPBrokerCreds(self, configname):
-        logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
+        logging.debug("ExperimentConfigIO: getConfigRDPBrokerCreds(): instantiated")
         if configname in self.config_rdp_userpass:
             return self.config_rdp_userpass[configname]
+        return None
+
+    def storeConfigChallengeSysCreds(self, configname, username, password, url, method):
+        logging.debug("ExperimentConfigIO: storeConfigChallengeSysCreds(): instantiated")
+        self.config_challengesys_userpass[configname] = (username, password, url, method)
+
+    def getConfigChallengeSysCreds(self, configname):
+        logging.debug("ExperimentConfigIO: getConfigChallengeSysCreds(): instantiated")
+        if configname in self.config_challengesys_userpass:
+            return self.config_challengesys_userpass[configname]
         return None
 
     def getExperimentXMLFileData(self, configname, force_refresh=False):

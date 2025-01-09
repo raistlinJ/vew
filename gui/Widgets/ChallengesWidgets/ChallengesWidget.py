@@ -310,11 +310,11 @@ class ChallengesWidget(QtWidgets.QWidget):
         
         ##get server info
         vmHostname, rdpBrokerHostname, chatServerIP, challengesServerIP, users_file = self.eco.getExperimentServerInfo(configname)
-        if vmHostname != None and rdpBrokerHostname != None:
+        if challengesServerIP != None:
             if users_file == None:
-                ChallengesActions().challengesActionEvent(self, configname, actionlabelname, vmHostname, rdpBrokerHostname, users_file="", itype=itype, name=name)
+                ChallengesActions().challengesActionEvent(self, configname, actionlabelname, challengesServerIP, users_file="", itype=itype, name=name)
             else:
-                ChallengesActions().challengesActionEvent(self, configname, actionlabelname, vmHostname, rdpBrokerHostname, users_file, itype, name)
+                ChallengesActions().challengesActionEvent(self, configname, actionlabelname, challengesServerIP, users_file, itype, name)
 
     def refreshConnsStatus(self):
         logging.debug("refreshVMStatus(): instantiated")
