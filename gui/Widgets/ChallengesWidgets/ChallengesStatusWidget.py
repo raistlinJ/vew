@@ -1,4 +1,4 @@
-from gui.Helpers.ConnectionActions import ConnectionActions
+from gui.Helpers.ChallengesActions import ChallengesActions
 from engine.Configuration.UserPool import UserPool
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QDateTime, Qt, QTimer, QThread, pyqtSignal, QObject
@@ -11,9 +11,9 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
 
 import logging
 
-class ConnectionStatusWidget(QtWidgets.QWidget):
+class ChallengesStatusWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, configname=None, widgetname="", rolledoutjson=None, interest_vmnames = [], vmuser_mapping={}, status_bar=None):
-        logging.debug("ConnectionStatusWidget instantiated")
+        logging.debug("ChallengesStatusWidget instantiated")
         if configname == None:
             logging.error("configname cannot be empty")
             return None
@@ -25,8 +25,8 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
         self.rolledoutjson = rolledoutjson
         self.eco = ExperimentConfigIO.getInstance()
 
-        self.setWindowTitle("ConnectionStatusWidget")
-        self.setObjectName("ConnectionStatusWidget")
+        self.setWindowTitle("ChallengesStatusWidget")
+        self.setObjectName("ChallengesStatusWidget")
         self.layoutWidget = QtWidgets.QWidget()
         self.layoutWidget.setObjectName("layoutWidget")
         self.outerVertBox = QtWidgets.QVBoxLayout()
@@ -41,7 +41,7 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
         
         self.connStatusTable.setRowCount(0)
         self.connStatusTable.setColumnCount(5)
-        self.connStatusTable.setHorizontalHeaderLabels(("Connection Name", "Generated User", "Generated Pass", "User Status", "Conn Status"))
+        self.connStatusTable.setHorizontalHeaderLabels(("VM Name", "Generated User", "Generated Pass", "User Status", "Team Name", "Rank", "Score Indiv", "Score Team"))
 
         # Context menus
         self.connStatusTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -53,7 +53,7 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
         self.removeGuac.triggered.connect(self.menuItemSelected)
         self.clearGuac = self.connsContextMenu.addAction("Clear All Entries")
         self.clearGuac.triggered.connect(self.menuItemSelected)
-        self.openGuac = self.connsContextMenu.addAction("Open Connections")
+        self.openGuac = self.connsContextMenu.addAction("Open Challengess")
         self.openGuac.triggered.connect(self.menuItemSelected)
 
         self.connStatusTable.setSortingEnabled(True)
@@ -63,7 +63,7 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
         self.retranslateUi(rolledoutjson, interest_vmnames, vmuser_mapping)
 
     def retranslateUi(self, rolledoutjson, interest_vmnames, vmuser_mapping):
-        logging.debug("ConnectionStatusWidget: retranslateUi(): instantiated")
+        logging.debug("ChallengesStatusWidget: retranslateUi(): instantiated")
         user_num = 1
         if rolledoutjson == None:
             return
@@ -109,7 +109,7 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
         actionlabelname = self.sender().text()
         vmserverip, rdpbroker, chatserver, challengesserver, users_file = self.eco.getExperimentServerInfo(self.configname)
         #parent, configname, actionlabelname, vmHostname, rdpBrokerHostname, users_file="", itype="", name=""
-        ConnectionActions().connectionActionEvent(self.parent, self.configname, actionlabelname, vmserverip, rdpbroker, users_file, "vm", connName)
+        ChallengesActions().ChallengesActionEvent(self.parent, self.configname, actionlabelname, vmserverip, rdpbroker, users_file, "vm", connName)
         self.statusBar.showMessage("Executed " + str(actionlabelname) + " on " + self.configname)
 
     def updateConnStatus(self, usersConnsStatus):
@@ -133,6 +133,6 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    ui = ConnectionStatusWidget()
+    ui = ChallengesStatusWidget()
     ui.show()
     sys.exit(app.exec_())

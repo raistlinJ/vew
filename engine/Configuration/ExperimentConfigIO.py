@@ -66,6 +66,7 @@ class ExperimentConfigIO:
         vmserverip=None
         rdpbroker=None
         chatserver=None
+        challengesserver = None
         users_file=None
         if "xml" in jsondata:
             if "testbed-setup" in jsondata["xml"]:
@@ -76,12 +77,14 @@ class ExperimentConfigIO:
                         rdpbroker = jsondata["xml"]["testbed-setup"]["network-config"]["rdp-broker-ip"]
                     if "chat-server-ip" in jsondata["xml"]["testbed-setup"]["network-config"]:
                         chatserver = jsondata["xml"]["testbed-setup"]["network-config"]["chat-server-ip"]
+                    if "challenges-server-ip" in jsondata["xml"]["testbed-setup"]["network-config"]:
+                        challengesserver = jsondata["xml"]["testbed-setup"]["network-config"]["challenges-server-ip"]
                 if "vm-set" in jsondata["xml"]["testbed-setup"]:
                     if "vm-set" in jsondata["xml"]["testbed-setup"]:
                         if "users-filename" in jsondata["xml"]["testbed-setup"]["vm-set"]:
                             users_file = jsondata["xml"]["testbed-setup"]["vm-set"]["users-filename"]
                     
-        return vmserverip, rdpbroker, chatserver, users_file
+        return vmserverip, rdpbroker, chatserver, challengesserver, users_file
 
     def getExperimentVMRolledOut(self, configname, config_jsondata=None, force_refresh="False"):
         logging.debug("ExperimentConfigIO: getExperimentXMLFileData(): instantiated")
@@ -98,6 +101,7 @@ class ExperimentConfigIO:
             vmServerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["vm-server-ip"]
             rdpBrokerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["rdp-broker-ip"]
             chatServerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["chat-server-ip"]
+            challengesServerIP = config_jsondata["xml"]["testbed-setup"]["network-config"]["challenges-server-ip"]
             vmSet = config_jsondata["xml"]["testbed-setup"]["vm-set"]
             numClones = int(vmSet["num-clones"])
             cloneSnapshots = vmSet["clone-snapshots"]
@@ -208,13 +212,13 @@ class ExperimentConfigIO:
                     vrdpEnabled = vm["vrdp-enabled"]
                     if vrdpEnabled != None and vrdpEnabled == 'true':
                         vrdpBaseport = str(int(vrdpBaseport))
-                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "rdp-broker-ip": rdpBrokerIP, "chat-server-ip": chatServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "stored-cmds": storedCmds_reformatted, "stored-cmds-delay": storedDelay, "users-filename": usersFilename})
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "rdp-broker-ip": rdpBrokerIP, "chat-server-ip": chatServerIP, "challenges-server-ip": challengesServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "stored-cmds": storedCmds_reformatted, "stored-cmds-delay": storedDelay, "users-filename": usersFilename})
                         #vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "vrdpPort": vrdpBaseport, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
                         vrdpBaseport = int(vrdpBaseport) + 1
                     #otherwise, don't include vrdp port
                     else:
                         #vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "users-filename": usersFilename})
-                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "stored-cmds": storedCmds_reformatted, "stored-cmds-delay": storedDelay, "users-filename": usersFilename})
+                        vmRolledOutList[vmName].append({"name": cloneVMName, "group-name": cloneGroupName, "networks": cloneNets, "vrdpEnabled": vrdpEnabled, "baseGroupName": baseGroupname, "groupNum": str(i), "vm-server-ip": vmServerIP, "rdp-broker-ip": rdpBrokerIP, "chat-server-ip": chatServerIP, "challenges-server-ip": challengesServerIP, "clone-snapshots": cloneSnapshots, "linked-clones": linkedClones, "startup-cmds": startupCmds_reformatted, "startup-cmds-delay": startupDelay, "stored-cmds": storedCmds_reformatted, "stored-cmds-delay": storedDelay, "users-filename": usersFilename})
 
                     logging.debug("getExperimentVMRolledOut(): finished setting up clone: " + str(vmRolledOutList))
             self.rolledoutjson[configname] = vmRolledOutList, numClones
