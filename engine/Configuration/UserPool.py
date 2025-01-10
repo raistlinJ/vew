@@ -112,7 +112,7 @@ class UserPool():
                     else:
                         (username, password) = createdUsers[currGroupNum]
                     # Associate a User and Connection
-                    logging.debug( "Generating Connection for Username: " + username)
+                    logging.debug( "Generating Username: " + username)
                     usersConns[(username, password)].append((cloneVMName, vmServerIP, vrdpPort))
         logging.debug("generateUsersConns(): Complete...")
         return usersConns

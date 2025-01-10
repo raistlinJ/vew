@@ -7,6 +7,7 @@ import argparse
 import sys
 import os
 from engine.Manager.ConnectionManage.ConnectionManageGuacRDP import ConnectionManageGuacRDP
+from engine.Manager.ChallengesManage.ChallengesManageCTFd import ChallengesManageCTFd
 from engine.Manager.PackageManage.PackageManageVBox import PackageManageVBox
 from engine.Manager.PackageManage.PackageManageVMware import PackageManageVMware
 from engine.Manager.ExperimentManage.ExperimentManageVBox import ExperimentManageVBox
@@ -53,6 +54,8 @@ class Engine:
 
         #Create the ConnectionManage
         self.connectionManage = ConnectionManageGuacRDP()
+        #Create the ChallengesMange
+        self.challengesManage = ChallengesManageCTFd()
         #Create the ExperimentManage
         if c.getConfig()['HYPERVISOR']['ACTIVE'] == 'VBOX':
             self.experimentManage = ExperimentManageVBox(self.vmManage)
@@ -143,7 +146,7 @@ class Engine:
             full_creds_file = os.path.abspath(creds_file)
             if os.path.exists(full_creds_file):
                 return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth, full_creds_file, itype, name)
-        return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth)
+        return self.connectionManage.createConnections(configname, hostname, username, password, url_path, method, maxConnections, maxConnectionsPerUser, width, height, bitdepth,itype=itype, name=name)
 
     def connectionRemoveCmd(self, args):
         logging.debug("connectionRemoveCmd(): instantiated")
@@ -162,7 +165,7 @@ class Engine:
             full_creds_file = os.path.abspath(creds_file)
             if os.path.exists(full_creds_file):
                 return self.connectionManage.removeConnections(configname, hostname, username, password, url_path, method, full_creds_file, itype, name)
-        return self.connectionManage.removeConnections(configname, hostname, username, password, url_path, method)
+        return self.connectionManage.removeConnections(configname, hostname, username, password, url_path, method, itype=itype, name=name)
 
     def connectionClearAllCmd(self, args):
         logging.debug("connectionClearAllCmd(): instantiated")
@@ -184,6 +187,73 @@ class Engine:
         name = args.itype
 
         return self.connectionManage.openConnection(configname, experimentid, itype, name)
+
+    def challengesStatusCmd(self, args):
+        #query challenge manager status and then return it here
+        return self.challengesManage.getChallengesManageStatus()
+
+    def challengesRefreshCmd(self, args):
+        hostname = args.hostname
+        username = args.username
+        password = args.password
+        method = args.method
+        #query challenge manager status and then return it here
+        return self.challengesManage.getChallengesManageRefresh(hostname, username, password, method)
+        
+    def challengesUsersCreateCmd(self, args):
+        logging.debug("challengesUsersCreateCmd(): instantiated")
+        #will create challenge users as specified in configfile
+        configname = args.configname
+        hostname = args.hostname
+        username = args.username
+        password = args.password
+        method = args.method
+        creds_file = args.creds_file
+        itype = args.itype
+        name = args.name
+
+        if creds_file != None and isinstance(creds_file, str) and creds_file.strip() != "None":
+            full_creds_file = os.path.abspath(creds_file)
+            if os.path.exists(full_creds_file):
+                return self.challengesManage.createChallengesUsers(configname, hostname, username, password, method, full_creds_file, itype, name)
+        return self.challengesManage.createChallengesUsers(configname, hostname, username, password, method, itype=itype, name=name)
+
+    def challengesUsersRemoveCmd(self, args):
+        logging.debug("challengesUsersRemoveCmd(): instantiated")
+        #will remove challenge users as specified in configfile
+        configname = args.configname
+        hostname = args.hostname
+        username = args.username
+        password = args.password
+        method = args.method
+        itype = args.itype
+        name = args.name
+        creds_file = args.creds_file
+        if creds_file != None and isinstance(creds_file, str) and creds_file.strip() != "None":
+            full_creds_file = os.path.abspath(creds_file)
+            if os.path.exists(full_creds_file):
+                return self.challengesManage.removeChallengesUsers(configname, hostname, username, password, method, full_creds_file, itype, name)
+        return self.challengesManage.removeChallengesUsers(configname, hostname, username, password, method, itype=itype, name=name)
+
+    def challengesClearAllUsersCmd(self, args):
+        logging.debug("challengesClearAllUsersCmd(): instantiated")
+        #will remove challenge users as specified in configfile
+        hostname = args.hostname
+        username = args.username
+        password = args.password
+        method = args.method
+        
+        return self.challengesManage.clearAllChallengesUsers(hostname, username, password, method)
+
+    def challengesOpenUsersCmd(self, args):
+        logging.debug("challengesOpenUsersCmd(): instantiated")
+        #open a display to the current user challenge stats
+        configname = args.configname
+        experimentid = args.experimentid
+        itype = args.itype
+        name = args.itype
+
+        return self.challengesManage.openChallengeUsersStats(configname, experimentid, itype, name)
 
     def experimentStatusCmd(self, args):
         #query connection manager status and then return it here
@@ -468,6 +538,84 @@ class Engine:
         self.connectionManageOpenParser.add_argument('name', metavar='<instance-name>', action="store",
                                           help='all, set-number, template-vm-name, or clone-vm-name')
         self.connectionManageOpenParser.set_defaults(func=self.connectionOpenCmd)
+
+#-----------Challenges
+        self.challengesManageParser = self.subParsers.add_parser('challenges')
+        self.challengesManageSubParser = self.challengesManageParser.add_subparsers(help='manage challenges')
+
+        self.challengesManageStatusParser = self.challengesManageSubParser.add_parser('status', help='retrieve challenges manager status')
+        self.challengesManageStatusParser.set_defaults(func=self.challengesStatusCmd)
+
+        self.challengesManageRefreshParser = self.challengesManageSubParser.add_parser('refresh', help='retrieve all challenges manager status')
+        self.challengesManageRefreshParser.add_argument('hostname', metavar='<host address>', action="store",
+                                          help='Name or IP address where Connection host resides')
+        self.challengesManageRefreshParser.add_argument('username', metavar='<username>', action="store",
+                                          help='Username for connecting to host')
+        self.challengesManageRefreshParser.add_argument('password', metavar='<password>', action="store",
+                                          help='Password for connecting to host')
+        self.challengesManageRefreshParser.add_argument('method', metavar='<method>', action="store",
+                                          help='Either HTTP or HTTPS, depending on the server\'s configuration')
+        self.challengesManageRefreshParser.set_defaults(func=self.challengesRefreshCmd)
+
+        self.challengesManageCreateParser = self.challengesManageSubParser.add_parser('create', help='create challenge users as specified in config file')
+        self.challengesManageCreateParser.add_argument('configname', metavar='<config filename>', action="store",
+                                          help='path to config file')
+        self.challengesManageCreateParser.add_argument('hostname', metavar='<host address>', action="store",
+                                          help='Name or IP address where Connection host resides')
+        self.challengesManageCreateParser.add_argument('username', metavar='<username>', action="store",
+                                          help='Username for connecting to host')
+        self.challengesManageCreateParser.add_argument('password', metavar='<password>', action="store",
+                                          help='Password for connecting to host')
+        self.challengesManageCreateParser.add_argument('method', metavar='<method>', action="store",
+                                          help='Either HTTP or HTTPS, depending on the server\'s configuration')
+        self.challengesManageCreateParser.add_argument('creds_file', metavar='<creds_file>', action="store",
+                                          help='File with username/password pairs.')
+        self.challengesManageCreateParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.challengesManageCreateParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')
+        self.challengesManageCreateParser.set_defaults(func=self.challengesUsersCreateCmd)
+        
+        self.challengesManageRemoveParser = self.challengesManageSubParser.add_parser('remove', help='remove challenges as specified in config file')
+        self.challengesManageRemoveParser.add_argument('configname', metavar='<config filename>', action="store",
+                                          help='path to config file')
+        self.challengesManageRemoveParser.add_argument('hostname', metavar='<host address>', action="store",
+                                          help='Name or IP address where Connection host resides')
+        self.challengesManageRemoveParser.add_argument('username', metavar='<username>', action="store",
+                                          help='Username for connecting to host')
+        self.challengesManageRemoveParser.add_argument('password', metavar='<password>', action="store",
+                                          help='Password for connecting to host')
+        self.challengesManageRemoveParser.add_argument('method', metavar='<method>', action="store",
+                                          help='Either HTTP or HTTPS, depending on the server\'s configuration')
+        self.challengesManageRemoveParser.add_argument('creds_file', metavar='<creds_file>', action="store",
+                                          help='File with username/password pairs.')
+        self.challengesManageRemoveParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.challengesManageRemoveParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')
+        self.challengesManageRemoveParser.set_defaults(func=self.challengesUsersRemoveCmd)
+
+        self.challengesManageClearAllParser = self.challengesManageSubParser.add_parser('clear', help='Clear all challenges in database')
+        self.challengesManageClearAllParser.add_argument('hostname', metavar='<host address>', action="store",
+                                          help='Name or IP address where Connection host resides')
+        self.challengesManageClearAllParser.add_argument('username', metavar='<username>', action="store",
+                                          help='Username for connecting to host')
+        self.challengesManageClearAllParser.add_argument('password', metavar='<password>', action="store",
+                                          help='Password for connecting to host')
+        self.challengesManageClearAllParser.add_argument('method', metavar='<method>', action="store",
+                                          help='Either HTTP or HTTPS, depending on the server\'s configuration')
+        self.challengesManageClearAllParser.set_defaults(func=self.challengesClearAllUsersCmd)
+
+        self.challengesManageOpenParser = self.challengesManageSubParser.add_parser('open', help='open user stats page for specified experiment instance as specified in config file')
+        self.challengesManageOpenParser.add_argument('configname', metavar='<config filename>', action="store",
+                                          help='path to config file')
+        self.challengesManageOpenParser.add_argument('experimentid', metavar='<experiment id>', action="store",
+                                          help='experiment instance number')
+        self.challengesManageOpenParser.add_argument('itype', metavar='<instance-type>', action="store",
+                                          help='set, template, or vm')
+        self.challengesManageOpenParser.add_argument('name', metavar='<instance-name>', action="store",
+                                          help='all, set-number, template-vm-name, or clone-vm-name')
+        self.challengesManageOpenParser.set_defaults(func=self.challengesOpenUsersCmd)
 
 #-----------Experiment
         self.experimentManageParser = self.subParsers.add_parser('experiment', help='setup, start, and stop experiments as specified in a config file')

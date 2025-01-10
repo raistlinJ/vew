@@ -60,8 +60,6 @@ class ConnectionManageGuacRDP(ConnectionManage):
                                     result = self.createUser(guacConn, username, password)
                                     if result == "already_exists":
                                         logging.debug("User already exists; skipping...")
-                                    #add to the list of known users
-                                    user_dict[username] = ""
                                 except Exception:
                                     logging.error("runCreateConnections(): Error in runCreateConnections(): when trying to add user.")
                                     exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -136,7 +134,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
     def runRemoveConnections(self, configname, guacHostname, username, password, url_path, method, creds_file, itype, name):
         self.writeStatus = ConnectionManage.CONNECTION_MANAGE_REMOVING
         logging.debug("runRemoveConnections(): instantiated")
-        #call guac backend API to make connections as specified in config file and then set the complete status
+        #call guac backend API to remove connections as specified in config file and then set the complete status
         rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
         validconnsnames = self.eco.getValidVMsFromTypeName(configname, itype, name, rolledoutjson)
 
@@ -192,7 +190,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
     #abstractmethod
     def openConnection(self, configname, experimentid, vmid):
         logging.debug("openConnection(): instantiated")
-        t = threading.Thread(target=self.runRemoveConnections, args=(configname,))
+        t = threading.Thread(target=self.runOpenConnection, args=(configname,))
         t.start()
         return 0
 

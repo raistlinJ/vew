@@ -657,7 +657,7 @@ class MainApp(QWidget):
 
 if __name__ == '__main__':
     #logging.basicConfig(level=logging.DEBUG, filename='res.log')
-    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
     appctxt = QApplication(sys.argv)
     gui = MainApp()
     QApplication.setStyle(QStyleFactory.create('Fusion')) 

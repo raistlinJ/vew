@@ -58,12 +58,11 @@ class ChallengesActionDialog(QDialog):
         mgmusername = ""
         mgmpassword = ""
         method = "HTTP"
-        cachedCreds = self.eco.getConfigRDPBrokerCreds(self.configname)
+        cachedCreds = self.eco.getConfigChallengeSysCreds(self.configname)
         if cachedCreds != None:
             mgmusername = cachedCreds[0]
             mgmpassword = cachedCreds[1]
-            url = cachedCreds[2]
-            method = cachedCreds[3]
+            method = cachedCreds[2]
         self.usernameLineEdit = QLineEdit(mgmusername)
         self.passwordLineEdit = QLineEdit(mgmpassword)
         self.passwordLineEdit.setEchoMode(QLineEdit.Password)

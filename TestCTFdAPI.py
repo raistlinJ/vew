@@ -109,6 +109,7 @@ print("ADDING USERS")
 result = create_users(api_session, users_passes)
 print("ADD USER RESULT: " + str(result))
 
+#api_session.users_get()
 #teams_members_list = get_teams_members(api_session)
 #print("TEAM MEMBERS: " + str(teams_members_list))
 #groups_filename = "groups.txt"

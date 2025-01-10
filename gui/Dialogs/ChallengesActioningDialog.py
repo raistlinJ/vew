@@ -28,31 +28,35 @@ class WatchActioningThread(QThread):
             e = Engine.getInstance()
             creds_file = " None "
             if self.actionname == "Add":
-                if len(self.args) != 13:
-                    logging.error("WatchActioningThread(): invalid number of args for create challenges. Skipping...")
+                if len(self.args) != 7:
+                    logging.error("WatchActioningThread(): invalid number of args for create challenges: " + str(len(self.args)) + ". Skipping...")
                     self.watchsignal.emit("Invalid number of args for create challenges. Skipping...", self.status, True)
                     self.status = -1
                     return None
-                #10 is the users_file 
-                if str(self.args[10]).strip() != "":
-                    creds_file = " " + str(self.args[10])
-                cmd = "challenges " + " create " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4]) + " " + str(self.args[5]) + " " + str(self.args[6]) + " " + str(self.args[7]) + " " + str(self.args[8]) + " " + str(self.args[9]) + " " + creds_file + " " + str(self.args[11]) + " " + str(self.args[12])
+                # 0 - hostname, 1 - username, 2 - password, 3 - method, 4 - usersfile, 5 - type, 6 - name
+                #4 is the users_file 
+                if str(self.args[4]).strip() != "":
+                    creds_file = " " + str(self.args[4])
+                cmd = "challenges " + " create " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4]) + " " + creds_file + " " + str(self.args[5]) + " " + str(self.args[6])
             if self.actionname == "Remove":
-                if len(self.args) != 8:
+                if len(self.args) != 7:
                     logging.error("WatchActioningThread(): invalid number of args for remove challenges. Skipping...")
                     self.watchsignal.emit("Invalid number of args for remove challenges. Skipping...", self.status, True)
                     self.status = -1
                     return None
-                if str(self.args[5]).strip() != "":
-                    creds_file = " " + str(self.args[5])
-                cmd = "challenges " + " remove " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4]) + creds_file + " " + str(self.args[6]) + " " + str(self.args[7])
+                # 0 - hostname, 1 - username, 2 - password, 3 - method, 4 - usersfile, 5 - type, 6 - name
+                #4 is the users_file 
+                if str(self.args[4]).strip() != "":
+                    creds_file = " " + str(self.args[4])
+                cmd = "challenges " + " remove " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4]) + " " + creds_file + " " + str(self.args[5]) + " " + str(self.args[6])
             if self.actionname == "Clear":
-                if len(self.args) != 5:
+                # 0 - hostname, 1 - username, 2 - password, 3 - method
+                if len(self.args) != 4:
                     logging.error("WatchActioningThread(): invalid number of args for clear challenges. Skipping...")
                     self.watchsignal.emit("Invalid number of args for clear challenges. Skipping...", self.status, True)
                     self.status = -1
                     return None
-                cmd = "challenges " + " clear " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4])                
+                cmd = "challenges " + " clear " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3])
             logging.debug("WatchActioningThread(): running: " + cmd)
             e.execute(cmd)
             #will check status every 0.5 second and will either display stopped or ongoing or connected

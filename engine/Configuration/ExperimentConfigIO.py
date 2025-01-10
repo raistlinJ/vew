@@ -39,9 +39,9 @@ class ExperimentConfigIO:
             return self.config_rdp_userpass[configname]
         return None
 
-    def storeConfigChallengeSysCreds(self, configname, username, password, url, method):
+    def storeConfigChallengeSysCreds(self, configname, username, password, method):
         logging.debug("ExperimentConfigIO: storeConfigChallengeSysCreds(): instantiated")
-        self.config_challengesys_userpass[configname] = (username, password, url, method)
+        self.config_challengesys_userpass[configname] = (username, password, method)
 
     def getConfigChallengeSysCreds(self, configname):
         logging.debug("ExperimentConfigIO: getConfigChallengeSysCreds(): instantiated")
