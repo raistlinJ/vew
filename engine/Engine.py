@@ -561,7 +561,7 @@ class Engine:
         self.challengesManageCreateParser.add_argument('configname', metavar='<config filename>', action="store",
                                           help='path to config file')
         self.challengesManageCreateParser.add_argument('hostname', metavar='<host address>', action="store",
-                                          help='Name or IP address where Connection host resides')
+                                          help='Name or IP address where Challenge server resides')
         self.challengesManageCreateParser.add_argument('username', metavar='<username>', action="store",
                                           help='Username for connecting to host')
         self.challengesManageCreateParser.add_argument('password', metavar='<password>', action="store",
@@ -595,7 +595,7 @@ class Engine:
                                           help='all, set-number, template-vm-name, or clone-vm-name')
         self.challengesManageRemoveParser.set_defaults(func=self.challengesUsersRemoveCmd)
 
-        self.challengesManageClearAllParser = self.challengesManageSubParser.add_parser('clear', help='Clear all challenges in database')
+        self.challengesManageClearAllParser = self.challengesManageSubParser.add_parser('clear', help='Clear all users on challenge server')
         self.challengesManageClearAllParser.add_argument('hostname', metavar='<host address>', action="store",
                                           help='Name or IP address where Connection host resides')
         self.challengesManageClearAllParser.add_argument('username', metavar='<username>', action="store",

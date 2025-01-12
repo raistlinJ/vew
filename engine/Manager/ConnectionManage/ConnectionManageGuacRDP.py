@@ -110,7 +110,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
                 logging.error("runClearAllConnections(): Error in runClearAllConnections(): when trying to remove user.")
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 #traceback.print_exception(exc_type, exc_value, exc_traceback)
-        # Remove All Connections
+        # Clear AllConnections
         connections = guacConn.get_connections()
         logging.debug( "Retrieved Connections: " + str(connections))
         if "childConnections" in connections:

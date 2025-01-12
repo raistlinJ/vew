@@ -41,7 +41,7 @@ class ChallengesStatusWidget(QtWidgets.QWidget):
         
         self.challengeStatusTable.setRowCount(0)
         self.challengeStatusTable.setColumnCount(8)
-        self.challengeStatusTable.setHorizontalHeaderLabels(("VM Name", "Generated User", "Generated Pass", "Connection Status", "Team Name", "Rank", "Score Indiv", "Score Team"))
+        self.challengeStatusTable.setHorizontalHeaderLabels(("VM Name", "Generated User", "Generated Pass", "Connection Status", "Team Name", "Rank", "Score", "Team Score"))
 
         # Context menus
         self.challengeStatusTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -51,9 +51,9 @@ class ChallengesStatusWidget(QtWidgets.QWidget):
         self.createGuac.triggered.connect(self.menuItemSelected)
         self.removeGuac = self.challengesContextMenu.addAction("Remove Users")
         self.removeGuac.triggered.connect(self.menuItemSelected)
-        self.clearGuac = self.challengesContextMenu.addAction("Clear All Entries")
+        self.clearGuac = self.challengesContextMenu.addAction("Clear All Users on Server")
         self.clearGuac.triggered.connect(self.menuItemSelected)
-        self.openGuac = self.challengesContextMenu.addAction("Open User Stats")
+        self.openGuac = self.challengesContextMenu.addAction("Open User in Browser")
         self.openGuac.triggered.connect(self.menuItemSelected)
 
         self.challengeStatusTable.setSortingEnabled(True)

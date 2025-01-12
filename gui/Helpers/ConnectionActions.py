@@ -9,7 +9,7 @@ class ConnectionActions():
             self.connectionAction(parent, configname, "Add", vmHostname, rdpBrokerHostname, users_file, itype, name)
         elif "Remove Users" in actionlabelname:
             self.connectionAction(parent, configname, "Remove", vmHostname, rdpBrokerHostname, users_file, itype, name)
-        elif "Clear All Entries" in actionlabelname:
+        elif "Clear All Users on Server" in actionlabelname:
             self.connectionAction(parent, configname, "Clear", vmHostname, rdpBrokerHostname, users_file, itype, name)
         elif "Open Connections" in actionlabelname:
             self.connectionAction(parent, configname, "Open", vmHostname, rdpBrokerHostname, users_file, itype, name)

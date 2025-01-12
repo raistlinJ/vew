@@ -101,7 +101,7 @@ class ChallengesActionDialog(QDialog):
                 self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.methodComboBox.currentText()]
             elif self.actionname == "Refresh":
                 self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.methodComboBox.currentText()]
-            elif self.actionname == "Open":
+            elif self.actionname == "OpenUsers":
                 #get all of the challenges from the currently selected item
                 userpool = UserPool()
                 usersConns = userpool.generateUsersConns(self.configname, creds_file=self.usersFile)
@@ -124,11 +124,11 @@ class ChallengesActionDialog(QDialog):
                 self.eco.storeConfigChallengeSysCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.methodComboBox.currentText())
                 crd = ChallengesRetrievingDialog(self.parent, self.args).exec_()
                 return crd
-            elif self.actionname == "Open":
+            elif self.actionname == "OpenUsers":
                 self.eco.storeConfigChallengeSysCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.methodComboBox.currentText())
                 pathToBrowser = self.s.getConfig()["BROWSER"]["BROWSER_PATH"]
                 browserArgs = self.s.getConfig()["BROWSER"]["ARGS"]
-                url = self.challengesServerHostname+"/? TODO: ENTER Stats page URL here"
+                url = self.challengesServerHostname + "/admin/users/"+str(username)
                 cod = ChallengesOpeningDialog(self.parent, pathToBrowser, browserArgs, usersToOpen, url, self.methodComboBox.currentText()).exec_()
                 return cod
             else:

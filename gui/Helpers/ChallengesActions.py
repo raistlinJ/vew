@@ -9,10 +9,10 @@ class ChallengesActions():
             self.challengesAction(parent, configname, "Add", challengesserver, users_file, itype, name)
         elif "Remove Users" in actionlabelname:
             self.challengesAction(parent, configname, "Remove", challengesserver, users_file, itype, name)
-        elif "Clear All Entries" in actionlabelname:
+        elif "Clear All Users on Server" in actionlabelname:
             self.challengesAction(parent, configname, "Clear", challengesserver, users_file, itype, name)
-        elif "Open Challengess" in actionlabelname:
-            self.challengesAction(parent, configname, "Open", challengesserver, users_file, itype, name)
+        elif "Open User in Browser" in actionlabelname:
+            self.challengesAction(parent, configname, "OpenUsers", challengesserver, users_file, itype, name)
 
     def challengesAction(self, parent, configname, actionname, challengesserver, users_file, itype, name):
         logging.debug("connnectionAction(): showContextMenu(): instantiated")

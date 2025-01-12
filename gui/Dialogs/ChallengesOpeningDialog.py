@@ -31,7 +31,8 @@ class ChallengesOpeningThread(QThread):
             logging.debug("ChallengesOpeningThread(): Starting Connection: " + str(self.pathToBrowser))
             for (username, password) in self.userpasses:
                 #cmd = PATH_TO_FIREFOX + " -private-window" + " \"" + baseURL + "/#/?username=" + username + "&password=" + username + "\""
-                cmd = "\""+self.pathToBrowser + "\" " + self.browserArgs + " " + self.method + "://" + self.url + "/#/?username=" + username + "&password=" + password + "\""
+                cmd = "\""+self.pathToBrowser + "\" " + self.browserArgs + " " + self.method + "://" + self.url
+                logging.debug("Opening Conn: " + str(cmd))
                 stringExec = "Opening Conn: " + str(cmd)
                 self.watchsignal.emit(stringExec, None, None)
                 logging.debug(stringExec)
@@ -71,7 +72,7 @@ class ChallengesOpeningDialog(QDialog):
         self.buttons.accepted.connect( self.accept )
         self.setWindowTitle("Challenges")
         #self.setFixedSize(225, 75)
-                
+
         self.box_main_layout = QGridLayout()
         self.box_main = QWidget()
         self.box_main.setLayout(self.box_main_layout)
