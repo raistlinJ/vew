@@ -322,13 +322,16 @@ class ChallengesManageCTFd(ChallengesManage):
         #format: {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersChallengeStatus" : [(username, challengeName): {"user_status": user_perm, "challengeStatus": active}] }
         return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersChallengesStatus" : self.usersConnsStatus}
     
-    def getChallengesManageRefresh(self, ctfdHostname, username, password, url_path, method):
+    def getChallengesManageRefresh(self, ctfdHostname, username, password, method):
         logging.debug("getChallengesManageStatus(): instantiated")
         self.writeStatus = ChallengesManage.CHALLENGES_MANAGE_REFRESHING
         try:
             self.lock.acquire()
             self.usersConnsStatus.clear()
-            guacConn = Guacamole(ctfdHostname,username=username,password=password,url_path=url_path,method=method)
+
+            #get users, teams, scores
+
+            guacConn = Guacamole(ctfdHostname,username=username,password=password, method=method)
             #username, challengeName/VMName, userStatus (admin/etc.), challengeStatus (logged in or not)
             users = guacConn.get_users()
             

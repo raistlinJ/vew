@@ -56,10 +56,10 @@ class ChallengesWidget(QtWidgets.QWidget):
         self.basedataStackedWidget.setEnabled(False)
         self.windowBoxVLayout.addWidget(self.basedataStackedWidget)
 
-        self.refreshConnsButton = QtWidgets.QPushButton("Refresh Status")
-        self.refreshConnsButton.clicked.connect(self.refreshConnsStatus)
-        self.refreshConnsButton.setEnabled(False)
-        self.windowBoxVLayout.addWidget(self.refreshConnsButton)
+        self.refreshChallengesButton = QtWidgets.QPushButton("Refresh Status")
+        self.refreshChallengesButton.clicked.connect(self.refreshChallengesStatus)
+        self.refreshChallengesButton.setEnabled(False)
+        self.windowBoxVLayout.addWidget(self.refreshChallengesButton)
 
         self.windowBoxHLayout.addLayout(self.windowBoxVLayout)
         
@@ -86,7 +86,7 @@ class ChallengesWidget(QtWidgets.QWidget):
     def onItemSelected(self):
         logging.debug("MainApp:onItemSelected instantiated")
         self.basedataStackedWidget.setEnabled(True)
-        self.refreshConnsButton.setEnabled(True)
+        self.refreshChallengesButton.setEnabled(True)
     	# Get the selected item
         selectedItem = self.experimentTree.currentItem()
         if selectedItem == None:
@@ -177,10 +177,10 @@ class ChallengesWidget(QtWidgets.QWidget):
                 if os.path.exists(users_filename) == False:
                     invalid_userfile = True
             
-            usersConns = userpool.generateUsersConns(configname, creds_file=users_filename, rolledout_json=rolledoutjson)
+            usersChallenges = userpool.generateUsersConns(configname, creds_file=users_filename, rolledout_json=rolledoutjson)
             vmuser_mapping = {}
-            for (username, password) in usersConns:
-                for conn in usersConns[(username, password)]:
+            for (username, password) in usersChallenges:
+                for conn in usersChallenges[(username, password)]:
                     cloneVMName = conn[0]
                     if invalid_userfile == False:
                         vmuser_mapping[cloneVMName] = (username, password)
@@ -229,8 +229,8 @@ class ChallengesWidget(QtWidgets.QWidget):
 
             #Individual Users-based view
             num = 1
-            for (username, password) in usersConns:
-                vmnames = [tuple[0] for tuple in usersConns[(username, password)] ]
+            for (username, password) in usersChallenges:
+                vmnames = [tuple[0] for tuple in usersChallenges[(username, password)] ]
                 user_item = QtWidgets.QTreeWidgetItem(experimentUserTreeItem)
                 user_label = "U: " + username + " (Set " + str(num) + ")"
                 num+=1
@@ -316,7 +316,7 @@ class ChallengesWidget(QtWidgets.QWidget):
             else:
                 ChallengesActions().challengesActionEvent(self, configname, actionlabelname, challengesServerIP, users_file, itype, name)
 
-    def refreshConnsStatus(self):
+    def refreshChallengesStatus(self):
         logging.debug("refreshVMStatus(): instantiated")
 
         #Get the configname based on selected item:
@@ -332,8 +332,8 @@ class ChallengesWidget(QtWidgets.QWidget):
         configname = selectedItem.text(0)
 
         vmHostname, rdpBrokerHostname, chatServerIP, challengesServerIP, users_file = self.eco.getExperimentServerInfo(configname)
-        s = ChallengesActionDialog(self, configname, "Refresh", vmHostname, rdpBrokerHostname).exec_()
-        #format: {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersConnsStatus" : [(username, connName): {"user_status": user_perm, "connStatus": active}] }
+        s = ChallengesActionDialog(self, configname, "Refresh", vmHostname, challengesServerIP).exec_()
+        #format: {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersChallengesStatus" : [(username, connName): {"user_status": user_perm, "connStatus": active}] }
         if s == QMessageBox.Cancel:
             logging.debug("Cancel pressed")
             return
@@ -345,26 +345,26 @@ class ChallengesWidget(QtWidgets.QWidget):
                         QMessageBox.Ok)
             return
 
-        self.usersConnsStatus = s["usersConnsStatus"]
+        self.usersChallengesStatus = s["usersChallengesStatus"]
         
         #Update all vm status in the subtrees
         #First the "all" view
         for widget in self.challengesBaseWidgets[configname].values():
             if isinstance(widget, ChallengesStatusWidget):
-                widget.updateConnStatus(self.usersConnsStatus)
+                widget.updateConnStatus(self.usersChallengesStatus)
         #The Sets:
         for widget in self.challengesBaseWidgets[configname]["ExperimentActionsSetWidgets"].values():
             if isinstance(widget, ChallengesStatusWidget):
-                widget.updateConnStatus(self.usersConnsStatus)
+                widget.updateConnStatus(self.usersChallengesStatus)
         #The Templates:
         for widget in self.challengesBaseWidgets[configname]["ExperimentActionsTemplateWidgets"].values():
             if isinstance(widget, ChallengesStatusWidget):
-                widget.updateConnStatus(self.usersConnsStatus)
+                widget.updateConnStatus(self.usersChallengesStatus)
         #The VMs
         for widget in self.challengesBaseWidgets[configname]["ExperimentActionsVMWidgets"].values():
             if isinstance(widget, ChallengesStatusWidget):
-                widget.updateConnStatus(self.usersConnsStatus)
+                widget.updateConnStatus(self.usersChallengesStatus)
         #The Users
         for widget in self.challengesBaseWidgets[configname]["ExperimentActionsUserWidgets"].values():
             if isinstance(widget, ChallengesStatusWidget):
-                widget.updateConnStatus(self.usersConnsStatus)
+                widget.updateConnStatus(self.usersChallengesStatus)

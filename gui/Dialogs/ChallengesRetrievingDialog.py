@@ -20,24 +20,24 @@ class WatchRetrieveThread(QThread):
     # run method gets called when we start the thread
     def run(self):
         logging.debug("WatchRetrieveThread(): instantiated")
-        self.watchsignal.emit("Querying Broker Service...", None, None)
+        self.watchsignal.emit("Querying Challenges Server...", None, None)
         try:
             e = Engine.getInstance()
-            logging.debug("watchRetrieveStatus(): running: conns refresh")
-            #e.execute("conns refresh")
-            if len(self.args) != 5:
+            logging.debug("watchRetrieveStatus(): running: challenges refresh")
+            #e.execute("challenges refresh")
+            if len(self.args) != 4:
                 logging.error("WatchActioningThread(): invalid number of args for create challenges. Skipping...")
                 self.watchsignal.emit("Invalid number of args for create challenges. Skipping...", self.status, True)
                 self.status = -1
                 return None
-            #format: "conns refresh <ip> <user> <pass> <path> <method>"
-            cmd = "conns " + " refresh " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4])
+            #format: "challenges refresh <ip> <user> <pass> <method>"
+            cmd = "challenges " + " refresh " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3])
             e.execute(cmd)
             #will check status every 0.5 second and will either display stopped or ongoing or connected
             dots = 1
             while(True):
-                logging.debug("watchRetrieveStatus(): running: conns refresh")
-                self.status = e.execute("conns status")
+                logging.debug("watchRetrieveStatus(): running: challenges refresh")
+                self.status = e.execute("challenges status")
                 logging.debug("watchRetrieveStatus(): result: " + str(self.status))
                 if self.status["writeStatus"] != ChallengesManage.CHALLENGES_MANAGE_IDLE:
                     dotstring = ""
@@ -57,7 +57,7 @@ class WatchRetrieveThread(QThread):
             logging.error("Error in WatchRetrieveThread(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.watchsignal.emit("Error retrieving Conns.", None, True)
+            self.watchsignal.emit("Error retrieving Challenges.", None, True)
             self.status = -1
             return None
         finally:
