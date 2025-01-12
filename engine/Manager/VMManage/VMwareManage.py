@@ -503,7 +503,7 @@ class VMwareManage(VMManage):
     def importVM(self, filepath):
         logging.debug("VMwareManage: importVM(): instantiated")
         experimentname = os.path.basename(os.path.dirname(os.path.dirname(filepath)))
-        cmd = "\"" + filepath + "\" \"" + os.path.join(self.vms_filename,experimentname) + "\""
+        cmd = "--lax \"" + filepath + "\" \"" + os.path.join(self.vms_filename,experimentname) + "\""
         self.readStatus = VMManage.MANAGER_READING
         self.writeStatus += 1
         t = threading.Thread(target=self.runVMCmd_ovf, args=(cmd,))
