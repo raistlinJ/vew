@@ -93,10 +93,7 @@ class PackageManageVMware(PackageManage):
                 #If going from Win to Linux, need change paths
                 if os.sys.platform == "linux":
                     tmpName = tmpName.replace("\\","/")
-                if tmpName.endswith(".vmx"):
-                    savedPathR = os.path.join(os.path.basename(tmpName)[:-4],os.path.basename(tmpName))
-                else:
-                    savedPathR = os.path.join(os.path.basename(tmpName),os.path.basename(tmpName)+".vmx")
+                savedPathR = os.path.join(os.path.basename(tmpName)[:-4],os.path.basename(tmpName))
                 savedPathL = os.path.join(os.path.join(self.s.getConfig()['VMWARE']['VMANAGE_VM_PATH']))
                 newVMPath = os.path.join(savedPathL,os.path.basename(targetPathBase),savedPathR)
                 experimentXML['xml']['testbed-setup']['vm-set']['vm'][i]['name'] = newVMPath
