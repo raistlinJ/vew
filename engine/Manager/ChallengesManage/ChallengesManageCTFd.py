@@ -15,7 +15,7 @@ class ChallengesManageCTFd(ChallengesManage):
         logging.debug("ChallengesManageGuacRDP(): instantiated")
         ChallengesManage.__init__(self)
         self.eco = ExperimentConfigIO.getInstance()
-        self.usersConnsStatus = {}
+        self.challengeUsersStatus = {}
         self.lock = RLock()
 
     def create_user(self, api_session, username, password, email="", email_ext="@fake.com", type="user", verified="false", hidden="false", banned="false", fields=[]):
@@ -287,82 +287,59 @@ class ChallengesManageCTFd(ChallengesManage):
         #open stats using configuration for the specified user
         self.writeStatus = ChallengesManage.CHALLENGES_MANAGE_COMPLETE
 
-    def createUser(self, guacConn, username, password):
-        logging.debug("createUser(): Instantiated")
-        try:
-            ########User creation##########
-            userCreatePayload = {"username":username, "password":password, "attributes":{ "disabled":"", "expired":"", "access-window-start":"", "access-window-end":"", "valid-from":"", "valid-until":"", "timezone":0}}
-            result = guacConn.add_user(userCreatePayload)
-            return result
-        except Exception as e:
-            logging.error("Error in createUser().")
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            # Extract unformatter stack traces as tuples
-            trace_back = traceback.extract_tb(exc_traceback)
-            #traceback.print_exception(exc_type, exc_value, exc_traceback)
-            return None
-
-    def removeUser(self, guacConn, username):
-        logging.debug("removeUser(): Instantiated")
-        try:
-            ########User removal##########
-            result = guacConn.delete_user(username)
-            return result
-        except Exception as e:
-            logging.error("Error in removeUser().")
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            # Extract unformatter stack traces as tuples
-            trace_back = traceback.extract_tb(exc_traceback)
-            #traceback.print_exception(exc_type, exc_value, exc_traceback)
-            return None
-
     #abstractmethod
     def getChallengesManageStatus(self):
         logging.debug("getChallengesManageStatus(): instantiated")
         #format: {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersChallengeStatus" : [(username, challengeName): {"user_status": user_perm, "challengeStatus": active}] }
-        return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersChallengesStatus" : self.usersConnsStatus}
+        return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersChallengesStatus" : self.challengeUsersStatus}
     
     def getChallengesManageRefresh(self, ctfdHostname, username, password, method):
         logging.debug("getChallengesManageStatus(): instantiated")
         self.writeStatus = ChallengesManage.CHALLENGES_MANAGE_REFRESHING
         try:
             self.lock.acquire()
-            self.usersConnsStatus.clear()
-
+            self.challengeUsersStatus.clear()
             #get users, teams, scores
+            if method == "HTTPS":
+                ctfdHostname = "https://" + ctfdHostname
+            else:
+                ctfdHostname = "http://" + ctfdHostname
+            api_session = API(prefix_url=ctfdHostname)
+            api_session.login(username,password)
+            if api_session == None:
+                logging.error("runRemoveChallengesConnections(): Error with ctfd connection... quitting: " + str(ctfdHostname) + " " + str(username))
+                self.writeStatus = ChallengesManage.CHALLENGES_MANAGE_COMPLETE
+                return -1
 
-            guacConn = Guacamole(ctfdHostname,username=username,password=password, method=method)
-            #username, challengeName/VMName, userStatus (admin/etc.), challengeStatus (logged in or not)
-            users = guacConn.get_users()
-            
-            challengeIDsNames = {}
-            activeConns = {}
-            allChallenges = guacConn.get_challenges()
-            if 'childChallenges' in allChallenges:
-                for challenge in guacConn.get_challenges()['childChallenges']:
-                    challengeIDsNames[challenge['identifier']] = challenge['name']
-            guac_activeChallenges = guacConn.get_active_challenges()
-            for challenge in guac_activeChallenges:
-                activeConns[(guac_activeChallenges[challenge]["username"], guac_activeChallenges[challenge]["challengesIdentifier"])] = True
+            all_users_data = api_session.users_get()
+            userids = []
 
-            for user in users:
-                #user status first
-                perm = guacConn.get_permissions(user)
-                user_perm = "not_found"
-                if "READ" in perm['userPermissions'][user]:
-                    user_perm = "Non-Admin"
-                if "ADMINISTER" in perm['userPermissions'][user]:
-                    user_perm = "Admin"
-                #next, get the list of challenges and the names of those challenges and their status associated with those challenges
-                for challengeID in perm['challengesPermissions']:
-                    active = "not_active"
-                    #if the challenges is in an active state (exists in our activeConns dict), then state it as such
-                    if (user, challengeID) in activeConns:
-                        active = "active"
-                    self.usersConnsStatus[(user, challengeIDsNames[challengeID])] = {"user_status": user_perm, "challengeStatus": active}
-            
+            for item in all_users_data:
+                userids.append(item['id'])
+            for id in userids:
+                indscore = "No Score"
+                place = "No Place"
+                user_data = api_session.user_get(int(id))
+                if 'score' in user_data[0] and user_data[0]['score'] != None:
+                    indscore = user_data[0]['score']
+                if 'place' in user_data[0] and user_data[0]['place'] != None:
+                    place = user_data[0]['place']
+
+                team_id = "No Team"
+                team_name = "No Team"
+                team_score = "No Team"
+                if 'team_id' in user_data[0] and user_data[0]['team_id'] != None:
+                    team_data = api_session.team_get(int(user_data[0]['team_id']))
+                    team_id = team_data[0]['id']
+                    
+                    if 'name' in team_data[0] and team_data[0]['name'] != None:
+                        team_name = team_data[0]['name']
+                    if 'score' in team_data[0] and team_data[0]['score'] != None:
+                        team_score = team_data[0]['score']
+                self.challengeUsersStatus[user_data[0]['name']] = (str(id),str(team_name)+":"+str(team_id),str(place),str(indscore),str(team_score))
+    
         except Exception as e:
-            logging.error("Error in getChallengesManageStatus(). Did not remove challenges or relation!")
+            logging.error("Error in getChallengesManageStatus(). Could not refresh challenges or relation!")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             trace_back = traceback.extract_tb(exc_traceback)
             traceback.print_exception(exc_type, exc_value, exc_traceback)
@@ -370,36 +347,3 @@ class ChallengesManageCTFd(ChallengesManage):
         finally:
             self.lock.release()
             self.writeStatus = ChallengesManage.CHALLENGES_MANAGE_COMPLETE
-
-    def get_user_pass_frombase(self, base, num_users):
-        logging.debug("get_user_pass_frombase(): instantiated")
-        #not efficient at all, but it's a quick lazy way to do it:
-        answer = []
-        for i in range(1,num_users+1):
-            answer.append(((str(base)+str(i),str(base)+str(i))))
-        return answer
-
-    def get_user_pass_fromfile(self, filename):
-        logging.debug("get_user_pass_fromfile(): instantiated")
-        #not efficient at all, but it's a quick lazy way to do it:
-        answer = []
-        i = 0
-        try:
-            if os.path.exists(filename) == False:
-                logging.error("getChallengesManageStatus(): Filename: " + filename + " does not exists; returning")
-                return None
-            with open(filename) as infile:
-                reader = csv.reader(infile, delimiter=" ")
-                for user, password in reader:
-                    i = i+1
-                    answer.append((user, password))
-            # if len(answer) < num_users:
-            #     logging.error("getChallengesManageStatus(): file does not have enough users: " + len(answer) + "; returning")
-            #     return None
-            return answer
-        except Exception as e:
-            logging.error("Error in getChallengesManageStatus().")
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            trace_back = traceback.extract_tb(exc_traceback)
-            #traceback.print_exception(exc_type, exc_value, exc_traceback)
-            return None

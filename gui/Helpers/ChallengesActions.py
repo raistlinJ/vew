@@ -15,5 +15,5 @@ class ChallengesActions():
             self.challengesAction(parent, configname, "OpenUsers", challengesserver, users_file, itype, name)
 
     def challengesAction(self, parent, configname, actionname, challengesserver, users_file, itype, name):
-        logging.debug("connnectionAction(): showContextMenu(): instantiated")
+        logging.debug("challengesAction(): showContextMenu(): instantiated")
         ChallengesActionDialog(parent, configname, actionname, challengesserver, users_file, itype, name).exec_()

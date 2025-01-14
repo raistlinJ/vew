@@ -332,7 +332,7 @@ class ChallengesWidget(QtWidgets.QWidget):
         configname = selectedItem.text(0)
 
         vmHostname, rdpBrokerHostname, chatServerIP, challengesServerIP, users_file = self.eco.getExperimentServerInfo(configname)
-        s = ChallengesActionDialog(self, configname, "Refresh", vmHostname, challengesServerIP).exec_()
+        s = ChallengesActionDialog(self, configname, "Refresh", challengesServerIP).exec_()
         #format: {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersChallengesStatus" : [(username, connName): {"user_status": user_perm, "connStatus": active}] }
         if s == QMessageBox.Cancel:
             logging.debug("Cancel pressed")
@@ -351,20 +351,20 @@ class ChallengesWidget(QtWidgets.QWidget):
         #First the "all" view
         for widget in self.challengesBaseWidgets[configname].values():
             if isinstance(widget, ChallengesStatusWidget):
-                widget.updateConnStatus(self.usersChallengesStatus)
+                widget.updateUserStatus(self.usersChallengesStatus)
         #The Sets:
         for widget in self.challengesBaseWidgets[configname]["ExperimentActionsSetWidgets"].values():
             if isinstance(widget, ChallengesStatusWidget):
-                widget.updateConnStatus(self.usersChallengesStatus)
+                widget.updateUserStatus(self.usersChallengesStatus)
         #The Templates:
         for widget in self.challengesBaseWidgets[configname]["ExperimentActionsTemplateWidgets"].values():
             if isinstance(widget, ChallengesStatusWidget):
-                widget.updateConnStatus(self.usersChallengesStatus)
+                widget.updateUserStatus(self.usersChallengesStatus)
         #The VMs
         for widget in self.challengesBaseWidgets[configname]["ExperimentActionsVMWidgets"].values():
             if isinstance(widget, ChallengesStatusWidget):
-                widget.updateConnStatus(self.usersChallengesStatus)
+                widget.updateUserStatus(self.usersChallengesStatus)
         #The Users
         for widget in self.challengesBaseWidgets[configname]["ExperimentActionsUserWidgets"].values():
             if isinstance(widget, ChallengesStatusWidget):
-                widget.updateConnStatus(self.usersChallengesStatus)
+                widget.updateUserStatus(self.usersChallengesStatus)

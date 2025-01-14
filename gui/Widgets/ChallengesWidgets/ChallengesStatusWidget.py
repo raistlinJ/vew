@@ -41,20 +41,20 @@ class ChallengesStatusWidget(QtWidgets.QWidget):
         
         self.challengeStatusTable.setRowCount(0)
         self.challengeStatusTable.setColumnCount(8)
-        self.challengeStatusTable.setHorizontalHeaderLabels(("VM Name", "Generated User", "Generated Pass", "Connection Status", "Team Name", "Rank", "Score", "Team Score"))
+        self.challengeStatusTable.setHorizontalHeaderLabels(("VM Name", "Generated User", "Generated Pass", "UserID", "TeamName/ID", "Rank", "Score", "Team Score"))
 
         # Context menus
         self.challengeStatusTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.challengeStatusTable.customContextMenuRequested.connect(self.showContextMenu)
         self.challengesContextMenu = QtWidgets.QMenu()
-        self.createGuac = self.challengesContextMenu.addAction("Create Users")
-        self.createGuac.triggered.connect(self.menuItemSelected)
-        self.removeGuac = self.challengesContextMenu.addAction("Remove Users")
-        self.removeGuac.triggered.connect(self.menuItemSelected)
-        self.clearGuac = self.challengesContextMenu.addAction("Clear All Users on Server")
-        self.clearGuac.triggered.connect(self.menuItemSelected)
-        self.openGuac = self.challengesContextMenu.addAction("Open User in Browser")
-        self.openGuac.triggered.connect(self.menuItemSelected)
+        self.createChallengeUsers = self.challengesContextMenu.addAction("Create Users")
+        self.createChallengeUsers.triggered.connect(self.menuItemSelected)
+        self.removeChallengeUsers = self.challengesContextMenu.addAction("Remove Users")
+        self.removeChallengeUsers.triggered.connect(self.menuItemSelected)
+        self.clearChallengeUser = self.challengesContextMenu.addAction("Clear All Users on Server")
+        self.clearChallengeUser.triggered.connect(self.menuItemSelected)
+        self.openChallengeUser = self.challengesContextMenu.addAction("Open User in Browser")
+        self.openChallengeUser.triggered.connect(self.menuItemSelected)
 
         self.challengeStatusTable.setSortingEnabled(True)
         self.outerVertBox.addWidget(self.challengeStatusTable)
@@ -74,9 +74,10 @@ class ChallengesStatusWidget(QtWidgets.QWidget):
                     rowPos = self.challengeStatusTable.rowCount()
                     self.challengeStatusTable.insertRow(rowPos)
                     vmName = str(cloned_vm["name"])
+#("VM Name", "Generated User", "Generated Pass", "UserID", "TeamName/ID", "Rank", "Score", "Team Score")
                     vmCell = QTableWidgetItem(vmName)
-                    connStatusCell = QTableWidgetItem(str("refresh req."))
-                    teamCell = QTableWidgetItem(str("refresh req."))
+                    userIDCell = QTableWidgetItem(str("refresh req."))
+                    teamNameIDCell = QTableWidgetItem(str("refresh req."))
                     rankCell = QTableWidgetItem(str("refresh req."))
                     scoreIndivCell = QTableWidgetItem(str("refresh req."))
                     scoreTeamCell = QTableWidgetItem(str("refresh req."))
@@ -90,17 +91,16 @@ class ChallengesStatusWidget(QtWidgets.QWidget):
                             (username, password) = vmuser_mapping[vmName]
                     usernameCell = QTableWidgetItem(username)
                     passwordCell = QTableWidgetItem(password)
-                    userStatusCell = QTableWidgetItem(str("refresh req."))
                     # statusCell.setFlags(Qt.ItemIsEnabled)
                     self.challengeStatusTable.setItem(rowPos, 0, vmCell)
                     self.challengeStatusTable.setItem(rowPos, 1, usernameCell)
                     self.challengeStatusTable.setItem(rowPos, 2, passwordCell)
-                    self.challengeStatusTable.setItem(rowPos, 3, userStatusCell)
-                    self.challengeStatusTable.setItem(rowPos, 4, connStatusCell)
-                    self.challengeStatusTable.setItem(rowPos, 5, teamCell)
-                    self.challengeStatusTable.setItem(rowPos, 6, rankCell)
-                    self.challengeStatusTable.setItem(rowPos, 7, scoreIndivCell)
-                    self.challengeStatusTable.setItem(rowPos, 8, scoreTeamCell)
+                    self.challengeStatusTable.setItem(rowPos, 3, userIDCell)
+                    self.challengeStatusTable.setItem(rowPos, 4, teamNameIDCell)
+                    self.challengeStatusTable.setItem(rowPos, 5, rankCell)
+                    self.challengeStatusTable.setItem(rowPos, 6, scoreIndivCell)
+                    self.challengeStatusTable.setItem(rowPos, 7, scoreTeamCell)
+                    #self.challengeStatusTable.setItem(rowPos, 8, scoreTeamCell)
                     self.challengeStatusTable.resizeColumnToContents(0)
 
     def showContextMenu(self, position):
@@ -120,23 +120,32 @@ class ChallengesStatusWidget(QtWidgets.QWidget):
         ChallengesActions().challengesActionEvent(self.parent, self.configname, actionlabelname, challengesserver, users_file, "vm", challengeName)
         self.statusBar.showMessage("Executed " + str(actionlabelname) + " on " + self.configname)
 
-    def updateConnStatus(self, usersConnsStatus):
-        logging.debug("updateConnStatus(): instantiated")
-        #format: [(username, challengeName): {"user_status": user_perm, "connStatus": active}]
+    def updateUserStatus(self, usersStatus):
+        logging.debug("updateUserStatus(): instantiated")
+        #("VM Name", "Generated User", "Generated Pass", "UserID", "TeamName/ID", "Rank", "Score", "Team Score")
+        #format: [username: {"vmname, user, pass, userid, teamid, rank, score, teamscore}]"}]
         for cell in range(0,self.challengeStatusTable.rowCount()):
-            tableConnName = self.challengeStatusTable.item(cell, 0).text()
-            tableUserName = self.challengeStatusTable.item(cell, 1).text()
-            userStatusCellItem = self.challengeStatusTable.item(cell, 3)
-            connStatusCellItem = self.challengeStatusTable.item(cell, 4)
-            userStatus = "not_found"
-            connStatus = "not_found"
-            if (tableUserName, tableConnName) in usersConnsStatus:
-                if "user_status" in usersConnsStatus[(tableUserName, tableConnName)] and usersConnsStatus[(tableUserName, tableConnName)]["user_status"] != None:
-                    userStatus = usersConnsStatus[(tableUserName, tableConnName)]["user_status"]
-                if "connStatus" in usersConnsStatus[(tableUserName, tableConnName)] and usersConnsStatus[(tableUserName, tableConnName)]["connStatus"] != None:
-                    connStatus = usersConnsStatus[(tableUserName, tableConnName)]["connStatus"]
-            userStatusCellItem.setText(userStatus)
-            connStatusCellItem.setText(connStatus)
+#("VM Name", "Generated User", "Generated Pass", "UserID", "TeamName/ID", "Rank", "Score", "Team Score")
+            userName = self.challengeStatusTable.item(cell, 1).text()
+            userIDCellItem = self.challengeStatusTable.item(cell, 3)
+            teamNameIDCellItem = self.challengeStatusTable.item(cell, 4)
+            rankCellItem = self.challengeStatusTable.item(cell, 5)
+            indScoreCellItem = self.challengeStatusTable.item(cell, 6)
+            teamScoreCellItem = self.challengeStatusTable.item(cell, 7)
+
+            if userName != "vrdp disabled":
+                userIDCellItem.setText(usersStatus[userName][0])
+                teamNameIDCellItem.setText(usersStatus[userName][1])
+                rankCellItem.setText(usersStatus[userName][2])
+                indScoreCellItem.setText(usersStatus[userName][3])
+                teamScoreCellItem.setText(usersStatus[userName][4])
+            else:
+                userIDCellItem.setText("N/A")
+                teamNameIDCellItem.setText("N/A")
+                rankCellItem.setText("N/A")
+                indScoreCellItem.setText("N/A")
+                teamScoreCellItem.setText("N/A")
+
 
 if __name__ == "__main__":
     import sys
