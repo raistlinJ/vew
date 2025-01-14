@@ -163,7 +163,8 @@ if __name__ == "__main__":
     cmds.append("-gu kali -gp kali CopyFileFromGuestToHost \"" + testvmname + "\" /tmp/output.txt output1.txt")
     cmds.append("-gu kali -gp kali deleteFileInGuest \"" + testvmname + "\" /tmp/output.txt")
     cmds.append("-gu kali -gp kali deleteFileInGuest \"" + testvmname + "\" /tmp/checkConns.sh")
-
+    cmds.append("-gu kali -gp kali runProgramInGuest \"" + testvmname + "\" -interactive /usr/bin/notify-send \"From Acosta\" \"Try again\" -u critical -A OK -a Acosta")
+    
     guestCmds = cmds
 
     vbm.guestCommands(testvmname, guestCmds)

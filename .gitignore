@@ -22,7 +22,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
-src/main/python/ExperimentData/
+ExperimentData/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

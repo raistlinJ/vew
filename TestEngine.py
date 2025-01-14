@@ -195,7 +195,7 @@ if __name__ == "__main__":
 #         res = e.execute("conns status")
 #     logging.debug("Connection remove complete.")
 
-#     #####---Connection Clear All Test#####
+#     #####---Connection Clear All Users on Server Test#####
 #     e.execute("conns clear 192.168.99.100:8080 guacadmin guacadmin /guacamole http")
 #     logging.debug("Waiting for connection clear all to complete...")
 #     while e.execute("conns status")["writeStatus"] != ConnectionManageGuacRDP.CONNECTION_MANAGE_COMPLETE:

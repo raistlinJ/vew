@@ -22,6 +22,7 @@ from gui.Widgets.VMWidget import VMWidget
 from gui.Widgets.MaterialWidget import MaterialWidget
 from gui.Widgets.ExperimentActionsWidgets.ExperimentActionsWidget import ExperimentActionsWidget
 from gui.Widgets.ConnectionWidgets.ConnectionWidget import ConnectionWidget
+from gui.Widgets.ChallengesWidgets.ChallengesWidget import ChallengesWidget
 
 from engine.Configuration.SystemConfigIO import SystemConfigIO
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
@@ -104,6 +105,11 @@ class MainApp(QWidget):
         self.connectionWidget = ConnectionWidget(statusBar=self.statusBar)
         self.connectionWidget.setObjectName("connectionsWidget")
         self.tabWidget.addTab(self.connectionWidget, "Remote Connections")
+        
+        # Challenges Tab
+        self.challengesWidget = ChallengesWidget(statusBar=self.statusBar)
+        self.challengesWidget.setObjectName("challengesWidget")
+        self.tabWidget.addTab(self.challengesWidget, "Challenges System")
 
         #Create the bottom layout so that we can access the status bar
         self.bottomLayout = QHBoxLayout()
@@ -224,11 +230,14 @@ class MainApp(QWidget):
             jsondata["xml"]["testbed-setup"]["vm-set"]["rdp-broker-ip"] = ""
         if "chat-server-ip" not in jsondata["xml"]["testbed-setup"]["vm-set"]:
             jsondata["xml"]["testbed-setup"]["vm-set"]["chat-server-ip"] = ""
+        if "challenges-server-ip" not in jsondata["xml"]["testbed-setup"]["vm-set"]:
+            jsondata["xml"]["testbed-setup"]["vm-set"]["challenges-server-ip"] = ""
 
         configTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.experimentTree)
         configTreeWidgetItem.setText(0,configname)
         self.experimentActionsWidget.addExperimentItem(configname, config_jsondata=jsondata)
         self.connectionWidget.addExperimentItem(configname, config_jsondata=jsondata)
+        self.challengesWidget.addExperimentItem(configname, config_jsondata=jsondata)
         basejsondata = jsondata["xml"]
         # Base Config Widget 
         self.baseWidget = BaseWidget(self, configname, configname, basejsondata)
@@ -330,6 +339,7 @@ class MainApp(QWidget):
         configTreeWidgetItem.setText(0,configname)
         self.experimentActionsWidget.addExperimentItem(configname)
         self.connectionWidget.addExperimentItem(configname)
+        self.challengesWidget.addExperimentItem(configname)
         # Base Config Widget 
         self.baseWidget = BaseWidget(self, configname, configname)
         self.baseWidgets[configname] = {"BaseWidget": {}, "VMWidgets": {}, "MaterialWidgets": {} }
@@ -393,6 +403,7 @@ class MainApp(QWidget):
         config_jsondata = self.getWritableData(configname)
         self.experimentActionsWidget.resetExperiment(configname, config_jsondata=config_jsondata)
         self.connectionWidget.resetExperiment(configname, config_jsondata=config_jsondata)
+        self.challengesWidget.resetExperiment(configname, config_jsondata=config_jsondata)
         self.statusBar.showMessage("Added " + str(len(vmsChosen)) + " VM files to experiment: " + str(selectedItemName))
 
     def startHypervisorActionEvent(self):
@@ -461,6 +472,7 @@ class MainApp(QWidget):
             del self.baseWidgets[selectedItemName]
             self.experimentActionsWidget.removeExperimentItem(selectedItemName)
             self.connectionWidget.removeExperimentItem(selectedItemName)
+            self.challengesWidget.removeExperimentItem(selectedItemName)
             self.statusBar.showMessage("Removed experiment: " + str(selectedItemName))
         else:
             #Check if it's the case that a VM Name was selected
@@ -640,11 +652,12 @@ class MainApp(QWidget):
         #Now reset the experimentActions view
         self.experimentActionsWidget.resetExperiment(configname, jsondata)
         self.connectionWidget.resetExperiment(configname, jsondata)
+        self.challengesWidget.resetExperiment(configname, jsondata)
         self.statusBar.showMessage("Succesfully saved experiment file for " + str(configname), 2000)
 
 if __name__ == '__main__':
     #logging.basicConfig(level=logging.DEBUG, filename='res.log')
-    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
     appctxt = QApplication(sys.argv)
     gui = MainApp()
     QApplication.setStyle(QStyleFactory.create('Fusion')) 

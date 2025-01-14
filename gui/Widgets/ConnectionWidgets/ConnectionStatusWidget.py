@@ -51,7 +51,7 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
         self.createGuac.triggered.connect(self.menuItemSelected)
         self.removeGuac = self.connsContextMenu.addAction("Remove Users")
         self.removeGuac.triggered.connect(self.menuItemSelected)
-        self.clearGuac = self.connsContextMenu.addAction("Clear All Entries")
+        self.clearGuac = self.connsContextMenu.addAction("Clear All Users on Server")
         self.clearGuac.triggered.connect(self.menuItemSelected)
         self.openGuac = self.connsContextMenu.addAction("Open Connections")
         self.openGuac.triggered.connect(self.menuItemSelected)
@@ -107,7 +107,7 @@ class ConnectionStatusWidget(QtWidgets.QWidget):
             return
         connName = self.connStatusTable.item(connRow,0).text()
         actionlabelname = self.sender().text()
-        vmserverip, rdpbroker, chatserver, users_file = self.eco.getExperimentServerInfo(self.configname)
+        vmserverip, rdpbroker, chatserver, challengesserver, users_file = self.eco.getExperimentServerInfo(self.configname)
         #parent, configname, actionlabelname, vmHostname, rdpBrokerHostname, users_file="", itype="", name=""
         ConnectionActions().connectionActionEvent(self.parent, self.configname, actionlabelname, vmserverip, rdpbroker, users_file, "vm", connName)
         self.statusBar.showMessage("Executed " + str(actionlabelname) + " on " + self.configname)
