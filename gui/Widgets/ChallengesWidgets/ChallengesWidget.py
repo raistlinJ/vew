@@ -71,8 +71,8 @@ class ChallengesWidget(QtWidgets.QWidget):
         self.removeGuac.triggered.connect(self.menuItemSelected)
         self.clearGuac = self.connsContextMenu.addAction("Clear All Users on Server")
         self.clearGuac.triggered.connect(self.menuItemSelected)
-        self.openGuac = self.connsContextMenu.addAction("Open User in Browser")
-        self.openGuac.triggered.connect(self.menuItemSelected)
+        # self.openGuac = self.connsContextMenu.addAction("Open User in Browser")
+        # self.openGuac.triggered.connect(self.menuItemSelected)
 
         self.setLayout(self.windowBoxHLayout)
         self.retranslateUi()

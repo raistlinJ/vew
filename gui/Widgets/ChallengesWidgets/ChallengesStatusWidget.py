@@ -53,8 +53,8 @@ class ChallengesStatusWidget(QtWidgets.QWidget):
         self.removeChallengeUsers.triggered.connect(self.menuItemSelected)
         self.clearChallengeUser = self.challengesContextMenu.addAction("Clear All Users on Server")
         self.clearChallengeUser.triggered.connect(self.menuItemSelected)
-        self.openChallengeUser = self.challengesContextMenu.addAction("Open User in Browser")
-        self.openChallengeUser.triggered.connect(self.menuItemSelected)
+        # self.openChallengeUser = self.challengesContextMenu.addAction("Open User in Browser")
+        # self.openChallengeUser.triggered.connect(self.menuItemSelected)
 
         self.challengeStatusTable.setSortingEnabled(True)
         self.outerVertBox.addWidget(self.challengeStatusTable)
