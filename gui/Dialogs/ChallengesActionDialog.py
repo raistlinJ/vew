@@ -57,7 +57,7 @@ class ChallengesActionDialog(QDialog):
         self.layout.addRow(QLabel("Challenge Server Hostname/IP:"), self.hostnameLineEdit)
         mgmusername = ""
         mgmpassword = ""
-        method = "HTTP"
+        method = "HTTPS"
         cachedCreds = self.eco.getConfigChallengeSysCreds(self.configname)
         if cachedCreds != None:
             mgmusername = cachedCreds[0]
