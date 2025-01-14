@@ -328,6 +328,7 @@ class ChallengesManageCTFd(ChallengesManage):
                 team_id = "No Team"
                 team_name = "No Team"
                 team_score = "No Team"
+                team_rank = "No Team"
                 if 'team_id' in user_data[0] and user_data[0]['team_id'] != None:
                     team_data = api_session.team_get(int(user_data[0]['team_id']))
                     team_id = team_data[0]['id']
@@ -336,7 +337,9 @@ class ChallengesManageCTFd(ChallengesManage):
                         team_name = team_data[0]['name']
                     if 'score' in team_data[0] and team_data[0]['score'] != None:
                         team_score = team_data[0]['score']
-                self.challengeUsersStatus[user_data[0]['name']] = (str(id),str(team_name)+":"+str(team_id),str(place),str(indscore),str(team_score))
+                    if 'place' in team_data[0] and team_data[0]['place'] != None:
+                        team_rank = team_data[0]['place']
+                self.challengeUsersStatus[user_data[0]['name']] = (str(id),str(team_name)+":"+str(team_id),str(place),str(indscore),str(team_score),str(team_rank))
     
         except Exception as e:
             logging.error("Error in getChallengesManageStatus(). Could not refresh challenges or relation!")

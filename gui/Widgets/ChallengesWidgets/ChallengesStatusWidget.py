@@ -40,8 +40,8 @@ class ChallengesStatusWidget(QtWidgets.QWidget):
         self.challengeStatusTable.setSelectionMode(QTableView.SingleSelection)
         
         self.challengeStatusTable.setRowCount(0)
-        self.challengeStatusTable.setColumnCount(8)
-        self.challengeStatusTable.setHorizontalHeaderLabels(("VM Name", "Generated User", "Generated Pass", "UserID", "TeamName/ID", "Rank", "Score", "Team Score"))
+        self.challengeStatusTable.setColumnCount(9)
+        self.challengeStatusTable.setHorizontalHeaderLabels(("VM Name", "Generated User", "Generated Pass", "UserID", "TeamName/ID", "User Rank", "Score", "Team Score", "Team Rank"))
 
         # Context menus
         self.challengeStatusTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -78,9 +78,10 @@ class ChallengesStatusWidget(QtWidgets.QWidget):
                     vmCell = QTableWidgetItem(vmName)
                     userIDCell = QTableWidgetItem(str("refresh req."))
                     teamNameIDCell = QTableWidgetItem(str("refresh req."))
-                    rankCell = QTableWidgetItem(str("refresh req."))
+                    userRankCell = QTableWidgetItem(str("refresh req."))
                     scoreIndivCell = QTableWidgetItem(str("refresh req."))
                     scoreTeamCell = QTableWidgetItem(str("refresh req."))
+                    teamRankCell = QTableWidgetItem(str("refresh req."))
                     username = "vrdp disabled"
                     password = "vrdp disabled"
                     if vmuser_mapping != {} and vmName in vmuser_mapping:
@@ -97,10 +98,10 @@ class ChallengesStatusWidget(QtWidgets.QWidget):
                     self.challengeStatusTable.setItem(rowPos, 2, passwordCell)
                     self.challengeStatusTable.setItem(rowPos, 3, userIDCell)
                     self.challengeStatusTable.setItem(rowPos, 4, teamNameIDCell)
-                    self.challengeStatusTable.setItem(rowPos, 5, rankCell)
+                    self.challengeStatusTable.setItem(rowPos, 5, userRankCell)
                     self.challengeStatusTable.setItem(rowPos, 6, scoreIndivCell)
                     self.challengeStatusTable.setItem(rowPos, 7, scoreTeamCell)
-                    #self.challengeStatusTable.setItem(rowPos, 8, scoreTeamCell)
+                    self.challengeStatusTable.setItem(rowPos, 8, teamRankCell)
                     self.challengeStatusTable.resizeColumnToContents(0)
 
     def showContextMenu(self, position):
@@ -125,26 +126,31 @@ class ChallengesStatusWidget(QtWidgets.QWidget):
         #("VM Name", "Generated User", "Generated Pass", "UserID", "TeamName/ID", "Rank", "Score", "Team Score")
         #format: [username: {"vmname, user, pass, userid, teamid, rank, score, teamscore}]"}]
         for cell in range(0,self.challengeStatusTable.rowCount()):
-#("VM Name", "Generated User", "Generated Pass", "UserID", "TeamName/ID", "Rank", "Score", "Team Score")
             userName = self.challengeStatusTable.item(cell, 1).text()
             userIDCellItem = self.challengeStatusTable.item(cell, 3)
             teamNameIDCellItem = self.challengeStatusTable.item(cell, 4)
-            rankCellItem = self.challengeStatusTable.item(cell, 5)
+            userRankCellItem = self.challengeStatusTable.item(cell, 5)
             indScoreCellItem = self.challengeStatusTable.item(cell, 6)
             teamScoreCellItem = self.challengeStatusTable.item(cell, 7)
+            teamRankCellItem = self.challengeStatusTable.item(cell, 8)
 
             if userName != "vrdp disabled":
-                userIDCellItem.setText(usersStatus[userName][0])
-                teamNameIDCellItem.setText(usersStatus[userName][1])
-                rankCellItem.setText(usersStatus[userName][2])
-                indScoreCellItem.setText(usersStatus[userName][3])
-                teamScoreCellItem.setText(usersStatus[userName][4])
+                if userName in usersStatus:
+                    userIDCellItem.setText(usersStatus[userName][0])
+                    teamNameIDCellItem.setText(usersStatus[userName][1])
+                    userRankCellItem.setText(usersStatus[userName][2])
+                    indScoreCellItem.setText(usersStatus[userName][3])
+                    teamScoreCellItem.setText(usersStatus[userName][4])
+                    teamRankCellItem.setText(usersStatus[userName][5])
+                else:
+                    logging.error("updateUserStatus(): Username: " + userName + " does not exist on server.")
             else:
                 userIDCellItem.setText("N/A")
                 teamNameIDCellItem.setText("N/A")
-                rankCellItem.setText("N/A")
+                userRankCellItem.setText("N/A")
                 indScoreCellItem.setText("N/A")
                 teamScoreCellItem.setText("N/A")
+                teamRankCellItem.setText("N/A")
 
 
 if __name__ == "__main__":
