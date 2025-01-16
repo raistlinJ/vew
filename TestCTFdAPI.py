@@ -101,14 +101,15 @@ def writeTeamMembersData(team_members_data, outfilename):
 api_session = API(prefix_url=sys.argv[3])
 api_session.login(sys.argv[1], sys.argv[2])
 
-print("calling get_user_pass_fromfile()")
-users_passes = get_user_pass_fromfile("g:\\My Drive\\work\\2024\\CTF3\\usersC_arl1.txt")
+#print("calling get_user_pass_fromfile()")
+#users_passes = get_user_pass_fromfile("g:\\My Drive\\work\\2024\\CTF3\\usersC_arl1.txt")
 
 # #Add Users
-print("ADDING USERS")
-result = create_users(api_session, users_passes)
-print("ADD USER RESULT: " + str(result))
+# print("ADDING USERS")
+# result = create_users(api_session, users_passes)
+# print("ADD USER RESULT: " + str(result))
 
+#api_session.users_get()
 #teams_members_list = get_teams_members(api_session)
 #print("TEAM MEMBERS: " + str(teams_members_list))
 #groups_filename = "groups.txt"
@@ -120,3 +121,18 @@ print("ADD USER RESULT: " + str(result))
 
 # result = api_session.team_get(12)
 # print("TEAM 12: " + str(result) + "\n")
+challengeUsersStatus = {}
+all_users_data = api_session.users_get()
+userids = []
+for item in all_users_data:
+    userids.append(item['id'])
+for id in userids:
+    user_data = api_session.user_get(int(id))
+    if 'team_id' in user_data[0]:
+        team_data = api_session.team_get(int(user_data[0]['team_id']))
+        if 'name' in user_data[0]:
+            challengeUsersStatus[user_data[0]['name']] = (id,user_data[0]['score'],user_data[0]['place'],team_data[0]['name'],team_data[0]['id'],team_data[0]['score'],team_data[0]['place'])
+        else:
+            logging.error("No name in user_data:" + str(id) + " " + str(user_data))
+    else:
+        logging.error("No team_id in user_data:" + str(id) + " " + str(user_data))

@@ -70,6 +70,17 @@ class BaseWidget(QtWidgets.QWidget):
         self.chatServerHorBox.addWidget(self.chatServerLineEdit)
         self.outerVertBox.addLayout(self.chatServerHorBox)
 
+        self.challengesServerHorBox = QtWidgets.QHBoxLayout()
+        self.challengesServerHorBox.setObjectName("challengesServerHorBox")
+        self.challengesServerLabel = QtWidgets.QLabel()
+        self.challengesServerLabel.setObjectName("challengesServerLabel")
+        self.challengesServerLabel.setText("Challenges Server Address:")
+        self.challengesServerHorBox.addWidget(self.challengesServerLabel)
+        self.challengesServerLineEdit = QtWidgets.QLineEdit() 
+        self.challengesServerLineEdit.setObjectName("challengesServerLineEdit")
+        self.challengesServerHorBox.addWidget(self.challengesServerLineEdit)
+        self.outerVertBox.addLayout(self.challengesServerHorBox)
+
         self.baseGroupNameHorBox = QtWidgets.QHBoxLayout()
         self.baseGroupNameHorBox.setObjectName("baseGroupNameHorBox")
         self.baseGroupNameLabel = QtWidgets.QLabel()
@@ -204,6 +215,10 @@ class BaseWidget(QtWidgets.QWidget):
             basejsondata["testbed-setup"]["network-config"]["chat-server-ip"] = ""
         self.chatServerLineEdit.setText(basejsondata["testbed-setup"]["network-config"]["chat-server-ip"])
         ###
+        if "challenges-server-ip" not in basejsondata["testbed-setup"]["network-config"]:
+            basejsondata["testbed-setup"]["network-config"]["challenges-server-ip"] = ""
+        self.challengesServerLineEdit.setText(basejsondata["testbed-setup"]["network-config"]["challenges-server-ip"])
+        ###
         if "base-groupname" not in basejsondata["testbed-setup"]["vm-set"]:
             basejsondata["testbed-setup"]["vm-set"]["base-groupname"] = self.configname
         self.baseGroupNameLineEdit.setText(basejsondata["testbed-setup"]["vm-set"]["base-groupname"])
@@ -240,7 +255,8 @@ class BaseWidget(QtWidgets.QWidget):
         jsondata["testbed-setup"]["network-config"] = {}
         jsondata["testbed-setup"]["network-config"]["vm-server-ip"] = self.vmServerIPLineEdit.text()
         jsondata["testbed-setup"]["network-config"]["rdp-broker-ip"] = self.rdpBrokerLineEdit.text()
-        jsondata["testbed-setup"]["network-config"]["chat-server-ip"] = self.rdpBrokerLineEdit.text()
+        jsondata["testbed-setup"]["network-config"]["chat-server-ip"] = self.chatServerLineEdit.text()
+        jsondata["testbed-setup"]["network-config"]["challenges-server-ip"] = self.challengesServerLineEdit.text()
         jsondata["testbed-setup"]["vm-set"] = {}
         jsondata["testbed-setup"]["vm-set"]["base-groupname"] = self.baseGroupNameLineEdit.text()
         jsondata["testbed-setup"]["vm-set"]["num-clones"] = str(self.numClonesEntry.value())

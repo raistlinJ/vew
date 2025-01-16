@@ -29,6 +29,7 @@ class API(Session):
         try:
             response = self.post("login", data, head)
         except RequestErr as e:
+            print("Could not connect, Giving up.")
             raise Exception(err_msg.format('Login', e))
         return True if 'challenges' in response.url else False
 
@@ -215,7 +216,7 @@ class API(Session):
         if 'password' in update_user.keys():
             update_user.pop('password')
         return update_user
-
+    
     def user_delete(self, **kwargs) -> bool:
         return self._delete_obj('users', **kwargs)
 
