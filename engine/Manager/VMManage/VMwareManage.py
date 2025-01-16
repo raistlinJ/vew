@@ -150,7 +150,7 @@ class VMwareManage(VMManage):
         self.writeStatus += 1
         t = threading.Thread(target=self.runVMSInfo)
         t.start()
-        t.join()
+        #t.join()
         
     def refreshVMInfo(self, vmName):
         logging.debug("VMwareManage: refreshVMInfo(): instantiated: " + str(vmName))
@@ -160,7 +160,7 @@ class VMwareManage(VMManage):
         self.writeStatus += 1
         t = threading.Thread(target=self.runVMInfo, args=(vmName,))
         t.start()
-        t.join()
+        #t.join()
 
     
     def runVMSInfo(self):
@@ -207,14 +207,14 @@ class VMwareManage(VMManage):
                             logging.info("Command Output: " + out)
                             state = out.strip().split(" ")[1].strip()
                             self.tempVMs[aVM].state = state
-                p.wait()
+                #p.wait()
 
                 vmStateCmd = "\""+self.vmcli + "\" " + "\""+str(self.tempVMs[aVM].name) + "\" Snapshot query"
                 logging.info("runVMSInfo(): Running " + vmStateCmd)
-                p = Popen(shlex.split(vmStateCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
+                p2 = Popen(shlex.split(vmStateCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
                 while True:
-                    out = p.stdout.readline()
-                    if out == '' and p.poll() != None:
+                    out = p2.stdout.readline()
+                    if out == '' and p2.poll() != None:
                         break
                     if out.strip() != '':
                         logging.debug("Command Output: " + str(out))
@@ -225,7 +225,7 @@ class VMwareManage(VMManage):
                             latestSnap = out.strip().split(" ")[1].strip()
                             self.tempVMs[aVM].latestSnapUUID = latestSnap
 
-                p.wait()
+                #p2.wait()
                 vmNum = vmNum + 1
             try:
                 self.lock.acquire()
@@ -286,14 +286,14 @@ class VMwareManage(VMManage):
                         logging.info("Command Output: " + out)
                         state = out.strip().split(" ")[1].strip()
                         self.tempVMs[vmName].state = state
-            p.wait()
+            #p.wait()
 
             vmStateCmd = "\""+self.vmcli + "\" " + "\""+str(self.tempVMs[vmName].name) + "\" Snapshot query"
             logging.info("runVMSInfo(): Running " + vmStateCmd)
-            p = Popen(shlex.split(vmStateCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
+            p2 = Popen(shlex.split(vmStateCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
-                out = p.stdout.readline()
-                if out == '' and p.poll() != None:
+                out = p2.stdout.readline()
+                if out == '' and p2.poll() != None:
                     break
                 if out.strip() != '':
                     logging.debug("Command Output: " + str(out))
@@ -304,7 +304,7 @@ class VMwareManage(VMManage):
                         latestSnap = out.strip().split(" ")[1].strip()
                         self.tempVMs[vmName].latestSnapUUID = latestSnap
 
-                p.wait()
+            #p2.wait()
             try:
                 #Set self.vms to our temporary -- did it this way to save time
                 self.lock.acquire()
@@ -569,7 +569,7 @@ class VMwareManage(VMManage):
             self.writeStatus += 1
             t = threading.Thread(target=self.runVMCmd, args=(cmd,))
             t.start()
-            t.join()
+            #t.join()
             return 0
         finally:
             self.lock.release()
@@ -599,7 +599,7 @@ class VMwareManage(VMManage):
             self.writeStatus += 1
             t = threading.Thread(target=self.runVMCmd, args=(cmd,))
             t.start()
-            t.join()
+            #t.join()
             return 0
         finally:
             self.lock.release()
@@ -614,7 +614,7 @@ class VMwareManage(VMManage):
             self.writeStatus += 1
             t = threading.Thread(target=self.runVMCmd, args=(cmd,))
             t.start()
-            t.join()
+            #t.join()
             return 0
         finally:
             self.lock.release()
@@ -628,7 +628,7 @@ class VMwareManage(VMManage):
             self.writeStatus += 1
             t = threading.Thread(target=self.runRemoveVM, args=(vmName, str(vmName)))
             t.start()
-            t.join()
+            #t.join()
             return 0
         finally:
             self.lock.release()

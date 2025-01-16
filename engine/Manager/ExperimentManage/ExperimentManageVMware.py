@@ -118,7 +118,7 @@ class ExperimentManageVMware(ExperimentManage):
                             logging.debug("runStartExperiment(): Starting: " + str(vmName))
                             self.vmManage.startVM(cloneVMName)
             while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
-                #waiting for vmmanager start vm to finish reading/writing...
+            #waiting for vmmanager start vm to finish reading/writing...
                 time.sleep(.1)
             #now that the VMs have started, we want to run the commands on each; no waiting needed
             for i in range(1, numclones + 1):
