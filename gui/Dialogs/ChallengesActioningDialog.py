@@ -37,7 +37,7 @@ class WatchActioningThread(QThread):
                 #4 is the users_file 
                 if str(self.args[4]).strip() != "":
                     creds_file = " " + str(self.args[4])
-                cmd = "challenges " + " create " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4]) + " " + creds_file + " " + str(self.args[5]) + " " + str(self.args[6])
+                cmd = "challenges " + " create " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4]) + " " + str(self.args[5]) + " " + str(self.args[6])
             if self.actionname == "Remove":
                 if len(self.args) != 7:
                     logging.error("WatchActioningThread(): invalid number of args for remove challenges. Skipping...")
@@ -48,7 +48,7 @@ class WatchActioningThread(QThread):
                 #4 is the users_file 
                 if str(self.args[4]).strip() != "":
                     creds_file = " " + str(self.args[4])
-                cmd = "challenges " + " remove " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4]) + " " + creds_file + " " + str(self.args[5]) + " " + str(self.args[6])
+                cmd = "challenges " + " remove " + self.configname + " " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3]) + " " + str(self.args[4]) + " " + str(self.args[5]) + " " + str(self.args[6])
             if self.actionname == "Clear":
                 # 0 - hostname, 1 - username, 2 - password, 3 - method
                 if len(self.args) != 4:
