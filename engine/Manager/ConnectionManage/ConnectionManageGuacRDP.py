@@ -103,7 +103,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
         # Get list of all users
         usernames = guacConn.get_users()
         for username in usernames:
-            logging.debug( "Removing Username: " + username)
+            logging.info( "Removing Username: " + username)
             try:
                 guacConn.delete_user(username)
             except Exception:
@@ -115,7 +115,7 @@ class ConnectionManageGuacRDP(ConnectionManage):
         logging.debug( "Retrieved Connections: " + str(connections))
         if "childConnections" in connections:
             for connection in connections["childConnections"]:
-                logging.debug( "Removing Connection: " + str(connection))
+                logging.info( "Removing Connection: " + str(connection))
                 try:
                     guacConn.delete_connection(connection["identifier"])
                 except Exception:
