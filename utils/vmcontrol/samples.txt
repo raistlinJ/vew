@@ -1,3 +1,5 @@
+###Set 1
+##VBox Windows
 #Run find command, wait, and view output:
 VBoxManage.exe guestcontrol "defaulta" run --exe "/bin/bash" --username researchdev --password toor --wait-stdout --wait-stderr -- -l -c "echo toor | sudo -S /usr/bin/find /etc/"
 
@@ -9,3 +11,23 @@ VBoxManage.exe guestcontrol "defaulta" run --exe "/bin/bash" --username research
 
 #copyfrom example
 VBoxManage.exe guestcontrol "defaulta" copyfrom --username researchdev --password toor --verbose --follow -R /tmp/ "C:\Users\Desktop\tmp"
+
+###Set 4
+##VMware Kali
+vmrun -gu kali -gp kali CopyFileFromHostToGuest /home/workshopdev/vmware/hth2024/kali-linux-2024.3-vmware-amd64/kali-linux-2024.3-vmware-amd64_set_1.vmx ExperimentData/hth2024/Materials/checkConns.sh /tmp/checkConns.sh
+vmrun -gu kali -gp kali runProgramInGuest /home/workshopdev/vmware/hth2024/kali-linux-2024.3-vmware-amd64/kali-linux-2024.3-vmware-amd64_set_1.vmx /tmp/checkConns.sh
+vmrun -gu kali -gp kali CopyFileFromGuestToHost /home/workshopdev/vmware/hth2024/kali-linux-2024.3-vmware-amd64/kali-linux-2024.3-vmware-amd64_set_1.vmx /tmp/output.txt output1.txt
+vmrun -gu kali -gp kali deleteFileInGuest /home/workshopdev/vmware/hth2024/kali-linux-2024.3-vmware-amd64/kali-linux-2024.3-vmware-amd64_set_1.vmx /tmp/output.txt
+vmrun -gu kali -gp kali deleteFileInGuest /home/workshopdev/vmware/hth2024/kali-linux-2024.3-vmware-amd64/kali-linux-2024.3-vmware-amd64_set_1.vmx /tmp/checkConns.sh
+
+###Set 3
+##VMware Ubuntu
+-gu student -gp toor CopyFileFromHostToGuest {{RES_CloneName}} ExperimentData/MalwareComms/Materials/checkConns.sh /tmp/checkConns.sh
+-gu student -gp toor runProgramInGuest {{RES_CloneName}} /tmp/checkConns.sh
+-gu student -gp toor CopyFileFromGuestToHost {{RES_CloneName}} /tmp/8899.txt connCheckOut{{RES_CloneNumber}}_8899.txt
+-gu student -gp toor CopyFileFromGuestToHost {{RES_CloneName}} /tmp/9999.txt connCheckOut{{RES_CloneNumber}}_9999.txt
+-gu student -gp toor deleteFileInGuest {{RES_CloneName}} /tmp/8899output.txt
+-gu student -gp toor deleteFileInGuest {{RES_CloneName}} /tmp/9999output.txt
+-gu student -gp toor deleteFileInGuest {{RES_CloneName}} /tmp/checkConns.sh
+-gu student -gp toor runProgramInGuest {{RES_CloneName}} -interactive /usr/bin/notify-send "From Acosta" "Try again" -u critical -A OK -a Acosta
+
