@@ -1,4 +1,5 @@
 from engine.Configuration.SystemConfigIO import SystemConfigIO
+from gui.Dialogs.ChallengesStatsRetrieveDialog import ChallengesStatsRetrieveDialog
 from gui.Dialogs.ChallengesOpeningDialog import ChallengesOpeningDialog
 from gui.Dialogs.ChallengesRetrievingDialog import ChallengesRetrievingDialog
 from PyQt5.QtCore import QDateTime, Qt, QTimer, QThread, pyqtSignal, QObject
@@ -118,6 +119,8 @@ class ChallengesActionDialog(QDialog):
                     if vm in vmuser_mapping:
                         usersToOpen[vmuser_mapping[vm]] = True
                 logging.debug(str(usersToOpen))
+            elif self.actionname == "ViewChallStats":
+                self.args = [self.hostnameLineEdit.text(), self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.methodComboBox.currentText()]
             else:
                 pass
             if self.actionname == "Refresh":
@@ -131,8 +134,13 @@ class ChallengesActionDialog(QDialog):
                 url = self.challengesServerHostname + "/admin/users/"+str(username)
                 cod = ChallengesOpeningDialog(self.parent, pathToBrowser, browserArgs, usersToOpen, url, self.methodComboBox.currentText()).exec_()
                 return cod
-            else:
+            elif self.actionname == "ViewChallStats":
                 self.eco.storeConfigChallengeSysCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.methodComboBox.currentText())
+                                #Here open the dialog to show all challenges stats
+                #QMessageBox(QMessageBox.Information, "Challenges Stats", "Challenges Stats", QMessageBox.Ok).exec_()
+                csr = ChallengesStatsRetrieveDialog(self.parent, self.args).exec_()
+            else:
                 cad = ChallengesActioningDialog(self.parent, self.configname, self.actionname, self.args).exec_()
+                #Open dialog here showing all challenges stats
                 return (QMessageBox.Ok)
         return (QMessageBox.Cancel)

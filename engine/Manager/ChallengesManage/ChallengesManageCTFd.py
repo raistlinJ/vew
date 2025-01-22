@@ -16,6 +16,7 @@ class ChallengesManageCTFd(ChallengesManage):
         ChallengesManage.__init__(self)
         self.eco = ExperimentConfigIO.getInstance()
         self.challengeUsersStatus = {}
+        self.challengesStats = {}
         self.lock = RLock()
 
     def create_user(self, api_session, username, password, email="", email_ext="@fake.com", type="user", verified="false", hidden="false", banned="false", fields=[]):
@@ -291,7 +292,7 @@ class ChallengesManageCTFd(ChallengesManage):
     def getChallengesManageStatus(self):
         logging.debug("getChallengesManageStatus(): instantiated")
         #format: {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersChallengeStatus" : [(username, challengeName): {"user_status": user_perm, "challengeStatus": active}] }
-        return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersChallengesStatus" : self.challengeUsersStatus}
+        return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "usersChallengesStatus" : self.challengeUsersStatus, "challengesStats": self.challengesStats}
     
     def getChallengesManageRefresh(self, ctfdHostname, username, password, method):
         logging.debug("getChallengesManageStatus(): instantiated")
@@ -340,6 +341,44 @@ class ChallengesManageCTFd(ChallengesManage):
                     if 'place' in team_data[0] and team_data[0]['place'] != None:
                         team_rank = team_data[0]['place']
                 self.challengeUsersStatus[user_data[0]['name']] = (str(id),str(team_name)+":"+str(team_id),str(place),str(indscore),str(team_score),str(team_rank))
+    
+        except Exception as e:
+            logging.error("Error in getChallengesManageStatus(). Could not refresh challenges or relation!")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            trace_back = traceback.extract_tb(exc_traceback)
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            return None
+        finally:
+            self.lock.release()
+            self.writeStatus = ChallengesManage.CHALLENGES_MANAGE_COMPLETE
+
+    def getChallengesManageGetstats(self, ctfdHostname, username, password, method):
+        logging.debug("getChallengesManageGetstats(): instantiated")
+        self.writeStatus = ChallengesManage.CHALLENGES_MANAGE_REFRESHING
+        try:
+            self.lock.acquire()
+            self.challengesStats.clear()
+            #get users, teams, scores
+            if method == "HTTPS":
+                ctfdHostname = "https://" + ctfdHostname
+            else:
+                ctfdHostname = "http://" + ctfdHostname
+            api_session = API(prefix_url=ctfdHostname)
+            api_session.login(username,password)
+            if api_session == None:
+                logging.error("runRemoveChallengesConnections(): Error with ctfd connection... quitting: " + str(ctfdHostname) + " " + str(username))
+                self.writeStatus = ChallengesManage.CHALLENGES_MANAGE_COMPLETE
+                return -1
+
+            all_challenges_data = api_session.challenges_get()
+
+            for challenge in all_challenges_data:
+                id = str(challenge['id'])
+                category = str(challenge['category'])
+                name = str(challenge['name'])
+                solves = str(challenge['solves'])
+                value = str(challenge['value'])
+                self.challengesStats[id] = (id,category,name,solves, value)
     
         except Exception as e:
             logging.error("Error in getChallengesManageStatus(). Could not refresh challenges or relation!")

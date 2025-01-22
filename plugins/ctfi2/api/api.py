@@ -229,7 +229,11 @@ class API(Session):
     @check_output_types
     def challenge_get(self, challenge_id: int) -> dict:
         return next(self._get_obj('challenges', challenge_id))
-
+    
+    @check_output_types
+    def challenges_get(self) -> dict:
+        return next((challenge for challenge in self._get_obj('challenges')))
+    
     @check_output_types
     def challenge_add(self, **kwargs) -> dict:
         return self._add_obj('challenges', **kwargs)

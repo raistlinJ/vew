@@ -13,6 +13,9 @@ class ChallengesActions():
             self.challengesAction(parent, configname, "Clear", challengesserver, users_file, itype, name)
         elif "Open User in Browser" in actionlabelname:
             self.challengesAction(parent, configname, "OpenUsers", challengesserver, users_file, itype, name)
+        elif "View All Challenge Stats" in actionlabelname:
+            self.challengesAction(parent, configname, "ViewChallStats", challengesserver, users_file, itype, name)
+
 
     def challengesAction(self, parent, configname, actionname, challengesserver, users_file, itype, name):
         logging.debug("challengesAction(): showContextMenu(): instantiated")

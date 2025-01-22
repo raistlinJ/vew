@@ -35,28 +35,28 @@ dat: dict = {'users': {'url': {'all': url_api.format("users"),
                                   'delete': ['id']}
                         },
 
-             'challenges': {'url': {'all': url_api.format("challenges"),
+            'challenges': {'url': {'all': url_api.format("challenges"),
                                     'single': url_api.format("challenges/{}")},
-                            'kwargs': {'valid': ['name', 'category', 'description', 'value', 'state', 'type', 'id', 'requirements'],
+                            'kwargs': {'valid': ['name', 'category', 'description', 'value', 'state', 'type', 'id', 'requirements', 'solves'],
                                        'minimum': ['name', 'category', 'description', 'value', 'state', 'type'],
                                        'search': ['name', 'id'],
                                        'delete': ['id']},
                             },
-             'flags': {'url': {'all': url_api.format("flags"),
+            'flags': {'url': {'all': url_api.format("flags"),
                                'single': url_api.format("flags/{}")},
                        'kwargs': {'valid': ['challenge_id', 'content', 'id', 'data', 'challenge', 'type'],
                                   'minimum': ['challenge_id', 'content', 'data', 'type'],
                                   'search': ['challenge_id', 'id'],
                                   'delete': ['id']}
                        },
-             'hints': {'url': {'all': url_api.format("hints"),
+            'hints': {'url': {'all': url_api.format("hints"),
                                'single': url_api.format("hints/{}")},
                        'kwargs': {'valid': ['content', 'cost', 'challenge', 'id'],
                                   'minimum': ['content', 'cost'],
                                   'search': ['id'],
                                   'delete': ['id']}
                        },
-             'files': {'url': {'all': url_api.format("files"),
+            'files': {'url': {'all': url_api.format("files"),
                                'single': url_api.format("files/{}")},
                        'kwargs': {'valid': ['location', 'id', 'type', 'challenge', 'path', 'challenge_id'],
                                   'minimum': ['challenge', 'type'],
@@ -130,7 +130,7 @@ def check_output_types(function):
                         except ValueError:
                             obj[key] = False
                 # int
-                if key in ['value', 'id', 'challenge_id', 'challenge', 'cost']:
+                if key in ['value', 'id', 'challenge_id', 'challenge', 'cost', 'solves']:
                     if not isinstance(obj[key], int) and obj[key]:
                         try:
                             obj[key] = int(obj[key])

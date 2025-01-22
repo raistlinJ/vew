@@ -199,7 +199,15 @@ class Engine:
         method = args.method
         #query challenge manager status and then return it here
         return self.challengesManage.getChallengesManageRefresh(hostname, username, password, method)
-        
+
+    def challengesGetstatsCmd(self, args):
+        hostname = args.hostname
+        username = args.username
+        password = args.password
+        method = args.method
+        #query challenge manager status and then return it here
+        return self.challengesManage.getChallengesManageGetstats(hostname, username, password, method)
+
     def challengesUsersCreateCmd(self, args):
         logging.debug("challengesUsersCreateCmd(): instantiated")
         #will create challenge users as specified in configfile
@@ -556,6 +564,17 @@ class Engine:
         self.challengesManageRefreshParser.add_argument('method', metavar='<method>', action="store",
                                           help='Either HTTP or HTTPS, depending on the server\'s configuration')
         self.challengesManageRefreshParser.set_defaults(func=self.challengesRefreshCmd)
+
+        self.challengesManageGetstatsParser = self.challengesManageSubParser.add_parser('getstats', help='retrieve challenges statistics')
+        self.challengesManageGetstatsParser.add_argument('hostname', metavar='<host address>', action="store",
+                                          help='Name or IP address where Connection host resides')
+        self.challengesManageGetstatsParser.add_argument('username', metavar='<username>', action="store",
+                                          help='Username for connecting to host')
+        self.challengesManageGetstatsParser.add_argument('password', metavar='<password>', action="store",
+                                          help='Password for connecting to host')
+        self.challengesManageGetstatsParser.add_argument('method', metavar='<method>', action="store",
+                                          help='Either HTTP or HTTPS, depending on the server\'s configuration')
+        self.challengesManageGetstatsParser.set_defaults(func=self.challengesGetstatsCmd)
 
         self.challengesManageCreateParser = self.challengesManageSubParser.add_parser('create', help='create challenge users as specified in config file')
         self.challengesManageCreateParser.add_argument('configname', metavar='<config filename>', action="store",

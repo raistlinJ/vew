@@ -24,6 +24,7 @@ class WatchActioningThread(QThread):
     def run(self):
         logging.debug("WatchActioningThread(): instantiated")
         self.watchsignal.emit("Processing Challenges " + str(self.actionname) + "...", None, None)
+        cmd = ""
         try:
             e = Engine.getInstance()
             creds_file = " None "
@@ -57,28 +58,31 @@ class WatchActioningThread(QThread):
                     self.status = -1
                     return None
                 cmd = "challenges " + " clear " + str(self.args[0]) + " " + str(self.args[1]) + " " + str(self.args[2]) + " " + str(self.args[3])
-            logging.debug("WatchActioningThread(): running: " + cmd)
-            e.execute(cmd)
-            #will check status every 0.5 second and will either display stopped or ongoing or connected
-            dots = 1
-            while(True):
+            if cmd != "":
                 logging.debug("WatchActioningThread(): running: " + cmd)
-                self.status = e.execute("challenges status")
-                logging.debug("WatchActioningThread(): result: " + str(self.status))
-                if self.status["writeStatus"] != ChallengesManage.CHALLENGES_MANAGE_COMPLETE:
-                    dotstring = ""
-                    for i in range(1,dots):
-                        dotstring = dotstring + "."
-                    self.watchsignal.emit( "Processing " + str(self.actionname) + dotstring, self.status, None)
-                    dots = dots+1
-                    if dots > 4:
-                        dots = 1
-                else:
-                    break
-                time.sleep(0.5)
-            logging.debug("WatchActioningThread(): thread ending")
-            self.watchsignal.emit(str(self.actionname) + " Complete", self.status, True)
-            return
+                e.execute(cmd)
+                #will check status every 0.5 second and will either display stopped or ongoing or connected
+                dots = 1
+                while(True):
+                    logging.debug("WatchActioningThread(): running: " + cmd)
+                    self.status = e.execute("challenges status")
+                    logging.debug("WatchActioningThread(): result: " + str(self.status))
+                    if self.status["writeStatus"] != ChallengesManage.CHALLENGES_MANAGE_COMPLETE:
+                        dotstring = ""
+                        for i in range(1,dots):
+                            dotstring = dotstring + "."
+                        self.watchsignal.emit( "Processing " + str(self.actionname) + dotstring, self.status, None)
+                        dots = dots+1
+                        if dots > 4:
+                            dots = 1
+                    else:
+                        break
+                    time.sleep(0.5)
+                logging.debug("WatchActioningThread(): thread ending")
+                self.watchsignal.emit(str(self.actionname) + " Complete", self.status, True)
+            else:
+                logging.warning("WatchActioningThread(): unrecognized command.")
+            return        
         except:
             logging.error("Error in WatchActioningThread(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
