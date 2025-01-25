@@ -31,7 +31,7 @@ class ConnectionOpeningThread(QThread):
             logging.debug("ConnectionOpeningThread(): Starting Connection: " + str(self.pathToBrowser))
             for (username, password) in self.userpasses:
                 #cmd = PATH_TO_FIREFOX + " -private-window" + " \"" + baseURL + "/#/?username=" + username + "&password=" + username + "\""
-                cmd = "\""+self.pathToBrowser + "\" " + self.browserArgs + " " + self.method + "://" + self.url + "/#/?username=" + username + "&password=" + password + "\""
+                cmd = "\""+self.pathToBrowser + "\" \"" + self.browserArgs + "\" \"" + self.method + "://" + self.url + "/#/?username=" + username + "&password=" + password + "\""
                 stringExec = "Opening Conn: " + str(cmd)
                 self.watchsignal.emit(stringExec, None, None)
                 logging.debug(stringExec)

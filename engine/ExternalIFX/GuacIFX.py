@@ -6,6 +6,7 @@ import sys
 import os
 import logging
 from guacapy import Guacamole
+from engine.Configuration.SystemConfigIO import SystemConfigIO
 
 class GuacIFX:
         
@@ -22,12 +23,15 @@ class GuacIFX:
     def createConnAssociation(self, guacConn, connName, username, ip, port):
         logging.info("createConnAssociation(): instantiated")
         try:
-            logging.info("Complete")
             #logic to add a user/connection and associate them together
+            s = SystemConfigIO()
+            protocol = "vnc"
+            if s.getConfig()['HYPERVISOR']['ACTIVE'] == "VBOX":
+                protocol = "rdp"
             ########Connection creation##########
             connCreatePayload = {"name":connName,
             "parentIdentifier":"ROOT",
-            "protocol":"vnc",
+            "protocol":protocol,
             "attributes":{"max-connections":"","max-connections-per-user":""},
             "activeConnections":0,
             "parameters":{

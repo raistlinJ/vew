@@ -96,6 +96,7 @@ class ExperimentManageVMware(ExperimentManage):
     def runStartExperiment(self, configname, itype, name):
         logging.debug("runStartExperiment(): instantiated")
         try:
+            #Will first clone the vms and then run their start commands if any
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_STARTING
             #call vmManage to start clones as specified in config file; wait and query the vmManage status, and then set the complete status
             rolledoutjson = self.eco.getExperimentVMRolledOut(configname)

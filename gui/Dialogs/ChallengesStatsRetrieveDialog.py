@@ -42,7 +42,7 @@ class ChallengesStatsRetrieveDialog(QDialog):
         #label = QLabel("Select Challenges Stats to add")
         #self.box_main_layout.addWidget(label, 1, 0)
         
-        self.setLayout(self.box_main_layout)       
+        self.setLayout(self.box_main_layout) 
 
 #####
         # Here we will place the tree view
