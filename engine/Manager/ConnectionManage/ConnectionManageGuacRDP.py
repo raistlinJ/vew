@@ -7,6 +7,7 @@ import csv
 from engine.Manager.ConnectionManage.ConnectionManage import ConnectionManage
 from engine.ExternalIFX.GuacIFX import GuacIFX
 from engine.Configuration.ExperimentConfigIO import ExperimentConfigIO
+from engine.Configuration.SystemConfigIO import SystemConfigIO
 from engine.Configuration.UserPool import UserPool
 from guacapy import Guacamole
 from threading import RLock
@@ -234,9 +235,13 @@ class ConnectionManageGuacRDP(ConnectionManage):
         try:
             #logic to add a user/connection and associate them together
             ########Connection creation##########
+            s = SystemConfigIO()
+            protocol = "vnc"
+            if s.getConfig()['HYPERVISOR']['ACTIVE'] == "VBOX":
+                protocol = "rdp"
             connCreatePayload = {"name":connName,
             "parentIdentifier":"ROOT",
-            "protocol":"vnc",
+            "protocol":protocol,
             "attributes":{"max-connections":maxConnectionsPerUser, "max-connections-per-user":maxConnectionsPerUser},
             "activeConnections":0,
             "parameters":{
