@@ -45,12 +45,12 @@ class Engine:
             if c.getConfig()['HYPERVISOR']['ACTIVE'] == 'VBOX':
                 self.vmManage = VBoxManage(True)
             else:
-                self.vmManage = VMwareManage(False)
+                self.vmManage = VMwareManage()
         else:
             if c.getConfig()['HYPERVISOR']['ACTIVE'] == 'VBOX':
                 self.vmManage = VBoxManageWin(True)
             else:
-                self.vmManage = VMwareManageWin(False)
+                self.vmManage = VMwareManageWin()
 
         #Create the ConnectionManage
         self.connectionManage = ConnectionManageGuacRDP()
@@ -92,7 +92,9 @@ class Engine:
         
     def vmManageRefreshCmd(self, args):
         logging.debug("vmManageRefreshCmd(): instantiated")
-        self.vmManage.refreshAllVMInfo()
+        #will import res package from file
+        configname = args.configname
+        self.vmManage.refreshAllVMInfo(configname)
 
     def packagerStatusCmd(self, args):
         logging.debug("packagerStatusCmd(): instantiated")
@@ -266,6 +268,10 @@ class Engine:
     def experimentStatusCmd(self, args):
         #query connection manager status and then return it here
         return self.experimentManage.getExperimentManageStatus()
+    
+    def experimentRefreshCmd(self, args):
+        configname = args.configname
+        return self.experimentManage.refreshExperimentVMInfo(configname)
         
     def experimentCreateCmd(self, args):
         logging.debug("experimentCreateCmd(): instantiated")
@@ -428,8 +434,10 @@ class Engine:
         self.vmStatusParser = self.vmManageSubParsers.add_parser('mgrstatus', help='retrieve manager status')
         self.vmStatusParser.set_defaults(func=self.vmManageMgrStatusCmd)
 
-        self.vmRefreshParser = self.vmManageSubParsers.add_parser('refresh', help='retreive current vm information')
+        self.vmRefreshParser = self.vmManageSubParsers.add_parser('refresh', help='retreive vm information')
         self.vmRefreshParser.set_defaults(func=self.vmManageRefreshCmd)
+        self.vmRefreshParser.add_argument('configname', metavar='<config filename>', action="store",
+                                          help='path to config file')
 
 # -----------Packager
         self.packageManageParser = self.subParsers.add_parser('packager')
@@ -642,6 +650,11 @@ class Engine:
 
         self.experimentManageStatusParser = self.experimentManageSubParser.add_parser('status', help='retrieve experiment manager status')
         self.experimentManageStatusParser.set_defaults(func=self.experimentStatusCmd)
+
+        self.experimentManageRefresshVMsParser = self.experimentManageSubParser.add_parser('refresh', help='refresh experiment VMs info')
+        self.experimentManageRefresshVMsParser.add_argument('configname', metavar='<config filename>', action="store",
+                                          help='path to config file')
+        self.experimentManageRefresshVMsParser.set_defaults(func=self.experimentRefreshCmd)
 
         self.experimentManageCreateParser = self.experimentManageSubParser.add_parser('create', help='create clones aka instances of experiment')
         self.experimentManageCreateParser.add_argument('configname', metavar='<config filename>', action="store",

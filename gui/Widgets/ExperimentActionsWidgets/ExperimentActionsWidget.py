@@ -347,7 +347,7 @@ class ExperimentActionsWidget(QtWidgets.QWidget):
         while selectedItem.parent() != None:
             selectedItem = selectedItem.parent()
         configname = selectedItem.text(0)
-        s = VMRetrievingDialog(self).exec_()
+        s = VMRetrievingDialog(self, configname).exec_()
         self.vms = s["vmstatus"]
 
         #Update all vm status in the subtrees

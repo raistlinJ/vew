@@ -17,7 +17,7 @@ from engine.Configuration.VMwareConfigIO import VMwareConfigIO
 from threading import RLock
 
 class VMwareManage(VMManage):
-    def __init__(self, initializeVMManage=True):
+    def __init__(self, initializeVMManage=False):
         logging.debug("VMwareManage.__init__(): instantiated")
         VMManage.__init__(self)
         self.cf = SystemConfigIO()
@@ -34,13 +34,6 @@ class VMwareManage(VMManage):
         self.lock = RLock()
         self.vms = {}
         self.tempVMs = {}
-        if initializeVMManage:
-            self.refreshAllVMInfo()
-            result = self.getManagerStatus()["writeStatus"]
-            while result != self.MANAGER_IDLE:
-            #waiting for manager to finish query...
-                result = self.getManagerStatus()["writeStatus"]
-                time.sleep(.1)
 
     # helper function to perform sort
     def num_sort(self, istring):
@@ -54,23 +47,24 @@ class VMwareManage(VMManage):
         self.writeStatus += 1
         t = threading.Thread(target=self.runConfigureVMNet, args=(vmName, netNum, netName))
         t.start()
-        t.join()
+        #t.join()
         return 0
 
     def configureVMNets(self, vmName, internalNets):
         logging.debug("VMwareManage: configureVMNets(): instantiated")
         #check to make sure the vm is known, if not should refresh or check name:
         try:
-            self.lock.acquire()
             self.readStatus = VMManage.MANAGER_READING
             self.writeStatus += 1
             t = threading.Thread(target=self.runConfigureVMNets, args=(vmName, internalNets))
             t.start()
-            t.join()
+            #t.join()
             return 0
-        finally:
-            self.lock.release()
-
+        except Exception:
+            logging.error("configureVMNets() Error for VM: " + vmName)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            
     def runConfigureVMNets(self, vmName, internalNets):
         logging.debug("runConfigureVMNets(): instantiated")
         try:

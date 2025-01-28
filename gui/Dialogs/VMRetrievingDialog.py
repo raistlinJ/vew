@@ -7,14 +7,15 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
 import sys, traceback
 from engine.Engine import Engine
 import time
-from engine.Manager.VMManage.VMManage import VMManage
+from engine.Manager.ExperimentManage import ExperimentManage
 import logging
 
 class WatchRetrieveThread(QThread):
     watchsignal = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
 
-    def __init__(self):
+    def __init__(self, configname):
         QThread.__init__(self)
+        self.configname = configname
 
     # run method gets called when we start the thread
     def run(self):
@@ -22,15 +23,16 @@ class WatchRetrieveThread(QThread):
         self.watchsignal.emit("Querying Hypervisor...", None, None)
         try:
             e = Engine.getInstance()
-            logging.debug("watchRetrieveStatus(): running: vm-manage refresh")
-            e.execute("vm-manage refresh")
+            
+            logging.debug("WatchRetrieveThread(): running: experiment refresh " + self.configname)
+            e.execute("experiment refresh " + self.configname)
             #will check status every 0.5 second and will either display stopped or ongoing or connected
             dots = 1
             while(True):
-                logging.debug("watchRetrieveStatus(): running: vm-manage refresh")
-                self.status = e.execute("vm-manage mgrstatus")
+                logging.debug("watchRetrieveStatus(): running: experiment refresh")
+                self.status = e.execute("experiment status")
                 logging.debug("watchRetrieveStatus(): result: " + str(self.status))
-                if self.status["writeStatus"] != VMManage.MANAGER_IDLE:
+                if self.status["writeStatus"] != ExperimentManage.ExperimentManage.EXPERIMENT_MANAGE_COMPLETE:
                     dotstring = ""
                     for i in range(1,dots):
                         dotstring = dotstring + "."
@@ -45,14 +47,14 @@ class WatchRetrieveThread(QThread):
             self.watchsignal.emit("Retrieval Complete", self.status, True)
             return
         except FileNotFoundError:
-            logging.error("Error in ExperimentRemoveThread(): File not found")
+            logging.error("Error in WatchRetrieveThread(): File not found")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             self.watchsignal.emit("Error retrieving VMs. Check your paths and permissions.", None, True)
             self.status = -1
             return None
         except:
-            logging.error("Error in ExperimentRemoveThread(): An error occured ")
+            logging.error("Error in WatchRetrieveThread(): An error occured ")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
             self.watchsignal.emit("Error retrieving VMs. Check your paths and permissions.", None, True)
@@ -62,10 +64,11 @@ class WatchRetrieveThread(QThread):
             return None
 
 class VMRetrievingDialog(QDialog):
-    def __init__(self, parent):
+    def __init__(self, parent, configname):
         logging.debug("VMRetrievingDialog(): instantiated")
         super(VMRetrievingDialog, self).__init__(parent)     
         
+        self.configname = configname
         self.setWindowFlag(Qt.WindowCloseButtonHint, False)
         
         self.buttons = QDialogButtonBox()
@@ -90,7 +93,7 @@ class VMRetrievingDialog(QDialog):
         self.status = -1
             
     def exec_(self):
-        t = WatchRetrieveThread()
+        t = WatchRetrieveThread(self.configname)
         t.watchsignal.connect(self.setStatus)
         t.start()
         result = super(VMRetrievingDialog, self).exec_()
