@@ -234,7 +234,6 @@ class VMwareManageWin(VMManage):
                 if vmName in self.vms:
                     logging.debug("runVMInfo(): VM was in vms, removing from dict: " + vmName)
                     del self.vms[vmName]
-                
                 return
 
             #get the machine readable info

@@ -3,6 +3,7 @@ import time
 import sys, traceback
 import threading
 import json
+import os
 from engine.Manager.ExperimentManage.ExperimentManage import ExperimentManage
 from engine.Manager.VMManage.VMManage import VMManage
 from engine.Manager.VMManage.VBoxManage import VBoxManage
@@ -16,6 +17,7 @@ class ExperimentManageVBox(ExperimentManage):
         #Create an instance of vmManage
         self.vmManage = vmManage
         self.eco = ExperimentConfigIO.getInstance()
+        self.vmstatus = {}
 
 
     #abstractmethod
@@ -83,6 +85,42 @@ class ExperimentManageVBox(ExperimentManage):
         finally:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
+    def refreshExperimentVMInfo(self, configName):
+        logging.debug("refreshExperimentVMInfo: refreshAllVMInfo(): instantiated")      
+        t = threading.Thread(target=self.runRefreshExperimentVMInfo, args=(configName,))
+        t.start()
+        t.join()
+        self.vmstatus = self.vmManage.getManagerStatus()["vmstatus"]
+
+    def runRefreshExperimentVMInfo(self, configname):
+        logging.debug("refreshExperimentVMInfo(): instantiated")
+        try:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_REFRESHING
+            rolledoutjson = self.eco.getExperimentVMRolledOut(configname)
+            clonevmjson, numclones = rolledoutjson
+            validvmnames = self.eco.getValidVMsFromTypeName(configname, "", "", rolledoutjson)
+
+            for vm in clonevmjson.keys():
+                vmName = vm
+                logging.debug("refreshExperimentVMInfo(): working with vm: " + str(vmName))
+                #get names for clones
+                for cloneinfo in clonevmjson[vm]:
+                        cloneVMName = cloneinfo["name"]
+                        if cloneVMName not in validvmnames:
+                            continue
+                        logging.debug("refreshExperimentVMInfo(): Refreshing: " + str(cloneVMName))
+                        self.vmManage.refreshVMInfo(cloneVMName)
+            while self.vmManage.getManagerStatus()["writeStatus"] != VMManage.MANAGER_IDLE:
+                #waiting for vmmanager refresh vm to finish reading/writing...
+                time.sleep(.1)
+            logging.debug("refreshExperimentVMInfo(): Complete...")
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+        except Exception:
+            logging.error("refreshExperimentVMInfo(): Error in refreshExperimentVMInfo(): An error occured ")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+        finally:
+            self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
 
     #abstractmethod
     def startExperiment(self, configname, itype="", name=""):
@@ -160,6 +198,7 @@ class ExperimentManageVBox(ExperimentManage):
             return
         finally:
             self.writeStatus = ExperimentManage.EXPERIMENT_MANAGE_COMPLETE
+
     def guestCmdsExperiment(self, configname, itype="", name=""):
         logging.debug("guestCmdsExperiment(): instantiated")
         t = threading.Thread(target=self.runGuestCmdsExperiment, args=(configname, itype, name))
@@ -544,7 +583,7 @@ class ExperimentManageVBox(ExperimentManage):
 
     def getExperimentManageStatus(self):
         logging.debug("getExperimentManageStatus(): instantiated")
-        return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus}
+        return {"readStatus" : self.readStatus, "writeStatus" : self.writeStatus, "vmstatus" : self.vmstatus}
 
     def getExperimentVMNames(self, experimentname):
         logging.debug("getExperimentVMNames(): instantiated")

@@ -64,7 +64,7 @@ class VMwareManage(VMManage):
             logging.error("configureVMNets() Error for VM: " + vmName)
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
-            
+
     def runConfigureVMNets(self, vmName, internalNets):
         logging.debug("runConfigureVMNets(): instantiated")
         try:
@@ -129,12 +129,10 @@ class VMwareManage(VMManage):
 
     def refreshAllVMInfo(self):
         logging.debug("VMwareManage: refreshAllVMInfo(): instantiated")
-        logging.debug("getListVMS() Starting List VMs thread")
         self.readStatus = VMManage.MANAGER_READING
         self.writeStatus += 1
         t = threading.Thread(target=self.runVMSInfo)
         t.start()
-        #t.join()
         
     def refreshVMInfo(self, vmName):
         logging.debug("VMwareManage: refreshVMInfo(): instantiated: " + str(vmName))
@@ -146,7 +144,6 @@ class VMwareManage(VMManage):
         t.start()
         #t.join()
 
-    
     def runVMSInfo(self):
         logging.debug("VMwareManage: runVMSInfo(): instantiated")
         try:
@@ -187,7 +184,7 @@ class VMwareManage(VMManage):
                         res = re.match("PowerState:", out)
                         if res:
                             # logging.debug("Found vmState: " + out + " added to " + self.tempVMs[aVM].name)
-                            logging.info("Command Output: " + out)
+                            logging.debug("Command Output: " + out)
                             state = out.strip().split(" ")[1].strip()
                             self.tempVMs[aVM].state = state
                 #p.wait()
@@ -228,20 +225,15 @@ class VMwareManage(VMManage):
     def runVMInfo(self, vmName):
         logging.debug("VMwareManage: runVMInfo(): instantiated")
         try:
-            logging.debug("runVMSInfo(): Collecting VM Names from log")
             #clear out the current set
-            self.tempVMs = {}
             self.readStatus = VMManage.MANAGER_READING
             logging.debug("runVMSInfo(): adding 1 "+ str(self.writeStatus))
-            self.vms_all = self.vc.refresh_vmpath_to_dict(self.vms_filename)
-            for vm in self.vms_all.keys():
-                self.tempVMs[vm] = VM()
-                self.tempVMs[vm].name = vm
-            logging.debug("runVMSInfo(): Thread 1 completed: got vmlist")
-            logging.debug("runVMSInfo(): Found # VMS: " + str(len(self.tempVMs)))
-
-            if vmName not in self.tempVMs:
-                logging.error("runVMInfo(): VM was not found/registered: " + vmName)
+            
+            if not os.path.exists(vmName):
+                logging.warning("runVMInfo(): VM was not found: " + vmName)
+                if vmName in self.vms:
+                    logging.debug("runVMInfo(): VM was in vms, removing from dict: " + vmName)
+                    del self.vms[vmName]
                 return
 
             #get the machine readable info
@@ -250,10 +242,12 @@ class VMwareManage(VMManage):
             #NICs: 
             vmnics = self.vc.get_vmnics(vmName)
             nn = 1
-            self.tempVMs[vmName].adaptorInfo[nn] = vmnics
-            self.tempVMs[vmName].groups = self.vc.get_vmgroups_name(vmName)
+            self.vms[vmName] = VM()
+            self.vms[vmName].name = vmName
+            self.vms[vmName].adaptorInfo[nn] = vmnics
+            self.vms[vmName].groups = self.vc.get_vmgroups_name(vmName)
 
-            vmStateCmd = "\""+self.vmcli + "\" " + "\""+str(self.tempVMs[vmName].name) + "\" Power query"
+            vmStateCmd = "\""+self.vmcli + "\" " + "\""+str(self.vms[vmName].name) + "\" Power query"
             logging.info("runVMSInfo(): Running " + vmStateCmd)
             p = Popen(shlex.split(vmStateCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
@@ -264,13 +258,13 @@ class VMwareManage(VMManage):
                     logging.debug("Command Output: " + str(out))
                     res = re.match("PowerState:", out)
                     if res:
-                        # logging.debug("Found vmState: " + out + " added to " + self.tempVMs[aVM].name)
-                        logging.info("Command Output: " + out)
+                        # logging.debug("Found vmState: " + out + " added to " + self.vms[aVM].name)
+                        logging.debug("Command Output: " + out)
                         state = out.strip().split(" ")[1].strip()
-                        self.tempVMs[vmName].state = state
+                        self.vms[vmName].state = state
             #p.wait()
 
-            vmStateCmd = "\""+self.vmcli + "\" " + "\""+str(self.tempVMs[vmName].name) + "\" Snapshot query"
+            vmStateCmd = "\""+self.vmcli + "\" " + "\""+str(self.vms[vmName].name) + "\" Snapshot query"
             logging.info("runVMSInfo(): Running " + vmStateCmd)
             p2 = Popen(shlex.split(vmStateCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, encoding="utf-8")
             while True:
@@ -281,19 +275,10 @@ class VMwareManage(VMManage):
                     logging.debug("Command Output: " + str(out))
                     res = re.match("currentUID", out)
                     if res:
-                        # logging.debug("Found snaps: " + out + " added to " + self.tempVMs[aVM].latestSnapUUID)
+                        # logging.debug("Found snaps: " + out + " added to " + self.vms[aVM].latestSnapUUID)
                         logging.info("Command Output: " + out)
                         latestSnap = out.strip().split(" ")[1].strip()
-                        self.tempVMs[vmName].latestSnapUUID = latestSnap
-
-            #p2.wait()
-            try:
-                #Set self.vms to our temporary -- did it this way to save time
-                self.lock.acquire()
-                logging.debug("VM: " + str(vmName) + "\r\nself.vms: " + str(self.vms) + "\r\nself.tempVMs: " + str(self.tempVMs))
-                self.vms[vmName] = self.tempVMs[vmName]
-            finally:
-                self.lock.release()
+                        self.vms[vmName].latestSnapUUID = latestSnap
 
             logging.debug("runVMInfo(): Thread 2 completed.")
         except Exception:
@@ -610,7 +595,7 @@ class VMwareManage(VMManage):
         finally:
             self.lock.release()
 
-    def runRemoveVM(self, vmName, vmUUID):
+    def runRemoveVM(self, vmName):
         logging.debug("VMwareManage: runRemoveVM(): instantiated")
         try:
             self.readStatus = VMManage.MANAGER_READING
