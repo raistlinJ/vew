@@ -24,25 +24,47 @@ class WatchRetrieveThread(QThread):
         try:
             e = Engine.getInstance()
             
-            logging.debug("WatchRetrieveThread(): running: experiment refresh " + self.configname)
-            e.execute("experiment refresh " + self.configname)
-            #will check status every 0.5 second and will either display stopped or ongoing or connected
-            dots = 1
-            while(True):
-                logging.debug("watchRetrieveStatus(): running: experiment refresh")
-                self.status = e.execute("experiment status")
-                logging.debug("watchRetrieveStatus(): result: " + str(self.status))
-                if self.status["writeStatus"] != ExperimentManage.ExperimentManage.EXPERIMENT_MANAGE_COMPLETE:
-                    dotstring = ""
-                    for i in range(1,dots):
-                        dotstring = dotstring + "."
-                    self.watchsignal.emit( "Reading VM Status"+dotstring, self.status, None)
-                    dots = dots+1
-                    if dots > 4:
-                        dots = 1
-                else:
-                    break
-                time.sleep(0.5)
+            #if for a specific config:
+            if self.configname != None:
+                logging.debug("WatchRetrieveThread(): running: experiment refresh " + self.configname)
+                e.execute("experiment refresh " + self.configname)
+                #will check status every 0.5 second and will either display stopped or ongoing or connected
+                dots = 1
+                while(True):
+                    logging.debug("watchRetrieveStatus(): running: experiment status")
+                    self.status = e.execute("experiment status")
+                    logging.debug("watchRetrieveStatus(): result: " + str(self.status))
+                    if self.status["writeStatus"] != ExperimentManage.ExperimentManage.EXPERIMENT_MANAGE_COMPLETE:
+                        dotstring = ""
+                        for i in range(1,dots):
+                            dotstring = dotstring + "."
+                        self.watchsignal.emit( "Reading VM Status"+dotstring, self.status, None)
+                        dots = dots+1
+                        if dots > 4:
+                            dots = 1
+                    else:
+                        break
+                    time.sleep(0.5)
+            else:
+                logging.debug("WatchRetrieveThread(): running: vm-manage refresh")
+                e.execute("vm-manage refresh")
+                #will check status every 0.5 second and will either display stopped or ongoing or connected
+                dots = 1
+                while(True):
+                    logging.debug("watchRetrieveStatus(): running: vm-manage status")
+                    self.status = e.execute("vm-manage mgrstatus")
+                    logging.debug("watchRetrieveStatus(): result: " + str(self.status))
+                    if self.status["writeStatus"] != ExperimentManage.ExperimentManage.EXPERIMENT_MANAGE_COMPLETE:
+                        dotstring = ""
+                        for i in range(1,dots):
+                            dotstring = dotstring + "."
+                        self.watchsignal.emit( "Reading VM Status"+dotstring, self.status, None)
+                        dots = dots+1
+                        if dots > 4:
+                            dots = 1
+                    else:
+                        break
+                    time.sleep(0.5)
             logging.debug("WatchRetrieveThread(): thread ending")
             self.watchsignal.emit("Retrieval Complete", self.status, True)
             return
@@ -64,7 +86,7 @@ class WatchRetrieveThread(QThread):
             return None
 
 class VMRetrievingDialog(QDialog):
-    def __init__(self, parent, configname):
+    def __init__(self, parent, configname=None):
         logging.debug("VMRetrievingDialog(): instantiated")
         super(VMRetrievingDialog, self).__init__(parent)     
         

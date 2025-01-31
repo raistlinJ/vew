@@ -6,6 +6,7 @@ import shlex
 import argparse
 import sys
 import os
+import re
 from engine.Manager.ConnectionManage.ConnectionManageGuacRDP import ConnectionManageGuacRDP
 from engine.Manager.ChallengesManage.ChallengesManageCTFd import ChallengesManageCTFd
 from engine.Manager.PackageManage.PackageManageVBox import PackageManageVBox
@@ -93,8 +94,7 @@ class Engine:
     def vmManageRefreshCmd(self, args):
         logging.debug("vmManageRefreshCmd(): instantiated")
         #will import res package from file
-        configname = args.configname
-        self.vmManage.refreshAllVMInfo(configname)
+        self.vmManage.refreshAllVMInfo()
 
     def packagerStatusCmd(self, args):
         logging.debug("packagerStatusCmd(): instantiated")
@@ -278,7 +278,7 @@ class Engine:
         #will create instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
         itype=args.itype
-        name=args.name
+        name = args.name.replace("\"","").replace("'","")
         if name == "all":
             return self.experimentManage.createExperiment(configname)    
         return self.experimentManage.createExperiment(configname, itype, name)
@@ -288,7 +288,7 @@ class Engine:
         #will start instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
         itype=args.itype
-        name=args.name
+        name = args.name.replace("\"","").replace("'","")
         if name == "all":
             return self.experimentManage.startExperiment(configname)    
         return self.experimentManage.startExperiment(configname, itype, name)
@@ -298,7 +298,7 @@ class Engine:
         #will suspend instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
         itype=args.itype
-        name=args.name
+        name = args.name.replace("\"","").replace("'","")
         if name == "all":
             return self.experimentManage.suspendExperiment(configname)    
         return self.experimentManage.suspendExperiment(configname, itype, name)
@@ -308,7 +308,7 @@ class Engine:
         #will pause instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
         itype=args.itype
-        name=args.name
+        name = args.name.replace("\"","").replace("'","")
         if name == "all":
             return self.experimentManage.pauseExperiment(configname)    
         return self.experimentManage.pauseExperiment(configname, itype, name)
@@ -318,7 +318,7 @@ class Engine:
         #will snapshot instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
         itype=args.itype
-        name=args.name
+        name = args.name.replace("\"","").replace("'","")
         if name == "all":
             return self.experimentManage.snapshotExperiment(configname)    
         return self.experimentManage.snapshotExperiment(configname, itype, name)
@@ -328,7 +328,7 @@ class Engine:
         #will start instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
         itype=args.itype
-        name=args.name
+        name = args.name.replace("\"","").replace("'","")
         if name == "all":
             return self.experimentManage.stopExperiment(configname)    
         return self.experimentManage.stopExperiment(configname, itype, name)
@@ -338,7 +338,7 @@ class Engine:
         #will remove instances of the experiment (clones of vms) as specified in configfile
         configname = args.configname
         itype=args.itype
-        name=args.name
+        name = args.name.replace("\"","").replace("'","")
         if name == "all":
             return self.experimentManage.removeExperiment(configname)    
         return self.experimentManage.removeExperiment(configname, itype, name)
@@ -348,7 +348,7 @@ class Engine:
         #will restore state of the experiment (latest snapshots of vms) as specified in configfile
         configname = args.configname
         itype=args.itype
-        name=args.name
+        name = args.name.replace("\"","").replace("'","")
         if name == "all":
             return self.experimentManage.restoreExperiment(configname)    
         return self.experimentManage.restoreExperiment(configname, itype, name)
@@ -358,7 +358,7 @@ class Engine:
         #will run guest commands of the experiment as specified in configfile
         configname = args.configname
         itype=args.itype
-        name=args.name
+        name = args.name.replace("\"","").replace("'","")
         if name == "all":
             return self.experimentManage.guestCmdsExperiment(configname)    
         return self.experimentManage.guestCmdsExperiment(configname, itype, name)
@@ -368,7 +368,7 @@ class Engine:
         #will run guest commands of the experiment as specified in configfile
         configname = args.configname
         itype=args.itype
-        name=args.name
+        name = args.name.replace("\"","").replace("'","")
         if name == "all":
             return self.experimentManage.guestStoredCmdsExperiment(configname)    
         return self.experimentManage.guestStoredCmdsExperiment(configname, itype, name)
@@ -436,8 +436,6 @@ class Engine:
 
         self.vmRefreshParser = self.vmManageSubParsers.add_parser('refresh', help='retreive vm information')
         self.vmRefreshParser.set_defaults(func=self.vmManageRefreshCmd)
-        self.vmRefreshParser.add_argument('configname', metavar='<config filename>', action="store",
-                                          help='path to config file')
 
 # -----------Packager
         self.packageManageParser = self.subParsers.add_parser('packager')
@@ -751,8 +749,11 @@ class Engine:
         try:
             #parse out the command
             logging.debug("execute(): Received: " + str(cmd))
-            r = self.parser.parse_args(shlex.split(cmd))
-            #r = self.parser.parse_args(cmd)
+            if sys.platform == "linux" or sys.platform == "darwin":
+                cmd = shlex.split(cmd, posix=True)
+            else:
+                cmd = shlex.split(cmd, posix=False)
+            r = self.parser.parse_args(cmd)
             logging.debug("execute(): returning result: " + str(r))
             return r.func(r)
         except argparse.ArgumentError as err:

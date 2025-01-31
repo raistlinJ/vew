@@ -49,8 +49,8 @@ class VMRetrieveDialog(QDialog):
         self.treeWidget.itemSelectionChanged.connect(self.onItemSelected)
         
         self.box_main_layout.addWidget(self.treeWidget, 1, 0)
-        
-        s = VMRetrievingDialog(self.parent).exec_()
+        #use configname None to retrieve all VMs
+        s = VMRetrievingDialog(self.parent, configname=None).exec_()
         self.vms = s["vmstatus"]
         
         if len(self.vms) == 0:

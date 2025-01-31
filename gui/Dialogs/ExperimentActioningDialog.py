@@ -34,25 +34,25 @@ class ExperimentActionThread(QThread):
         try:
             e = Engine.getInstance()
             if self.actionname == "Create Experiment":
-                e.execute("experiment create " + str(self.configname) + " " + str(self.itype) + " \"" + str(self.name) + "\"")
+                e.execute("experiment create " + str(self.configname) + " " + str(self.itype) + " " + str(self.name))
             elif self.actionname == "Start Experiment":
-                e.execute("experiment start " + str(self.configname) + " " + str(self.itype) + " \"" + str(self.name) + "\"")
+                e.execute("experiment start " + str(self.configname) + " " + str(self.itype) + " " + str(self.name))
             elif self.actionname == "Stop Experiment":
-                e.execute("experiment stop " + str(self.configname) + " " + str(self.itype) + " \"" + str(self.name) + "\"")
+                e.execute("experiment stop " + str(self.configname) + " " + str(self.itype) + " " + str(self.name))
             elif self.actionname == "Suspend Experiment":
-                e.execute("experiment suspend " + str(self.configname) + " " + str(self.itype) + " \"" + str(self.name) + "\"")
+                e.execute("experiment suspend " + str(self.configname) + " " + str(self.itype) + " " + str(self.name))
             elif self.actionname == "Pause Experiment":
-                e.execute("experiment pause " + str(self.configname) + " " + str(self.itype) + " \"" + str(self.name) + "\"")
+                e.execute("experiment pause " + str(self.configname) + " " + str(self.itype) + " " + str(self.name))
             elif self.actionname == "Snapshot Experiment":
-                e.execute("experiment snapshot " + str(self.configname) + " " + str(self.itype) + " \"" + str(self.name) + "\"")
+                e.execute("experiment snapshot " + str(self.configname) + " " + str(self.itype) + " " + str(self.name))
             elif self.actionname == "Restore Experiment":
-                e.execute("experiment restore " + str(self.configname) + " " + str(self.itype) + " \"" + str(self.name) + "\"")
+                e.execute("experiment restore " + str(self.configname) + " " + str(self.itype) + " " + str(self.name))
             elif self.actionname == "Remove Experiment":
-                e.execute("experiment remove " + str(self.configname) + " " + str(self.itype) + " \"" + str(self.name) + "\"")
+                e.execute("experiment remove " + str(self.configname) + " " + str(self.itype) + " " + str(self.name))
             elif self.actionname == "Run GuestCmds":
-                e.execute("experiment guestcmd " + str(self.configname) + " " + str(self.itype) + " \"" + str(self.name) + "\"")
+                e.execute("experiment guestcmd " + str(self.configname) + " " + str(self.itype) + " " + str(self.name))
             elif self.actionname == "Run GuestStored":
-                e.execute("experiment gueststored " + str(self.configname) + " " + str(self.itype) + " \"" + str(self.name) + "\"")
+                e.execute("experiment gueststored " + str(self.configname) + " " + str(self.itype) + " " + str(self.name))
             
             #will check status every 0.5 second and will either display stopped or ongoing or connected
             dots = 1

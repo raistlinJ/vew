@@ -77,7 +77,7 @@ class ExperimentManageVMware(ExperimentManage):
                 status = self.vmManage.getManagerStatus()["writeStatus"]
                 while status != VMManage.MANAGER_IDLE:
                     #waiting for vmmanager clone vm to finish reading/writing...
-                    logging.info("runCreateExperiment(): waiting for vmmanager clone vm to finish reading/writing (cloning set)..." + str(status) + ":: " + str(i))
+                    logging.debug("runCreateExperiment(): waiting for vmmanager clone vm to finish reading/writing (cloning set)..." + str(status) + ":: " + str(i))
                     time.sleep(1)
                     status = self.vmManage.getManagerStatus()["writeStatus"]
                 
