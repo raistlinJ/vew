@@ -163,11 +163,11 @@ class ChallengesWidget(QtWidgets.QWidget):
         rolledoutjson = self.rolledoutjson
 
         if rolledoutjson != None:
-            #first check if ther'es an RDP Broker IP, if not, disable the tree and add a description to configname
+            #first check if ther'es an Challenges Server IP, if not, disable the tree and add a description to configname
             if "rdp-broker-ip" not in config_jsondata["xml"]["testbed-setup"]["network-config"] or \
-                config_jsondata["xml"]["testbed-setup"]["network-config"]["rdp-broker-ip"] == None or \
-                    config_jsondata["xml"]["testbed-setup"]["network-config"]["rdp-broker-ip"].strip() == "":
-                experimentTreeWidgetItem.setText(0,configname+" (RDP Broker Address required)")
+                config_jsondata["xml"]["testbed-setup"]["network-config"]["challenges-server-ip"] == None or \
+                    config_jsondata["xml"]["testbed-setup"]["network-config"]["challenges-server-ip"].strip() == "":
+                experimentTreeWidgetItem.setText(0,configname+" (Challenge Server IP Address required)")
                 experimentTreeWidgetItem.setDisabled(True)
             #get the usersConn associations first:
             # if file was specified, but it doesn't exist, prepend usernames

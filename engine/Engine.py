@@ -78,7 +78,8 @@ class Engine:
         return {"VMMgr" : self.vmManage.getManagerStatus,
                     "PackageMgr" : self.packageManage.getPackageManageStatus(),
                     "ConnectionMgr" : self.connectionManage.getConnectionManageStatus(),
-                    "ExperimentMgr": self.experimentManage.getExperimentManageStatus() }
+                    "ExperimentMgr": self.experimentManage.getExperimentManageStatus(),
+                    "ChallengesMgr": self.challengesManage.getChallengesManageStatus() }
 
     def vmManageVMStatusCmd(self, args):
         logging.debug("vmManageStatusCmd(): instantiated")
