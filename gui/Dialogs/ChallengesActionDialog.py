@@ -136,11 +136,9 @@ class ChallengesActionDialog(QDialog):
                 return cod
             elif self.actionname == "ViewChallStats":
                 self.eco.storeConfigChallengeSysCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.methodComboBox.currentText())
-                                #Here open the dialog to show all challenges stats
-                #QMessageBox(QMessageBox.Information, "Challenges Stats", "Challenges Stats", QMessageBox.Ok).exec_()
                 csr = ChallengesStatsRetrieveDialog(self.parent, self.args).exec_()
             else:
+                self.eco.storeConfigChallengeSysCreds(self.configname, self.usernameLineEdit.text(), self.passwordLineEdit.text(), self.methodComboBox.currentText())
                 cad = ChallengesActioningDialog(self.parent, self.configname, self.actionname, self.args).exec_()
-                #Open dialog here showing all challenges stats
                 return (QMessageBox.Ok)
         return (QMessageBox.Cancel)
